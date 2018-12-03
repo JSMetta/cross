@@ -1,0 +1,19 @@
+{
+  "name": "cross",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JSMetta/cross.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JSMetta/cross/issues"
+  },
+  "homepage": "https://github.com/JSMetta/cross#readme"
+}
