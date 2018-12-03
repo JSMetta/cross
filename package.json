@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/JSMetta/cross#readme",
   "dependencies": {
-    "@finelets/hyper-rest": "^2.1.9"
+    "@finelets/hyper-rest": "^2.1.9",
+    "dotenv": "^6.1.0"
   }
 }
