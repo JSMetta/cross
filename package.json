@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/JSMetta/cross/issues"
   },
-  "homepage": "https://github.com/JSMetta/cross#readme"
+  "homepage": "https://github.com/JSMetta/cross#readme",
+  "dependencies": {
+    "@finelets/hyper-rest": "^2.1.9"
+  }
 }
