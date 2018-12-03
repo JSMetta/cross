@@ -9,6 +9,7 @@ var app = appBuilder.getApp();
 
 appBuilder
 	.setWebRoot('/root', './client')
+	.setFavicon('client/imgs/favicon.jpg')
 	.end();
 
 //connectDb(function () {
