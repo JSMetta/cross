@@ -4,4 +4,3 @@ coverage/
 .vscode/
 node_modules/
 .env
-db/
