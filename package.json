@@ -24,6 +24,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "chai-xml": "^0.3.2",
+    "chance": "^1.0.18",
     "mocha": "^5.2.0",
     "mocha-mongoose": "^1.2.0",
     "mock-express-request": "^0.2.2",
