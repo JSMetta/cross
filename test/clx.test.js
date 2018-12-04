@@ -51,5 +51,9 @@ describe('All', function () {
 		beforeEach(function (done) {
 			return clearDB(done);
 		});
+
+		it('add supplier', function(){
+			
+		})
 	});
 });
