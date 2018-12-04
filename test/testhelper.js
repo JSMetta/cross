@@ -20,6 +20,7 @@ global.clearDB = require('@finelets/hyper-rest/db/mongoDb/clearDB')(dbURI);
 global.expect = chai.expect;
 global.assert = chai.assert;
 global.sinon = sinon;
+global.should = require('should');
 chai.use(chaiXml);
 chai.use(sinonChai);
 
