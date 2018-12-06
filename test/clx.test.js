@@ -1,59 +1,114 @@
 var proxyquire = require('proxyquire'),
 	dbSave = require('@finelets/hyper-rest/db/mongoDb/SaveObjectToDb');
 
-describe('All', function () {
-	var stubs, err;
+describe('Cross - clx', function () {
+	var stubs, err
 	before(function () {
-		mongoose.Promise = global.Promise;
-	});
+		mongoose.Promise = global.Promise
+	})
 
 	beforeEach(function () {
-		stubs = {};
-		err = new Error('any error message');
-	});
+		stubs = {}
+		err = new Error('any error message')
+	})
 
-	describe('upload purchases from CVS data file', function () {
-		beforeEach(function () {});
+	describe('CSVStream', function () {
+		const csvStream = require('../finelets/streams/CSVStream'),
+		row = {
+			data: 'any data of row'
+		};
+		var parseRow, saveRow, stream;
 
-		it('ok', function () {
-			const stream = require('stream'),
-				util = require('util'),
-				chance = require('chance').Chance();
-
-			function RandomStream(options) {
-				stream.Readable.call(this, options);
-			}
-			util.inherits(RandomStream, stream.Readable);
-
-			RandomStream.prototype._read = function (size) {
-				var chunk = chance.string(); 
-				console.log('Pushing chunk of size:' + chunk.length);
-				this.push(chunk, 'utf8'); 
-				if (chance.bool({
-						likelihood: 5
-					})) {
-					this.push(null);
-				}
-			}
-
-			var rs = new RandomStream();
-			rs.on('readable', function () {
-				var chunk;
-				while ((chunk = randomStream.read()) !== null) {
-					console.log("Chunk received: " + chunk.toString());
-					chunk.should.eql('aaaa');
-				}
-			});
+		beforeEach(function (done) {
+			parseRow = sinon.stub();
+			saveRow = sinon.stub();
+			stream = csvStream(saveRow, parseRow);
+			return clearDB(done);
 		})
-	});
+
+		it('数据格式错', function (done) {
+			parseRow.withArgs('foo').throws(err);
+			stream.on('error', function (e) {
+				e.message.should.eql('Row 0 data format error');
+				done();
+			});
+
+			stream.write('foo\r\n');
+			stream.end();
+		});
+
+		it('可忽略的数据行', function (done) {
+			parseRow.withArgs('foo').returns(null);
+			stream.on('finish', function () {
+				saveRow.callCount.should.eql(0);
+				done();
+			});
+
+			stream.write('foo\r\n');
+			stream.end();
+		});
+
+		it('保存失败', function (done) {
+			parseRow.withArgs('foo').returns(row);
+			saveRow.withArgs(row).rejects(err);
+			stream.on('error', function (e) {
+				e.should.eql(err);
+				saveRow.callCount.should.eql(1);
+				done();	
+			});
+
+			stream.write('foo\r\n');
+			stream.end();
+		});
+
+		it('单一流块 - single chunk', function (done) {
+			parseRow.withArgs('foo').returns(row);
+			saveRow.withArgs(row).resolves();
+
+			stream.on('finish', function () {
+				saveRow.callCount.should.eql(1);
+				done();
+			});
+
+			stream.write('foo\r\n');
+			stream.end(); 			
+		});
+
+		it('多流块 - multiple chunk', function (done) {
+			parseRow.withArgs('foo').returns(row);
+			saveRow.withArgs(row).resolves();
+
+			stream.on('finish', function () {
+				saveRow.callCount.should.eql(3);
+				done();
+			});
+
+			stream.write('foo\r\nfoo\r\n');
+			stream.write('foo\r\n');
+			stream.end();
+		});
+		
+		it('Row seperated by multiple chunk', function (done) {
+			parseRow.withArgs('foo,fee,fuu').returns(row);
+			saveRow.withArgs(row).resolves();
+
+			stream.on('finish', function () {
+				saveRow.callCount.should.eql(1);
+				done();
+			});
+
+			stream.write('foo,');
+			stream.write('fee,');
+			stream.write('fuu\r\n');
+			stream.end();
+		});
+	})
 
 	describe('数据库', function () {
 		beforeEach(function (done) {
-			return clearDB(done);
-		});
-
-		it('add supplier', function(){
-			
+			return clearDB(done)
 		})
-	});
-});
+
+		it('add supplier', function () {})
+	})
+})
