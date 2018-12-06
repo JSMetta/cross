@@ -19,7 +19,8 @@
   "dependencies": {
     "@finelets/hyper-rest": "^2.1.9",
     "bluebird": "^3.5.3",
-    "dotenv": "^6.1.0"
+    "dotenv": "^6.1.0",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
