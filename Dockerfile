@@ -20,7 +20,7 @@ RUN mkdir -p /src && cp -a /tmp/node_modules /src/
 
 # Define working directory
 WORKDIR /src
-ADD server.js /src
+ADD server.js /src/server.js
 
 # Expose port
 EXPOSE  8080
