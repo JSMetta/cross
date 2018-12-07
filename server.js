@@ -23,7 +23,8 @@ logger.info(process.env.REDIS_PORT_6379_TCP_ADDR + ':' + process.env.REDIS_PORT_
 var client = redis.createClient('6379', 'redis')
 
 app.get('/', function (req, res, next) {
-	res.send('hello cross users 1.0.1')
+	var pjson = require('./package.json');
+	res.send('hello cross users ' + pjson.version);
 })
 
 app.get('/redis', function (req, res, next) {
