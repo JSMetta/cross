@@ -20,6 +20,7 @@ RUN mkdir -p /src && cp -a /tmp/node_modules /src/
 
 # Define working directory
 WORKDIR /src
+ADD .env /src/.env
 ADD . /src
 
 # Expose port
