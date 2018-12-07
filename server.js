@@ -11,7 +11,7 @@ appBuilder
 	.setFavicon('client/imgs/favicon.jpg')
 	.end();
 
-logger.info(process.env.REDIS_PORT_6379_TCP_ADDR + ':' + process.env.REDIS_PORT_6379_TCP_PORT);
+//logger.info(process.env.REDIS_PORT_6379_TCP_ADDR + ':' + process.env.REDIS_PORT_6379_TCP_PORT);
 
 // APPROACH 1: Using environment variables created by Docker
 // var client = redis.createClient(
