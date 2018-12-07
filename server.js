@@ -1,3 +1,5 @@
+"use strict";
+
 // require('dotenv').config();
 const connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
 	appBuilder = require('@finelets/hyper-rest/express/AppBuilder').begin(__dirname),
@@ -20,7 +22,7 @@ appBuilder
 // )
 
 // APPROACH 2: Using host entries created by Docker in /etc/hosts (RECOMMENDED)
-var client = redis.createClient('6379', 'redis')
+//var client = redis.createClient('6379', 'redis')
 
 app.get('/', function (req, res, next) {
 	var pjson = require('./package.json');
