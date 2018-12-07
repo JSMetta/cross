@@ -1,7 +1,7 @@
-"use strict";
+//"use strict";
 
 // require('dotenv').config();
-const connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
+var connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
 	appBuilder = require('@finelets/hyper-rest/express/AppBuilder').begin(__dirname),
 	logger = require('@finelets/hyper-rest/app/Logger'),
 	redis = require('redis');
