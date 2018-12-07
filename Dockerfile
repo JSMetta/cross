@@ -16,11 +16,11 @@ RUN npm install -g nodemon
 # Provides cached layer for node_modules
 ADD package.json /tmp/package.json
 RUN cd /tmp && npm install
-RUN mkdir -p /src && cp -a /tmp/node_modules /src/ && cp ./server.js /src/
+RUN mkdir -p /src && cp -a /tmp/node_modules /src/
 
 # Define working directory
 WORKDIR /src
-ADD . /src
+ADD server.js /src
 
 # Expose port
 EXPOSE  8080
