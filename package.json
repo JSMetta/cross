@@ -20,6 +20,7 @@
     "@finelets/hyper-rest": "^2.1.9",
     "bluebird": "^3.5.3",
     "dotenv": "^6.1.0",
+    "express": "^4.16.4",
     "redis": "^2.8.0"
   },
   "devDependencies": {
