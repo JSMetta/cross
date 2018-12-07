@@ -26,4 +26,4 @@ ADD server.js /src/server.js
 EXPOSE  8080
 
 # Run app using nodemon
-CMD ["nodemon", "/src/server.js"]
+CMD ["node", "/src/server.js"]
