@@ -24,8 +24,8 @@ var client = redis.createClient('6379', 'redis')
 app.get('/redis', function (req, res, next) {
 	client.incr('counter', function (err, counter) {
 		if (err) return next(err);
-		var pjson = require('./package.json');
-		res.send('Cross version ' + pjson + ': This page has been viewed ' + counter + ' times!')
+		// var pjson = require('./package.json');
+		res.send('Cross version ' + 'pjson' + ': This page has been viewed ' + counter + ' times!')
 	})
 })
 
