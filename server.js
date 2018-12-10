@@ -21,15 +21,11 @@ logger.info(process.env.REDIS_PORT_6379_TCP_ADDR + ':' + process.env.REDIS_PORT_
 // APPROACH 2: Using host entries created by Docker in /etc/hosts (RECOMMENDED)
 var client = redis.createClient('6379', 'redis')
 
-app.get('/', function (req, res, next) {
-	var pjson = require('./package.json');
-	res.send('hello cross users ' + pjson.version);
-})
-
 app.get('/redis', function (req, res, next) {
 	client.incr('counter', function (err, counter) {
-		if (err) return next(err)
-		res.send('This page has been viewed ' + counter + ' times!')
+		if (err) return next(err);
+		var pjson = require('./package.json');
+		res.send('Cross version ' + pjson + ': This page has been viewed ' + counter + ' times!')
 	})
 })
 
