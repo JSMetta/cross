@@ -21,8 +21,6 @@ services:
     links:
       - mongodb:crossdb
       - redis:redis
-    volumes:
-     - .:/src
   nginx:
     build: ./nginx
     links:
