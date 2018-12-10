@@ -33,10 +33,10 @@ app.get('/redis', function (req, res, next) {
 	})
 })
 
-//connectDb(function () {
+connectDb(function () {
 	logger.info('connect mongodb success .......');
 	var server = appBuilder.run(function () {
 		const addr = server.address();
 		logger.info('the server is running and listening at ' + addr.port);
 	});
-//});
+});

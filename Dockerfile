@@ -10,6 +10,7 @@ WORKDIR /src
 ADD . /src
 
 ENV PORT 8080
+ENV MONGODB=mongodb://localhost:27017/Cross
 
 # Expose port
 EXPOSE  8080
