@@ -11,4 +11,4 @@ docker run -d -p 8089:8080 --link redis:redis --name cross jsmetta/cross
 
 docker run -it --link mongodb:mongo --rm mongo mongo --host mongo test
 
-docker run -d --name nginx -p 80:80 --link cross:cross jsmetta/nginx
+docker run -d --name nginx -p 80:80 --link cross:cross cross/nginx

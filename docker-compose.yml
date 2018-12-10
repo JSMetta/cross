@@ -1,14 +1,9 @@
 version: "2"
 services:
-  cross:
-    container_name: cross
-    restart: unless-stopped
-    build: .
+  redis:
+    image: redis
     ports:
-      - "9001:9001"
-    links:
-      - mongodb:crossdb
-      - redis:redis
+        - "6379"
   mongodb:
     container_name: mongodb
     image: mongo
@@ -16,4 +11,19 @@ services:
       - /home/mongo/data:/data/db
       - /home/mongo/backups:/backups
     ports:
-      - "27017:27017"
+      - "27017"
+  cross:
+    container_name: cross
+    restart: unless-stopped
+    build: .
+    ports:
+      - "8080"
+    links:
+      - mongodb:crossdb
+      - redis:redis
+  nginx:
+    build: ./nginx
+    links:
+        - cross:cross
+    ports:
+        - "80:80"
