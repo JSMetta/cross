@@ -8,10 +8,11 @@ const connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
 	redis = require('redis');
 
 var app = appBuilder.getApp();
-app.use(cors({
+app.use(cors())
+/* app.use(cors({
 	origin: process.env.CLIENT_ORIGIN || 'http://localhost:8080',
 	optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-  }));
+  })); */
 
 appBuilder
 	.setWebRoot('/root', './client')
