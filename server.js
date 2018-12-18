@@ -1,9 +1,17 @@
+require('dotenv').config();
 const connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
 	appBuilder = require('@finelets/hyper-rest/express/AppBuilder').begin(__dirname),
 	logger = require('@finelets/hyper-rest/app/Logger'),
+	cors = require('cors'),
+	upload = require('multer')({ dest: 'uploads/' }),
+	fs = require('fs'),
 	redis = require('redis');
 
 var app = appBuilder.getApp();
+app.use(cors({
+	origin: process.env.CLIENT_ORIGIN || 'http://localhost:8080',
+	optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  }));
 
 appBuilder
 	.setWebRoot('/root', './client')
@@ -19,7 +27,7 @@ logger.info(process.env.REDIS_PORT_6379_TCP_ADDR + ':' + process.env.REDIS_PORT_
 // )
 
 // APPROACH 2: Using host entries created by Docker in /etc/hosts (RECOMMENDED)
-var client = redis.createClient('6379', 'redis')
+// var client = redis.createClient('6379', 'redis')
 
 app.get('/redis', function (req, res, next) {
 	client.incr('counter', function (err, counter) {
@@ -27,6 +35,14 @@ app.get('/redis', function (req, res, next) {
 		var pjson = require('./package.json');
 		res.send('Cross version ' + pjson.version + ': This page has been viewed ' + counter + ' times!')
 	})
+})
+
+app.post("/api/purchases/csv", upload.single('purchases.csv'), function(req, res) {
+	logger.debug('begin to upload')
+	var data = req.file
+	logger.info(JSON.stringify({foo: 'foo', fee:'fee'}))
+	logger.info(JSON.stringify(data))
+	res.send(data)
 })
 
 connectDb(function () {
