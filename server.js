@@ -14,7 +14,7 @@ app.use(cors())
   })); */
 
 appBuilder
-	.setWebRoot('/root', './client')
+	.setWebRoot('/cross/root', './client')
 	.setFavicon('client/imgs/favicon.jpg')
 	.end();
 
@@ -37,7 +37,7 @@ app.get('/cross/redis', function (req, res, next) {
 	})
 })
 
-app.post("/api/purchases/csv", upload.single('purchases.csv'), function(req, res) {
+app.post("/cross/purchases/csv", upload.single('purchases.csv'), function(req, res) {
 	logger.debug('begin to upload')
 	var data = req.file
 	logger.info(JSON.stringify(data))
