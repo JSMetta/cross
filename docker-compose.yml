@@ -1,6 +1,7 @@
 version: "2"
 services:
   redis:
+    container_name: redis
     image: redis
     ports:
         - "6379"
@@ -23,6 +24,7 @@ services:
       - redis:redis
   nginx:
     build: ./nginx
+    container_name: nginx
     links:
         - cross:cross
     ports:
