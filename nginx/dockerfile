@@ -1,6 +1,7 @@
 FROM node:latest as vcross-stage
+
 WORKDIR /app
-COPY ../VCross/package*.json ./
+COPY ../../VCross/package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
