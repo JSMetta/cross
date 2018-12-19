@@ -1,6 +1,6 @@
 {
   "name": "cross",
-  "version": "1.0.0",
+  "version": "1.0.8",
   "description": "",
   "main": "server.js",
   "scripts": {
@@ -19,7 +19,10 @@
   "dependencies": {
     "@finelets/hyper-rest": "^2.1.9",
     "bluebird": "^3.5.3",
-    "dotenv": "^6.1.0"
+    "cors": "^2.8.5",
+    "dotenv": "^6.1.0",
+    "multer": "^1.4.1",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
