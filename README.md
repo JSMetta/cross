@@ -8,7 +8,7 @@ Clone cross：
 ```
 git clone -b docker-deploy-test https://github.com/JSMetta/cross.git
 cd cross
-git pull origin docker-deploy-test
+git pull origin dev
 
 git clone -b vcross-1.0.1 https://github.com/JSMetta/VCross.git
 cd VCross
