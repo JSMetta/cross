@@ -6,7 +6,7 @@ const connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
 	restDir = path.join(__dirname, './server/rests'),
 	graph = require('./server/StateGraph'),
 	rests = require('@finelets/hyper-rest/rests')(restDir, graph);
-	
+
 appBuilder
 	.setWebRoot('/cross/root', './client')
 	.setFavicon('client/imgs/favicon.jpg')

@@ -12,97 +12,184 @@ describe('Cross - clx', function () {
 		err = new Error('any error message')
 	})
 
-	describe('CSVStream', function () {
-		const csvStream = require('../finelets/streams/CSVStream'),
-		row = {
-			data: 'any data of row'
-		};
-		var parseRow, saveRow, stream;
+	describe('Finelets', () => {
+		describe('CSVStream', function () {
+			const csvStream = require('../finelets/streams/CSVStream'),
+				row = {
+					data: 'any data of row'
+				};
+			var parseRow, saveRow, stream;
 
-		beforeEach(function (done) {
-			parseRow = sinon.stub();
-			saveRow = sinon.stub();
-			stream = csvStream(saveRow, parseRow);
-			return clearDB(done);
+			beforeEach(function (done) {
+				parseRow = sinon.stub();
+				saveRow = sinon.stub();
+				stream = csvStream(saveRow, parseRow);
+				return clearDB(done);
+			})
+
+			it('数据格式错', function (done) {
+				parseRow.withArgs('foo').throws(err);
+				stream.on('error', function (e) {
+					e.message.should.eql('Row 0 data format error');
+					done();
+				});
+
+				stream.write('foo\r\n');
+				stream.end();
+			});
+
+			it('可忽略的数据行', function (done) {
+				parseRow.withArgs('foo').returns(null);
+				stream.on('finish', function () {
+					saveRow.callCount.should.eql(0);
+					done();
+				});
+
+				stream.write('foo\r\n');
+				stream.end();
+			});
+
+			it('保存失败', function (done) {
+				parseRow.withArgs('foo').returns(row);
+				saveRow.withArgs(row).rejects(err);
+				stream.on('error', function (e) {
+					e.should.eql(err);
+					saveRow.callCount.should.eql(1);
+					done();
+				});
+
+				stream.write('foo\r\n');
+				stream.end();
+			});
+
+			it('单一流块 - single chunk', function (done) {
+				parseRow.withArgs('foo').returns(row);
+				saveRow.withArgs(row).resolves();
+
+				stream.on('finish', function () {
+					saveRow.callCount.should.eql(1);
+					done();
+				});
+
+				stream.write('foo\r\n');
+				stream.end();
+			});
+
+			it('多流块 - multiple chunk', function (done) {
+				parseRow.withArgs('foo').returns(row);
+				saveRow.withArgs(row).resolves();
+
+				stream.on('finish', function () {
+					saveRow.callCount.should.eql(3);
+					done();
+				});
+
+				stream.write('foo\r\nfoo\r\n');
+				stream.write('foo\r\n');
+				stream.end();
+			});
+
+			it('Row seperated by multiple chunk', function (done) {
+				parseRow.withArgs('foo,fee,fuu').returns(row);
+				saveRow.withArgs(row).resolves();
+
+				stream.on('finish', function () {
+					saveRow.callCount.should.eql(1);
+					done();
+				});
+
+				stream.write('foo,');
+				stream.write('fee,');
+				stream.write('fuu\r\n');
+				stream.end();
+			});
 		})
 
-		it('数据格式错', function (done) {
-			parseRow.withArgs('foo').throws(err);
-			stream.on('error', function (e) {
-				e.message.should.eql('Row 0 data format error');
-				done();
-			});
+		describe('JsonValueType', () => {
+			const types = require('../finelets/csv/JsonValueTypes')
+			it('各种类型', () => {
+				expect(types.Default('foo')).eqls('foo')
+				expect(types.Default('')).undefined
+				expect(types.Number(' 123.45 ')).eqls(123.45)
+				expect(types.Number('123px')).eqls(null)
+				expect(types.Number('')).eqls(undefined)
+				expect(types.Date('')).eqls(undefined)
+				expect(types.Date('abc')).eqls(null)
+				expect(types.Date('2018/9/22')).eqls(new Date(2018, 8, 22))
+				expect(types.Date('2018-9-22')).eqls(new Date(2018, 8, 22))
+				expect(types.Bool('')).eqls(undefined)
+				expect(types.Bool('abc')).eqls(null)
+				expect(types.Bool(' TrUe ')).true
+				expect(types.Bool('false')).false
+			})
+		})
 
-			stream.write('foo\r\n');
-			stream.end();
-		});
+		describe('CSVToJson', () => {
+			let csvToJson
 
-		it('可忽略的数据行', function (done) {
-			parseRow.withArgs('foo').returns(null);
-			stream.on('finish', function () {
-				saveRow.callCount.should.eql(0);
-				done();
-			});
+			beforeEach(() => {
+				csvToJson = require('../finelets/csv/CSVToJson')()
+			})
 
-			stream.write('foo\r\n');
-			stream.end();
-		});
+			it('未定义任何字段', () => {
+				expect(() => {
+					csvToJson.parse('abc')
+				}).throws('no column is defined')
+			})
 
-		it('保存失败', function (done) {
-			parseRow.withArgs('foo').returns(row);
-			saveRow.withArgs(row).rejects(err);
-			stream.on('error', function (e) {
-				e.should.eql(err);
-				saveRow.callCount.should.eql(1);
-				done();	
-			});
+			it('数据格式和字段个数不一致', () => {
+				csvToJson.addColumn('foo')
+				expect(csvToJson.parse('abc,123')).null
+			})
 
-			stream.write('foo\r\n');
-			stream.end();
-		});
+			it('字段无法解析', () => {
+				let type = sinon.stub()
+				type.withArgs('abc').returns(null)
+				csvToJson.addColumn('foo', type)
+				expect(csvToJson.parse('abc')).null
+			})
 
-		it('单一流块 - single chunk', function (done) {
-			parseRow.withArgs('foo').returns(row);
-			saveRow.withArgs(row).resolves();
+			it('正确解析', () => {
+				let type = sinon.stub()
+				type.withArgs('abc').returns(123)
+				type.withArgs('def').returns(456)
+				csvToJson
+					.addColumn('foo', type)
+					.addColumn('fee', type)
+				expect(csvToJson.parse('abc,def')).eqls({
+					foo: 123,
+					fee: 456
+				})
+			})
 
-			stream.on('finish', function () {
-				saveRow.callCount.should.eql(1);
-				done();
-			});
+			it('缺省字段类型于./JsonValueTypes.Default定义', () => {
+				let defaultType = sinon.stub()
+				stubs['./JsonValueTypes'] = {
+					Default: defaultType
+				}
+				defaultType.withArgs('abc').returns('234')
+				csvToJson = proxyquire('../finelets/csv/CSVToJson.js', stubs)()
 
-			stream.write('foo\r\n');
-			stream.end(); 			
-		});
+				csvToJson.addColumn('foo')
+				expect(csvToJson.parse('abc')).eqls({
+					foo: '234'
+				})
+			})
 
-		it('多流块 - multiple chunk', function (done) {
-			parseRow.withArgs('foo').returns(row);
-			saveRow.withArgs(row).resolves();
-
-			stream.on('finish', function () {
-				saveRow.callCount.should.eql(3);
-				done();
-			});
-
-			stream.write('foo\r\nfoo\r\n');
-			stream.write('foo\r\n');
-			stream.end();
-		});
-		
-		it('Row seperated by multiple chunk', function (done) {
-			parseRow.withArgs('foo,fee,fuu').returns(row);
-			saveRow.withArgs(row).resolves();
-
-			stream.on('finish', function () {
-				saveRow.callCount.should.eql(1);
-				done();
-			});
-
-			stream.write('foo,');
-			stream.write('fee,');
-			stream.write('fuu\r\n');
-			stream.end();
-		});
+			it('空字段值', () => {
+				let type = sinon.stub()
+				type.withArgs('abc').returns(123)
+				type.withArgs('def').returns(undefined)
+				csvToJson.addColumn('foo', type)
+				csvToJson.addColumn('fee', type)
+				expect(csvToJson.parse('abc,def')).eqls({
+					foo: 123
+				})
+			})
+		})
 	})
+
+
 
 	describe('数据库', function () {
 		beforeEach(function (done) {
