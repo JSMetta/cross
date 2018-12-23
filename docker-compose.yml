@@ -5,6 +5,14 @@ services:
     image: redis
     ports:
         - "6379"
+  rabbitmq:
+    image: "rabbitmq:management"
+    environment:
+      - RABBITMQ_DEFAULT_USER=jsm
+      - RABBITMQ_DEFAULT_PASS=jsm
+    ports:
+      - "5672:5672"
+      - "15672:15672"
   mongodb:
     container_name: mongodb
     image: mongo
@@ -22,6 +30,7 @@ services:
     links:
       - mongodb:crossdb
       - redis:redis
+      - rabbitmq:rabbitmq
   nginx:
     build: ./VCross
     container_name: nginx-vcross
