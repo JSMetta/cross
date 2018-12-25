@@ -17,7 +17,7 @@ const __connectMq = () => {
 const __getInstanceFromMap = (name) => {
     let obj = __instances[name]
     if (!obj) {
-        obj = new TopicExchanges(name, __conn)
+        obj = new TopicExchanges(name)
         __instances[name] = obj
     }
     return obj
@@ -33,15 +33,14 @@ const __getInstance = (name) => {
 }
 
 class TopicExchanges {
-    constructor(name, conn) {
+    constructor(name) {
         this.__ex = name
-        this.__conn = conn
     }
 
     subscribe(consumerName, msgType, consumer) {
         let channel, queue
         let ex = this.__ex
-        return this.__conn.createChannel()
+        return __conn.createChannel()
             .then((ch) => {
                 channel = ch
                 return ch.assertExchange(ex, 'topic', {
@@ -75,7 +74,7 @@ class TopicExchanges {
         const payload = Buffer.from(JSON.stringify(msg))
         let channel
         let ex = this.__ex
-        return this.__conn.createConfirmChannel()
+        return __conn.createConfirmChannel()
             .then((ch) => {
                 channel = ch
                 return ch.assertExchange(ex, 'topic', {

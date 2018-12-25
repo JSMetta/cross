@@ -103,9 +103,9 @@ describe('RabbitMq', function () {
             let exchange;
 
             beforeEach(() => {
-                return msgCenterFactory.start(mqConnStr)
+                return msgCenterFactory.start(mqConnStr, name)
                     .then(() => {
-                        return msgCenterFactory.getInstance(name)
+                        return msgCenterFactory.getInstance()
                     })
                     .then((ex) => {
                         exchange = ex
