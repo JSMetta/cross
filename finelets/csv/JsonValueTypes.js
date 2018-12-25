@@ -4,14 +4,22 @@ const general = (convert, strVal) => {
     return isNaN(val) ? null : val
 }
 
+const __removeEql = (str) => {
+    if(str.startsWith('"') && str.endsWith('"')){
+        str = str.substr(1, str.length - 2)
+    }
+    return str
+}
+
 module.exports = {
     Default: (strVal) => {
-        return strVal.length ? strVal : undefined
+        return strVal.length ? __removeEql(strVal) : undefined
     },
     Number: (strVal) => general(Number, strVal),
 
     Date: (strVal) => {
-        return general((strVal)=>new Date(strVal), strVal)
+        let val = general((strVal)=>new Date(strVal), strVal)
+        return val ? val.toJSON() : val
     },
     Bool: (strVal) => {
         if(strVal.length === 0) return undefined

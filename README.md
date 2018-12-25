@@ -74,6 +74,13 @@ docker images purge
   * 领用数量
   * 货位
 
+```
+交易编号,料品类型,品名,规格,单位,数量,采购单价,金额,供应商名称,供应商类型,参考单号,供应商链接,采购周期,申请人,申请日期,审核人,审核日期,采购日期,采购人,到货日期,领用人,领用日期,领用数量,领用项目,货位,备注
+
+transNo,partType,partName,spec,unit,qty,price,amount,supplier,supply,refNo,supplyLink,purPeriod,applier,appDate,reviewer,reviewDate,purDate,purchaser,invDate,user,useDate,useQty,project,invLoc,remark
+
+```
+
 ## MQ
 Consumers receive messages from a particular queue in one of two ways:
 * By subscribing to it via the basic.consume AMQP command. This will place the channel being used into a receive mode until unsubscribed from the queue.

@@ -109,14 +109,15 @@ describe('Cross - clx', function () {
 			const types = require('../finelets/csv/JsonValueTypes')
 			it('各种类型', () => {
 				expect(types.Default('foo')).eqls('foo')
+				expect(types.Default('"foo"')).eqls('foo')
 				expect(types.Default('')).undefined
 				expect(types.Number(' 123.45 ')).eqls(123.45)
 				expect(types.Number('123px')).eqls(null)
 				expect(types.Number('')).eqls(undefined)
 				expect(types.Date('')).eqls(undefined)
 				expect(types.Date('abc')).eqls(null)
-				expect(types.Date('2018/9/22')).eqls(new Date(2018, 8, 22))
-				expect(types.Date('2018-9-22')).eqls(new Date(2018, 8, 22))
+				expect(types.Date('2018/9/22')).eqls(new Date(2018, 8, 22).toJSON())
+				expect(types.Date('2018-9-22')).eqls(new Date(2018, 8, 22).toJSON())
 				expect(types.Bool('')).eqls(undefined)
 				expect(types.Bool('abc')).eqls(null)
 				expect(types.Bool(' TrUe ')).true
