@@ -14,7 +14,7 @@ describe('RabbitMq', function () {
         // const mqConnStr = 'amqp://jsm:jsm@192.168.5.166'
         let msgCenterFactory;
 
-        beforeEach(()=>{
+        beforeEach(() => {
             msgCenterFactory = require('../finelets/mq/rabbit/MessageCenter')
         })
 
@@ -127,7 +127,7 @@ describe('RabbitMq', function () {
                     .then(() => {
                         expect(aConsumer.callCount).eqls(1)
                     });
-            });
+            })
         });
     });
 });

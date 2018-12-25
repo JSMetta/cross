@@ -190,7 +190,6 @@ describe('Cross - clx', function () {
 	})
 
 
-
 	describe('数据库', function () {
 		beforeEach(function (done) {
 			return clearDB(done)
