@@ -1,40 +1,61 @@
 const amqp = require('amqplib'),
     Promise = require('bluebird'),
     logger = require('@finelets/hyper-rest/app/Logger');
-const MSG_NAME_NOT_DEFINED = 'Message center name is not defined'
 
-let __name, __conn;
+let __connStr, __conn, __defaultEx;
+let __instances = {}
 
-const connectMq = (connStr) => {
-    return amqp.connect(connStr)
+const __connectMq = () => {
+    if (__conn) return Promise.resolve()
+    return amqp.connect(__connStr)
         .then((conn) => {
             __conn = conn
-            return __conn.createChannel()
-
-        })
-        .then((ch) => {
-            return ch.assertExchange(__name, 'topic', {
-                    durable: false
-                })
-        })
-        .then(() => {
-            return messageCenter
+            return
         })
 }
 
-const messageCenter = {
-    addConsumer: (consumerName, msgType, consumer) => {
+const __getInstanceFromMap = (name) => {
+    let obj = __instances[name]
+    if (!obj) {
+        obj = new TopicExchanges(name, __conn)
+        __instances[name] = obj
+    }
+    return obj
+}
+
+const __getInstance = (name) => {
+    return __connectMq()
+        .then(() => {
+            name = name || __defaultEx
+            if (!name) return Promise.reject('Default instance is not defined')
+            return __getInstanceFromMap(name)
+        })
+}
+
+class TopicExchanges {
+    constructor(name, conn) {
+        this.__ex = name
+        this.__conn = conn
+    }
+
+    subscribe(consumerName, msgType, consumer) {
         let channel, queue
-        return __conn.createChannel()
+        let ex = this.__ex
+        return this.__conn.createChannel()
             .then((ch) => {
                 channel = ch
-                return ch.assertQueue(consumerName, {
+                return ch.assertExchange(ex, 'topic', {
+                    durable: false
+                })
+            })
+            .then(() => {
+                return channel.assertQueue(consumerName, {
                     durable: false
                 })
             })
             .then((q) => {
                 queue = q.queue
-                return channel.bindQueue(queue, __name, msgType)
+                return channel.bindQueue(queue, ex, msgType)
             })
             .then(() => {
                 return channel.consume(queue, (msg) => {
@@ -48,26 +69,40 @@ const messageCenter = {
                         })
                 })
             })
-    },
-    publish: (type, msg) => {
+    }
+
+    publish(type, msg) {
         const payload = Buffer.from(JSON.stringify(msg))
-        return __conn.createConfirmChannel()
-            .then(function (ch) {
-                ch.publish(__name, type, payload, {}, (err, ok) => {
+        let channel
+        let ex = this.__ex
+        return this.__conn.createConfirmChannel()
+            .then((ch) => {
+                channel = ch
+                return ch.assertExchange(ex, 'topic', {
+                    durable: false
+                })
+            })
+            .then(function () {
+                channel.publish(ex, type, payload, {}, (err, ok) => {
                     if (err !== null)
                         return Promise.reject(err)
                     else
                         return ok
                 });
             });
-    },
-    stop: () => {
-        return __conn.close()
     }
 }
 
-module.exports = (name, connStr) => {
-    if (!name) return Promise.reject(MSG_NAME_NOT_DEFINED)
-    __name = name
-    return connectMq(connStr)
+module.exports = {
+    start: (connStr, name) => {
+        __connStr = connStr
+        if (name) {
+            return __getInstance(name)
+                .then(() => {
+                    __defaultEx = name
+                })
+        }
+        return __connectMq().then(() => {})
+    },
+    getInstance: __getInstance
 }
