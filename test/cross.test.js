@@ -1,4 +1,5 @@
 var proxyquire = require('proxyquire'),
+	logger = require('@finelets/hyper-rest/app/Logger'),
 	dbSave = require('@finelets/hyper-rest/db/mongoDb/SaveObjectToDb');
 
 describe('Cross', function () {
@@ -21,16 +22,26 @@ describe('Cross', function () {
 			const task = {
 				task: 'any task data'
 			}
+			/* let execTask = (msg) => {
+				logger.info(JSON.stringify(msg))
+				return Promise.resolve()
+			} */
 			let execTask = sinon.stub()
 			execTask.withArgs(task).resolves()
 
 			stubs['./biz/batches/ImportPurchaseTransactions'] = execTask
-			const mc = proxyquire('../server/CrossMessageCenter', stubs)
+			let mc = proxyquire('../server/CrossMessageCenter', stubs)
+
 			return mc.start()
 				.then(() => {
-					return mc.publish(topic, task)
+					let publish = mc.publish
+					return publish(topic, task)
 				})
 				.then(() => {
+					/* return setTimeout(() => {
+						logger.info('aaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+						expect(execTask.callCount).eqls(1)
+					}, 5000); */
 					expect(execTask.callCount).eqls(1)
 				})
 		})

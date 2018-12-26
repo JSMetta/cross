@@ -1,21 +1,18 @@
-const Promise = require('bluebird'),
-    mq = require('../finelets/mq/RabbitMessageCenter'),
-    importPurchaseTransactions = require('./biz/batches/ImportPurchaseTransactions')
-    exName = 'cross'
-
-const config = {
-    connect: process.env.MQ,
-    exchanges: {
-        cross: {
-            queues: {
-                ImportPurchaseTransactionsTasks: {
-                    topic: 'importPurchaseTransactions',
-                    consumer: importPurchaseTransactions
+const mq = require('../finelets/mq/RabbitMessageCenter'),
+    importPurchaseTransactions = require('./biz/batches/ImportPurchaseTransactions'),
+    config = {
+        connect: process.env.MQ,
+        exchanges: {
+            cross: {
+                queues: {
+                    ImportPurchaseTransactionsTasks: {
+                        topic: 'importPurchaseTransactions',
+                        consumer: importPurchaseTransactions
+                    }
                 }
             }
         }
     }
-}
 
 const startup = () => {
     return mq.start(config)
@@ -23,7 +20,7 @@ const startup = () => {
 
 const crossMC = {
     start: startup,
-    publish: mq.getPublish(exName)
+    publish: mq.getPublish('cross')
 }
 
 module.exports = crossMC
