@@ -13,10 +13,6 @@ describe('RabbitMq', function () {
         const mc = require('../finelets/mq/RabbitMessageCenter')
         let config;
 
-        before(() => {
-            return mc.connect(mqConnStr)
-        })
-
         it('publish a single message', () => {
             const msg = {
                 foo: 'any data of message'
@@ -25,6 +21,7 @@ describe('RabbitMq', function () {
             aConsumer.withArgs(msg).resolves()
 
             config = {
+                connect: mqConnStr,
                 exchanges: {
                     foo: {
                         queues: {
@@ -36,7 +33,7 @@ describe('RabbitMq', function () {
                     }
                 }
             }
-            return mc.createExchanges(config.exchanges)
+            return mc.start(config)
                 .then(() => {
                     let publish = mc.getPublish('foo')
                     return publish('t1', msg)

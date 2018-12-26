@@ -73,24 +73,21 @@ const __createExchange = (ch, name, config) => {
 }
 
 const rabbitMessageCenter = {
-    connect: (connStr) => {
-        return amqp.connect(connStr)
+    start: (config) => {
+        return amqp.connect(config.connect)
             .then((conn) => {
-                return __conn = conn
+                __conn = conn
+                return __conn.createChannel()
             })
-    },
-
-    createExchanges: (config) => {
-        let exchanges = []
-        return __conn.createChannel()
             .then((ch) => {
-                __.each(config, (element, key) => {
+                let exchanges = []
+                __.each(config.exchanges, (element, key) => {
                     exchanges.push(__createExchange(ch, key, element))
                 })
                 return Promise.all(exchanges)
             })
     },
-
+    
     getPublish: (name) => {
         return (type, msg) => {
             return __publishes[name].publish(type, msg)
@@ -98,21 +95,3 @@ const rabbitMessageCenter = {
     }
 }
 module.exports = rabbitMessageCenter
-
-
-/* describe('CrossMessageCenter', () => {
-    it('发布导入采购交易任务', () => {
-        const topic = 'importPurchaseTransactions'
-        const task = {task: 'any task data'}
-        let execTask = sinon.stub()
-        execTask.withArgs(task).resolves()
-
-        stubs['./biz/batches/ImportPurchaseTransactions'] = execTask
-        const publish = proxyquire('../server/CrossMessageCenter', stubs)
-        
-        return publish(topic, task)
-        .then(()=>{
-            expect(execTask.callCount).eqls(1)
-        })
-    })
-}) */
