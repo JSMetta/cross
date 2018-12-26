@@ -12,68 +12,151 @@ describe('Cross', function () {
 		err = new Error('any error message');
 	});
 
-	describe('PurchaseCsvParser', () => {
-		it('parse', () => {
-			const line = 'xulei00001,物料,"JSM-A1实验用格子布",abcd,米,150,8800,8800,绍兴惟楚纺织品有限公司,厂商,' +
-				'JSMCONV20181109A,开票中,80,徐存辉,2018/11/9,徐存辉,2018/11/9,徐存辉,2018/11/9,2018/12/12,' +
-				'测试组,2018/12/12,100,测试组, h234,remark'
-			const expected = {
-				transNo: 'xulei00001',
-				partType: '物料',
-				partName: 'JSM-A1实验用格子布',
-				spec: 'abcd',
-				unit: '米',
-				qty: 150,
-				price: 8800,
-				amount: 8800,
-				supplier: '绍兴惟楚纺织品有限公司',
-				supply: '厂商',
-				refNo: 'JSMCONV20181109A',
-				supplyLink: '开票中',
-				purPeriod: 80,
-				applier: '徐存辉',
-				appDate: new Date('2018/11/9').toJSON(),
-				reviewer: '徐存辉',
-				reviewDate: new Date('2018/11/9').toJSON(),
-				purchaser: '徐存辉',
-				purDate: new Date('2018/11/9').toJSON(),
-				invDate: new Date('2018/12/12').toJSON(),
-				user: '测试组',
-				useDate: new Date('2018/12/12').toJSON(),
-				useQty: 100,
-				project: '测试组',
-				invLoc: ' h234',
-				remark: 'remark'
+	describe('CrossMessageCenter', () => {
+		it('getInstance', () => {
+			let mq = sinon.stub({
+				start: () => {},
+				getInstance: () => {}
+			})
+			stubs['../finelets/mq/rabbit/MessageCenter'] = mq
+			const getCenter = proxyquire('../server/CrossMessageCenter', stubs)
+
+			const cross = {
+				cross: 'cross message center'
 			}
-			const parser = require('../server/biz/pur/PurchaseCsvParser')
-			let val = parser(line)
-			expect(val.transNo).eqls(expected.transNo)
-			expect(val.partType).eqls(expected.partType)
-			expect(val.partName).eqls(expected.partName)
-			expect(val.spec).eqls(expected.spec)
-			expect(val.unit).eqls(expected.unit)
-			expect(val.qty).eqls(expected.qty)
-			expect(val.price).eqls(expected.price)
-			expect(val.amount).eqls(expected.amount)
-			expect(val.supplier).eqls(expected.supplier)
-			expect(val.supply).eqls(expected.supply)
-			expect(val.refNo).eqls(expected.refNo)
-			expect(val.supplyLink).eqls(expected.supplyLink)
-			expect(val.supplyLink).eqls(expected.supplyLink)
-			expect(val.purPeriod).eqls(expected.purPeriod)
-			expect(val.applier).eqls(expected.applier)
-			expect(val.appDate).eqls(expected.appDate)
-			expect(val.reviewDate).eqls(expected.reviewDate)
-			expect(val.purDate).eqls(expected.purDate)
-			expect(val.invDate).eqls(expected.invDate)
-			expect(val.useDate).eqls(expected.useDate)
-			expect(val.reviewer).eqls(expected.reviewer)
-			expect(val.purchaser).eqls(expected.purchaser)
-			expect(val.user).eqls(expected.user)
-			expect(val.useQty).eqls(expected.useQty)
-			expect(val.project).eqls(expected.project)
-			expect(val.invLoc).eqls(expected.invLoc)
-			expect(val.remark).eqls(expected.remark)
+			const connStr = 'conn to mq'
+			process.env.MQ = connStr
+			mq.start.withArgs(connStr).resolves()
+			mq.getInstance.withArgs('cross').resolves(cross)
+
+			return getCenter()
+				.then((center) => {
+					center.should.eql(cross)
+					mq.start.callCount.should.eql(1)
+					mq.getInstance.callCount.should.eql(1)
+				})
+		})
+	})
+
+	describe('Batch Tasks', () => {
+		describe('Import Purchases CSV', () => {
+			describe('PurchaseCsvParser', () => {
+				it('parse', () => {
+					const line = 'xulei00001,物料,"JSM-A1实验用格子布",abcd,米,150,8800,8800,绍兴惟楚纺织品有限公司,厂商,' +
+						'JSMCONV20181109A,开票中,80,徐存辉,2018/11/9,徐存辉,2018/11/9,徐存辉,2018/11/9,2018/12/12,' +
+						'测试组,2018/12/12,100,测试组, h234,remark'
+					const expected = {
+						transNo: 'xulei00001',
+						partType: '物料',
+						partName: 'JSM-A1实验用格子布',
+						spec: 'abcd',
+						unit: '米',
+						qty: 150,
+						price: 8800,
+						amount: 8800,
+						supplier: '绍兴惟楚纺织品有限公司',
+						supply: '厂商',
+						refNo: 'JSMCONV20181109A',
+						supplyLink: '开票中',
+						purPeriod: 80,
+						applier: '徐存辉',
+						appDate: new Date('2018/11/9').toJSON(),
+						reviewer: '徐存辉',
+						reviewDate: new Date('2018/11/9').toJSON(),
+						purchaser: '徐存辉',
+						purDate: new Date('2018/11/9').toJSON(),
+						invDate: new Date('2018/12/12').toJSON(),
+						user: '测试组',
+						useDate: new Date('2018/12/12').toJSON(),
+						useQty: 100,
+						project: '测试组',
+						invLoc: ' h234',
+						remark: 'remark'
+					}
+					const parser = require('../server/biz/batches/PurchaseCsvParser')
+					let val = parser(line)
+					expect(val.transNo).eqls(expected.transNo)
+					expect(val.partType).eqls(expected.partType)
+					expect(val.partName).eqls(expected.partName)
+					expect(val.spec).eqls(expected.spec)
+					expect(val.unit).eqls(expected.unit)
+					expect(val.qty).eqls(expected.qty)
+					expect(val.price).eqls(expected.price)
+					expect(val.amount).eqls(expected.amount)
+					expect(val.supplier).eqls(expected.supplier)
+					expect(val.supply).eqls(expected.supply)
+					expect(val.refNo).eqls(expected.refNo)
+					expect(val.supplyLink).eqls(expected.supplyLink)
+					expect(val.supplyLink).eqls(expected.supplyLink)
+					expect(val.purPeriod).eqls(expected.purPeriod)
+					expect(val.applier).eqls(expected.applier)
+					expect(val.appDate).eqls(expected.appDate)
+					expect(val.reviewDate).eqls(expected.reviewDate)
+					expect(val.purDate).eqls(expected.purDate)
+					expect(val.invDate).eqls(expected.invDate)
+					expect(val.useDate).eqls(expected.useDate)
+					expect(val.reviewer).eqls(expected.reviewer)
+					expect(val.purchaser).eqls(expected.purchaser)
+					expect(val.user).eqls(expected.user)
+					expect(val.useQty).eqls(expected.useQty)
+					expect(val.project).eqls(expected.project)
+					expect(val.invLoc).eqls(expected.invLoc)
+					expect(val.remark).eqls(expected.remark)
+				})
+			})
+
+			describe('PublishPurchaseCsvTask', () => {
+				it('publish task', () => {
+					const data = {
+						data: 'any task data'
+					}
+					let publish = sinon.stub()
+					publish.withArgs('batch.purchasesCsv', data).resolves()
+					stubs['../../CrossMessageCenter'] = () => {
+						return Promise.resolve({
+							publish: publish
+						})
+					}
+
+					const create = proxyquire('../server/biz/batches/PublishPurchaseCsvTask', stubs)
+					return create()
+						.then((publish) => {
+							return publish(data)
+						})
+						.then(() => {
+							expect(publish.callCount).eqls(1)
+						})
+				})
+			})
+
+			it('PurchasesCSVStream', () => {
+				const Promise = require('bluebird'),
+					parser = {
+						parser: 'parser'
+					},
+					saver = {
+						publish: 'publish'
+					};
+
+				stubs['./PurchaseCsvParser'] = parser
+				stubs['./PublishPurchaseCsvTask'] = () => {
+					return Promise.resolve(saver)
+				}
+
+				let createStrame = sinon.stub()
+				stubs['../../../finelets/streams/CSVStream'] = createStrame
+				const purCsvStream = {
+					stream: 'csvstream'
+				}
+				createStrame.withArgs(saver, parser).returns(purCsvStream)
+
+				let createPurchasesCSVStream = proxyquire('../server/biz/batches/PurchasesCSVStream', stubs)
+				return createPurchasesCSVStream()
+					.then((csvStream) => {
+						expect(csvStream).eqls(purCsvStream)
+					})
+
+			})
 		})
 	})
 
