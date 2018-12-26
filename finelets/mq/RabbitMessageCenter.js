@@ -23,7 +23,7 @@ class __Publish {
                 })
             })
             .then(function () {
-                channel.publish(ex, type, payload, {}, (err, ok) => {
+                return channel.publish(ex, type, payload, {}, (err, ok) => {
                     if (err !== null)
                         return Promise.reject(err)
                     else
