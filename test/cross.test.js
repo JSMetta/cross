@@ -13,28 +13,19 @@ describe('Cross', function () {
 	});
 
 	describe('CrossMessageCenter', () => {
-		it('getInstance', () => {
-			let mq = sinon.stub({
-				start: () => {},
-				getInstance: () => {}
+		it('发布导入采购交易任务', () => {
+			const topic = 'importPurchaseTransactions'
+			const task = {task: 'any task data'}
+			let execTask = sinon.stub()
+			execTask.withArgs(task).resolves()
+	
+			stubs['./biz/batches/ImportPurchaseTransactions'] = execTask
+			const publish = proxyquire('../server/CrossMessageCenter', stubs)
+			
+			return publish(topic, task)
+			.then(()=>{
+				expect(execTask.callCount).eqls(1)
 			})
-			stubs['../finelets/mq/rabbit/MessageCenter'] = mq
-			const getCenter = proxyquire('../server/CrossMessageCenter', stubs)
-
-			const cross = {
-				cross: 'cross message center'
-			}
-			const connStr = 'conn to mq'
-			process.env.MQ = connStr
-			mq.start.withArgs(connStr).resolves()
-			mq.getInstance.withArgs('cross').resolves(cross)
-
-			return getCenter()
-				.then((center) => {
-					center.should.eql(cross)
-					mq.start.callCount.should.eql(1)
-					mq.getInstance.callCount.should.eql(1)
-				})
 		})
 	})
 

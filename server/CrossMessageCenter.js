@@ -1,9 +1,21 @@
 const Promise = require('bluebird'),
     logger = require('@finelets/hyper-rest/app/Logger'),
-    mq = require('../finelets/mq/rabbit/MessageCenter'),
-    name = 'cross'
+    mq = require('../finelets/mq/RabbitMessageCenter'),
+    exName = 'cross'
 
-module.exports = () => {
+const startup = () => {
+    return mq.connect(process.env.MQ)
+        .then(() => {
+            return mq.createExchanges()
+        })
+}
+const crossMC = {
+    start: startup
+}
+
+module.exports = crossMC
+
+/* module.exports = () => {
     let instance
     return mq.start(process.env.MQ)
         .then(() => {
@@ -22,4 +34,4 @@ module.exports = () => {
         .then(() => {
             return instance
         })
-}
+} */
