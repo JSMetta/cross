@@ -20,7 +20,10 @@ const startup = () => {
 
 const crossMC = {
     start: startup,
-    publish: mq.getPublish('cross')
+    importPurchaseTransactions: (msg) => {
+        return mq.getPublish('cross')('importPurchaseTransactions', msg)
+    }
+    // publish: mq.getPublish('cross')
 }
 
 module.exports = crossMC
