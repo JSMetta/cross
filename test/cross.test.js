@@ -13,19 +13,26 @@ describe('Cross', function () {
 	});
 
 	describe('CrossMessageCenter', () => {
+		before(() => {
+			process.env.MQ = 'amqp://qladapfm:CjtgA21O-1Ux-L108UCR70TcJ4GDpRVh@spider.rmq.cloudamqp.com/qladapfm';
+		})
 		it('发布导入采购交易任务', () => {
 			const topic = 'importPurchaseTransactions'
-			const task = {task: 'any task data'}
+			const task = {
+				task: 'any task data'
+			}
 			let execTask = sinon.stub()
 			execTask.withArgs(task).resolves()
-	
+
 			stubs['./biz/batches/ImportPurchaseTransactions'] = execTask
-			const publish = proxyquire('../server/CrossMessageCenter', stubs)
-			
-			return publish(topic, task)
-			.then(()=>{
-				expect(execTask.callCount).eqls(1)
-			})
+			const mc = proxyquire('../server/CrossMessageCenter', stubs)
+			return mc.start()
+				.then(() => {
+					return mc.publish(topic, task)
+				})
+				.then(() => {
+					expect(execTask.callCount).eqls(1)
+				})
 		})
 	})
 

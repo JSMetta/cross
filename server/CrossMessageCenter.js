@@ -1,37 +1,29 @@
 const Promise = require('bluebird'),
-    logger = require('@finelets/hyper-rest/app/Logger'),
     mq = require('../finelets/mq/RabbitMessageCenter'),
+    importPurchaseTransactions = require('./biz/batches/ImportPurchaseTransactions')
     exName = 'cross'
 
-const startup = () => {
-    return mq.connect(process.env.MQ)
-        .then(() => {
-            return mq.createExchanges()
-        })
+const config = {
+    connect: process.env.MQ,
+    exchanges: {
+        cross: {
+            queues: {
+                ImportPurchaseTransactionsTasks: {
+                    topic: 'importPurchaseTransactions',
+                    consumer: importPurchaseTransactions
+                }
+            }
+        }
+    }
 }
+
+const startup = () => {
+    return mq.start(config)
+}
+
 const crossMC = {
-    start: startup
+    start: startup,
+    publish: mq.getPublish(exName)
 }
 
 module.exports = crossMC
-
-/* module.exports = () => {
-    let instance
-    return mq.start(process.env.MQ)
-        .then(() => {
-            return mq.getInstance(name)
-        })
-        .then((inst) => {
-            instance = inst
-            let subscribers = [
-                inst.subscribe('logger', '#', (data) => {
-                    logger.info('MQ:\n\r' + JSON.stringify(data))
-                    return Promise.resolve()
-                })
-            ]
-            return Promise.all(subscribers)
-        })
-        .then(() => {
-            return instance
-        })
-} */
