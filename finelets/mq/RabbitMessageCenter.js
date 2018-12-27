@@ -46,11 +46,13 @@ const __createQueue = (ch, ex, name, config) => {
             return ch.consume(queue, (msg) => {
                 let payload = JSON.parse(msg.content.toString())
                 return config.consumer(payload)
-                    .then(() => {
-                        return ch.ack(msg)
+                    .then((ok) => {
+                        return ok ? ch.ack(msg) : ch.reject(msg)
                     })
-                    .catch(() => {
-                        logger.debug('the consumer has rejected message')
+                    .catch((err) => {
+                        logger.error('the consumer has rejected message:\r\n' + JSON.stringify(payload) + 
+                        '\r\nError:' + JSON.stringify(err))
+                        return ch.reject(msg)
                     })
             })
         })

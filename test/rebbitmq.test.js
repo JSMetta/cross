@@ -18,7 +18,7 @@ describe('RabbitMq', function () {
                 foo: 'any data of message'
             }
             let aConsumer = sinon.stub()
-            aConsumer.withArgs(msg).resolves()
+            aConsumer.withArgs(msg).resolves(true)
 
             config = {
                 connect: mqConnStr,
@@ -38,9 +38,47 @@ describe('RabbitMq', function () {
                     let publish = mc.getPublish('foo')
                     return publish('t1', msg)
                 })
+                .then((data) => {
+					// 事实上publish只保证publish过程中没有出错！！！！！！！
+					expect(data).true
+					// 发布完成后并不代表消息一定已得到处理
+					expect(aConsumer.callCount).eqls(1)
+				})
+        })
+
+        
+        it('reject ack message', () => {
+            const msg = {
+                foo: 'any data of message'
+            }
+            let aConsumer = sinon.stub()
+            aConsumer.withArgs(msg).onFirstCall().resolves(false)
+            aConsumer.withArgs(msg).onSecondCall().resolves(true)
+
+            config = {
+                connect: mqConnStr,
+                exchanges: {
+                    foo: {
+                        queues: {
+                            qa: {
+                                topic: 't1',
+                                consumer: aConsumer
+                            }
+                        }
+                    }
+                }
+            }
+            return mc.start(config)
                 .then(() => {
-                    expect(aConsumer.callCount).eqls(1)
+                    let publish = mc.getPublish('foo')
+                    return publish('t1', msg)
                 })
+                .then((data) => {
+					// 事实上publish只保证publish过程中没有出错！！！！！！！
+					expect(data).true
+					// 发布完成后并不代表消息一定已得到处理
+					expect(aConsumer.callCount).eqls(2)
+				})
         })
     })
 })
