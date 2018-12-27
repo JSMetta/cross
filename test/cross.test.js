@@ -5,7 +5,6 @@ var proxyquire = require('proxyquire'),
 describe('Cross', function () {
 	var stubs, err;
 	before(function () {
-		//mongoose.Promise = global.Promise;
 	});
 
 	beforeEach(function () {
@@ -104,33 +103,8 @@ describe('Cross', function () {
 				})
 			})
 
-			describe('PublishPurchaseCsvTask', () => {
-				it('publish task', () => {
-					const data = {
-						data: 'any task data'
-					}
-					let publish = sinon.stub()
-					publish.withArgs('batch.purchasesCsv', data).resolves()
-					stubs['../../CrossMessageCenter'] = () => {
-						return Promise.resolve({
-							publish: publish
-						})
-					}
-
-					const create = proxyquire('../server/biz/batches/PublishPurchaseCsvTask', stubs)
-					return create()
-						.then((publish) => {
-							return publish(data)
-						})
-						.then(() => {
-							expect(publish.callCount).eqls(1)
-						})
-				})
-			})
-
 			it('PurchasesCSVStream', () => {
-				const Promise = require('bluebird'),
-					parser = {
+				const parser = {
 						parser: 'parser'
 					},
 					saver = {
@@ -138,9 +112,7 @@ describe('Cross', function () {
 					};
 
 				stubs['./PurchaseCsvParser'] = parser
-				stubs['./PublishPurchaseCsvTask'] = () => {
-					return Promise.resolve(saver)
-				}
+				stubs['../../CrossMessageCenter'] = saver
 
 				let createStrame = sinon.stub()
 				stubs['../../../finelets/streams/CSVStream'] = createStrame
@@ -150,10 +122,7 @@ describe('Cross', function () {
 				createStrame.withArgs(saver, parser).returns(purCsvStream)
 
 				let createPurchasesCSVStream = proxyquire('../server/biz/batches/PurchasesCSVStream', stubs)
-				return createPurchasesCSVStream()
-					.then((csvStream) => {
-						expect(csvStream).eqls(purCsvStream)
-					})
+				createPurchasesCSVStream().should.eql(purCsvStream)
 
 			})
 		})
