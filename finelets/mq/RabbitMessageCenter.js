@@ -47,12 +47,12 @@ const __createQueue = (ch, ex, name, config) => {
                 let payload = JSON.parse(msg.content.toString())
                 return config.consumer(payload)
                     .then((ok) => {
-                        return ok ? ch.ack(msg) : ch.reject(msg)
+                        return ok ? ch.ack(msg) : ch.nack(msg)
                     })
                     .catch((err) => {
                         logger.error('the consumer has rejected message:\r\n' + JSON.stringify(payload) + 
                         '\r\nError:' + JSON.stringify(err))
-                        return ch.reject(msg)
+                        return ch.nack(msg, false, false)
                     })
             })
         })
@@ -90,10 +90,8 @@ const rabbitMessageCenter = {
             })
     },
     
-    getPublish: (name) => {
-        return (type, msg) => {
-            return __publishes[name].publish(type, msg)
-        }
+    publish: (name, type, msg) => {
+        return __publishes[name].publish(type, msg)
     }
 }
 module.exports = rabbitMessageCenter

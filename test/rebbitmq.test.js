@@ -35,8 +35,7 @@ describe('RabbitMq', function () {
             }
             return mc.start(config)
                 .then(() => {
-                    let publish = mc.getPublish('foo')
-                    return publish('t1', msg)
+                    return mc.publish('foo', 't1', msg)
                 })
                 .then((data) => {
 					// 事实上publish只保证publish过程中没有出错！！！！！！！
@@ -70,8 +69,7 @@ describe('RabbitMq', function () {
             }
             return mc.start(config)
                 .then(() => {
-                    let publish = mc.getPublish('foo')
-                    return publish('t1', msg)
+                    return mc.publish('foo', 't1', msg)
                 })
                 .then((data) => {
 					// 事实上publish只保证publish过程中没有出错！！！！！！！

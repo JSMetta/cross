@@ -43,6 +43,13 @@ docker-compose up --build
 docker images -f dangling=true
 docker images purge
 
+## 开发文档
+
+处理消息时，如果返回：
+* Promise.resolve(true) - 接收消息
+* Promise.resolve(false) - 拒绝消息，重新进入消息列表
+* Promise.reject(err) - 拒绝消息，消息将被废弃
+  
 ## 业务规则
 
 ### 采购交易导入
