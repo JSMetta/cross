@@ -1,4 +1,5 @@
 const mq = require('../finelets/mq/RabbitMessageCenter'),
+    logger = require('@finelets/hyper-rest/app/Logger'),
     importPurchaseTransactions = require('./biz/batches/ImportPurchaseTransactions'),
     config = {
         connect: process.env.MQ,
@@ -21,9 +22,9 @@ const startup = () => {
 const crossMC = {
     start: startup,
     importPurchaseTransactions: (msg) => {
-        return mq.getPublish('cross')('importPurchaseTransactions', msg)
+        let publish = mq.getPublish('cross')
+        return publish('importPurchaseTransactions', msg)
     }
-    // publish: mq.getPublish('cross')
 }
 
 module.exports = crossMC
