@@ -1,4 +1,5 @@
 const stream = require('stream'),
+    logger = require('@finelets/hyper-rest/app/Logger'),
     Promise = require('bluebird'),
     util = require('util');
 var __save, __parseRow;
@@ -16,9 +17,11 @@ CSVStream.prototype._write = function (chunk, encoding, callback) {
     var records = [];
     for (i = 0; i < rows.length - 1; i++) {
         try {
-            var json = __parseRow(rows[i]);
-            if (json) {
-                records.push(__save(json));
+            logger.debug('CSVStream to parse the row: ' + rows[i])
+            var obj = __parseRow(rows[i]);
+            if (obj) {
+                logger.debug('CSVStream to save obj: ' + JSON.stringify(obj))
+                records.push(__save(obj));
             }
         } catch (err){
             return callback(new Error('Row ' + i + ' data format error'));

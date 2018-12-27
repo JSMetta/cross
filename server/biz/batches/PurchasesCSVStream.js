@@ -1,8 +1,11 @@
 const createStream = require('../../../finelets/streams/CSVStream'),
     parser = require('./PurchaseCsvParser'),
-    save = require('../../CrossMessageCenter');
+    importPurchaseTransactions = require('../../CrossMessageCenter').importPurchaseTransactions;
 
 
 module.exports = () => {
-    return createStream(save, parser)
+    return createStream((obj) => {
+        importPurchaseTransactions(obj)
+        return Promise.resolve()
+    }, parser)
 }

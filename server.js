@@ -2,6 +2,7 @@ require('dotenv').config();
 const connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
 	appBuilder = require('@finelets/hyper-rest/express/AppBuilder').begin(__dirname),
 	logger = require('@finelets/hyper-rest/app/Logger'),
+	crossMessageCenter = require('./server/CrossMessageCenter'),
 	path = require('path'),
 	restDir = path.join(__dirname, './server/rests'),
 	graph = require('./server/StateGraph'),
@@ -15,8 +16,11 @@ appBuilder
 
 connectDb(function () {
 	logger.info('connect mongodb success .......');
-	var server = appBuilder.run(function () {
-		const addr = server.address();
-		logger.info('the server is running and listening at ' + addr.port);
-	});
+	return crossMessageCenter.start()
+		.then(() => {
+			var server = appBuilder.run(function () {
+				const addr = server.address();
+				logger.info('the server is running and listening at ' + addr.port);
+			});
+		})
 });
