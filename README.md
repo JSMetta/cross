@@ -79,6 +79,35 @@ docker images purge
 
 transNo,partType,partName,spec,unit,qty,price,amount,supplier,supply,refNo,supplyLink,purPeriod,applier,appDate,reviewer,reviewDate,purDate,purchaser,invDate,user,useDate,useQty,project,invLoc,remark
 
+const expected = {
+						transNo: 'xulei00001',
+						partType: '物料',
+						partName: 'JSM-A1实验用格子布',
+						spec: 'abcd',
+						unit: '米',
+						qty: 150,
+						price: 8800,
+						amount: 8800,
+						supplier: '绍兴惟楚纺织品有限公司',
+						supply: '厂商',
+						refNo: 'JSMCONV20181109A',
+						supplyLink: '开票中',
+						purPeriod: 80,
+						applier: '徐存辉',
+						appDate: new Date('2018/11/9').toJSON(),
+						reviewer: '徐存辉',
+						reviewDate: new Date('2018/11/9').toJSON(),
+						purchaser: '徐存辉',
+						purDate: new Date('2018/11/9').toJSON(),
+						invDate: new Date('2018/12/12').toJSON(),
+						user: '测试组',
+						useDate: new Date('2018/12/12').toJSON(),
+						useQty: 100,
+						project: '测试组',
+						invLoc: ' h234',
+						remark: 'remark'
+					}
+
 ```
 
 ## MQ
