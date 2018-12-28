@@ -14,78 +14,61 @@ describe('Cross', function () {
 
 	describe('Server', () => {
 		describe('CrossMessageCenter', () => {
-			before(() => {
-				process.env.MQ = 'amqp://qladapfm:CjtgA21O-1Ux-L108UCR70TcJ4GDpRVh@spider.rmq.cloudamqp.com/qladapfm';
-			})
-
-			it('start', () => {
-				const config = {
-					config: 'config data'
-				}
-				stubs['./CrossMessageCenterConfig'] = config
-				const mqStart = sinon.stub()
-				mqStart.withArgs(config).resolves()
-				stubs['../finelets/mq/RabbitMessageCenter.js'] = {
-					start: mqStart
-				}
-
-				let crossMC = proxyquire('../server/CrossMessageCenter.js', stubs)
-				return crossMC.start()
-					.then(() => {
-						mqStart.callCount.should.eql(1)
-					})
-			})
-
 			it('publish', () => {
-				const mqPublish = sinon.spy()
-				stubs['../finelets/mq/RabbitMessageCenter.js'] = {
-					publish: mqPublish
-				}
-
-				let crossMC = proxyquire('../server/CrossMessageCenter.js', stubs)
+				const config = require('../server/CrossMessageCenterConfig')
 				const msg = {
 					msg: 'msg data'
 				}
-				crossMC.importPurchaseTransactions(msg)
-				mqPublish.calledWith('cross', 'importPurchaseTransactions', msg).calledOnce
+				let mqStart = sinon.stub()
+				let mqPublish = sinon.spy()
+				stubs['../finelets/mq/RabbitMessageCenter.js'] = {
+					start: mqStart,
+					publish: mqPublish
+				}
+				mqStart.withArgs(config).resolves()
+				let crossMC = proxyquire('../server/CrossMessageCenter.js', stubs)
+
+				return crossMC.start()
+					.then(() => {
+						mqStart.callCount.should.eql(1)
+						crossMC.importPurchaseTransactions(msg)
+						crossMC.importPurTransTaskCreated(msg)
+						mqPublish.calledWith('cross', 'importPurchaseTransactions', msg).calledOnce
+						mqPublish.calledWith('cross', 'importPurTransTaskCreated', msg).calledOnce
+					})
+
+
 			})
 		})
 
 		describe('biz - 业务模块', () => {
-			it('BizDataExtractors - 业务数据抽取', () => {
-				const config = {
-					partFromPurTransTask: {
-						fields: ["partType", "partName", "spec", "unit"],
-						rules: {}
-					},
-					purApplyFromPurTransTask: {
-						fields: ["partType", "partName", "spec", "unit", "qty", "price", "amount",
-							"supplier", "supply", "supplyLink",
-							"purPeriod", "applier", "appDate"
-						],
-						rules: {}
-					},
 
-				}
-				const expectedExtractors = {
-					extractors: 'expected extractors'
-				}
-				const createExtractors = sinon.stub()
-				stubs['../../finelets/common/CreateDataExtractors'] = createExtractors
-				createExtractors.withArgs(config).returns(expectedExtractors)
+			describe('BizDataExtractors', () => {
+				const bizDataExtractors = require('../server/biz/BizDataExtractors')
 
-				let bizDataExtractors = proxyquire('../server/biz/BizDataExtractors', stubs)
-				expect(bizDataExtractors).eqls(expectedExtractors)
+				describe('ImportPurTransTask', () => {
+					const extractor = bizDataExtractors.importPurTransTask
+					it('required fields', () => {
+						const fields = ['transNo', 'partName', 'qty', 'amount', 'supplier']
+						try {
+							extractor({})
+						} catch (e) {
+							for (let i = 0; i < fields.length; i++) {
+								expect(e[i].fieldName).eqls(fields[i])
+							}
+						}
+						should.fail
+					})
+				})
+
 			})
 
 			describe('bas - 基础资料', () => {
-				describe('料品', () => {
-				})
+				describe('料品', () => {})
 			})
 
 			describe('pur - 采购', () => {
-				describe('采购申请单', () => {
-				})
+				describe('采购申请单', () => {})
 			})
 
 			describe('batches - 批处理作业', () => {
@@ -156,34 +139,95 @@ describe('Cross', function () {
 					})
 
 					describe('ImportPurchaseTransactions', () => {
-						const importPurchase = require('../server/biz/batches/ImportPurchaseTransactions')
-						let doc;
+						const doc = {
+							doc: 'data of imported'
+						}
+						let importPurchase, extract, createTask;
+						beforeEach(() => {
+							extract = sinon.stub()
+							stubs['../BizDataExtractors'] = {
+								importPurTransTask: extract
+							}
+							createTask = sinon.stub()
+							stubs['./ImportPurTransTask'] = {
+								create: createTask
+							}
+							importPurchase = proxyquire('../server/biz/batches/ImportPurchaseTransactions', stubs)
+						})
+
+						it('抽取并校验数据失败, 数无法处理, 废弃', () => {
+							extract.withArgs(doc).throws(err)
+
+							return importPurchase(doc)
+								.then(() => {
+									should.fail('failed test')
+								})
+								.catch((reason) => {
+									expect(reason).eqls(err)
+								})
+						})
+
+						it('创建采购交易导入任务失败, 返回false, 消息将重排', () => {
+							extract.withArgs(doc).returns(doc)
+							createTask.withArgs(doc).rejects(err)
+
+							return importPurchase(doc)
+								.then((ok) => {
+									expect(createTask.callCount).eqls(1)
+									expect(ok).false
+								})
+						})
+
+						it('采购交易导入任务确立', () => {
+							extract.withArgs(doc).returns(doc)
+							createTask.withArgs(doc).resolves()
+
+							return importPurchase(doc)
+								.then((ok) => {
+									expect(createTask.callCount).eqls(1)
+									expect(ok).true
+								})
+						})
+					})
+
+					describe('ImportPurTransTask', () => {
+						const taskSchema = {
+							schema: 'data of schema'
+						}
+						const doc = {
+							doc: 'any data of doc'
+						}
+						let dbSave, task, publishCreateImportPurTramsTask
 
 						beforeEach(() => {
-							doc = {}
+							stubs['../../../db/schema/PurTransTask'] = taskSchema
+							dbSave = sinon.stub()
+							stubs['../../../finelets/db/mongoDb/SaveDoc'] = dbSave
+
+							publishCreateImportPurTramsTask = sinon.spy()
+							stubs['../../CrossMessageCenter'] = {
+								importPurTransTaskCreated: publishCreateImportPurTramsTask
+							}
+
+							task = proxyquire('../server/biz/batches/ImportPurTransTask', stubs)
 						})
 
-						it('无交易单号, 废弃', () => {
-							return importPurchase(doc)
+						it('新增失败', () => {
+							dbSave.withArgs(taskSchema, doc).rejects(err)
+							return task.create(doc)
 								.then(() => {
-									should.fail('failed test')
+									should.fail
 								})
-								.catch((reason) => {
-									expect(reason).eqls('no transNo')
+								.catch((e) => {
+									expect(e).eqls(err)
 								})
 						})
 
-						it('任何一种交易数据提取失败均导致本消息被废弃', () => {
-							// TODO: 设计各交易后再设计采购交易处理
-							const transHandler = sinon.stub({
-								check: () => {},
-							})
-							return importPurchase(doc)
+						it('新增成功', () => {
+							dbSave.withArgs(taskSchema, doc).resolves(doc)
+							return task.create(doc)
 								.then(() => {
-									should.fail('failed test')
-								})
-								.catch((reason) => {
-									expect(reason).eqls('no transNo')
+									expect(publishCreateImportPurTramsTask).calledWith(doc).calledOnce
 								})
 						})
 					})

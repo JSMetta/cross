@@ -1,9 +1,22 @@
-const logger = require('@finelets/hyper-rest/app/Logger')
+const logger = require('@finelets/hyper-rest/app/Logger'),
+    extract = require('../BizDataExtractors').importPurTransTask,
+    createTask = require('./ImportPurTransTask').create
 
 const handler = (obj) => {
-    if(!obj || !obj.transNo) return Promise.reject('no transNo')
+    let doc;
+    try {
+        doc = extract(obj)
+    } catch (err) {
+        return Promise.reject(err)
+    }
 
-    logger.debug('Purchase transaction: \r\n' + JSON.stringify(obj))
-    return Promise.resolve(true)
+    logger.debug('Purchase transaction: \r\n' + JSON.stringify(doc))
+    return createTask(doc)
+        .then(() => {
+            return true
+        })
+        .catch(() => {
+            return false
+        })
 }
 module.exports = handler
