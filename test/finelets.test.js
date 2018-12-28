@@ -192,7 +192,7 @@ describe('Finelets', function () {
 		const rules = {
 			rule: 'define rules according npm rulebased-validator'
 		}
-		const validate = sinon.stub()
+		let validate
 		const result = {
 			fee: "fee",
 			fuu: "fuu"
@@ -204,6 +204,7 @@ describe('Finelets', function () {
 		let extract;
 
 		beforeEach(() => {
+			validate = sinon.stub()
 			stubs['rulebased-validator'] = {
 				validate: validate
 			}
