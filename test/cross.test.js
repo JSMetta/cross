@@ -17,6 +17,7 @@ describe('Cross', function () {
 			before(() => {
 				process.env.MQ = 'amqp://qladapfm:CjtgA21O-1Ux-L108UCR70TcJ4GDpRVh@spider.rmq.cloudamqp.com/qladapfm';
 			})
+
 			it('start', () => {
 				const config = {
 					config: 'config data'
@@ -42,14 +43,61 @@ describe('Cross', function () {
 				}
 
 				let crossMC = proxyquire('../server/CrossMessageCenter.js', stubs)
-				const msg = {msg: 'msg data'}
+				const msg = {
+					msg: 'msg data'
+				}
 				crossMC.importPurchaseTransactions(msg)
 				mqPublish.calledWith('cross', 'importPurchaseTransactions', msg).calledOnce
 			})
 		})
 
 		describe('biz - 业务模块', () => {
-			describe('bas - 基础资料', () => {})
+			describe('bas - 基础资料', () => {
+				describe('料品', () => {
+					it('料品数据抽取', () => {
+						const fields = ["partType", "partName", "spec", "unit"]
+						const rules = {
+							rule: 'define rules according npm rulebased-validator'
+						}
+						stubs['./PartValidateRules'] = rules
+
+						const expectedExtractor = {
+							extractor: 'expected extractor'
+						}
+						const createExtractor = sinon.stub()
+						stubs['../../../finelets/common/ExtractBasedRule'] = createExtractor
+						createExtractor.withArgs(fields, rules).returns(expectedExtractor)
+
+						let extractFromImportPurchaseTransaction = proxyquire('../server/biz/bas/SubdataFromImportPurchaseTransTask', stubs)
+						expect(extractFromImportPurchaseTransaction()).eqls(expectedExtractor)
+					})
+				})
+			})
+
+			describe('pur - 采购', () => {
+				describe('采购申请单', () => {
+					it('采购申请单数据抽取', () => {
+						const fields = ["partType", "partName", "spec", "unit", "qty", "price", "amount",
+							"supplier", "supply", "supplyLink",
+							"purPeriod", "applier", "appDate"
+						]
+						const rules = {
+							rule: 'define rules according npm rulebased-validator'
+						}
+						stubs['./PurApplyValidateRules'] = rules
+
+						const expectedExtractor = {
+							extractor: 'expected extractor'
+						}
+						const createExtractor = sinon.stub()
+						stubs['../../../finelets/common/ExtractBasedRule'] = createExtractor
+						createExtractor.withArgs(fields, rules).returns(expectedExtractor)
+
+						let extractFromImportPurchaseTransaction = proxyquire('../server/biz/pur/SubdataFromImportPurchaseTransTask', stubs)
+						expect(extractFromImportPurchaseTransaction()).eqls(expectedExtractor)
+					})
+				})
+			})
 
 			describe('batches - 批处理作业', () => {
 				describe('Import Purchases CSV', () => {
@@ -119,15 +167,29 @@ describe('Cross', function () {
 					})
 
 					describe('ImportPurchaseTransactions', () => {
-						const importPurchaseTransactions = require('../server/biz/batches/ImportPurchaseTransactions')
-						let doc
+						const importPurchase = require('../server/biz/batches/ImportPurchaseTransactions')
+						let doc;
 
 						beforeEach(() => {
 							doc = {}
 						})
 
-						it('无交易单号, 拒绝处理', () => {
-							return importPurchaseTransactions(doc)
+						it('无交易单号, 废弃', () => {
+							return importPurchase(doc)
+								.then(() => {
+									should.fail('failed test')
+								})
+								.catch((reason) => {
+									expect(reason).eqls('no transNo')
+								})
+						})
+
+						it('任何一种交易数据提取失败均导致本消息被废弃', () => {
+							// TODO: 设计各交易后再设计采购交易处理
+							const transHandler = sinon.stub({
+								check: () => {},
+							})
+							return importPurchase(doc)
 								.then(() => {
 									should.fail('failed test')
 								})

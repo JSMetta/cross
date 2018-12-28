@@ -187,4 +187,44 @@ describe('Finelets', function () {
 		})
 	})
 
+	describe('ExtractBasedRule', () => {
+		const fields = ['fee', 'fuu']
+		const rules = {
+			rule: 'define rules according npm rulebased-validator'
+		}
+		const validate = sinon.stub()
+		const result = {
+			fee: "fee",
+			fuu: "fuu"
+		}
+		const obj = Object.assign({
+			foo: 'foo'
+		}, result)
+
+		let extract;
+
+		beforeEach(() => {
+			stubs['rulebased-validator'] = {
+				validate: validate
+			}
+			extract = proxyquire('../finelets/common/ExtractBasedRule', stubs)(fields, rules)
+		})
+		it('未通过数据校验', () => {
+			validate.withArgs(result, rules).returns(err)
+			
+			try {
+				extract(obj)
+			} catch (e) {
+				expect(e).eqls(err)
+			}
+			should.fail
+		})
+
+		it('正确抽取数据', () => {
+			validate.withArgs(result, rules).returns(true)
+			
+			expect(extract(obj)).eql(result)
+
+		})
+	})
 })

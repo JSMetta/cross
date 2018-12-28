@@ -21,6 +21,7 @@
     "amqplib": "^0.5.3",
     "bluebird": "^3.5.3",
     "dotenv": "^6.2.0",
+    "rulebased-validator": "^1.0.2",
     "underscore": "^1.9.1"
   },
   "devDependencies": {
