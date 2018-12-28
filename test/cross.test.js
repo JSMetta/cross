@@ -52,50 +52,39 @@ describe('Cross', function () {
 		})
 
 		describe('biz - 业务模块', () => {
+			it('BizDataExtractors - 业务数据抽取', () => {
+				const config = {
+					partFromPurTransTask: {
+						fields: ["partType", "partName", "spec", "unit"],
+						rules: {}
+					},
+					purApplyFromPurTransTask: {
+						fields: ["partType", "partName", "spec", "unit", "qty", "price", "amount",
+							"supplier", "supply", "supplyLink",
+							"purPeriod", "applier", "appDate"
+						],
+						rules: {}
+					},
+
+				}
+				const expectedExtractors = {
+					extractors: 'expected extractors'
+				}
+				const createExtractors = sinon.stub()
+				stubs['../../finelets/common/CreateDataExtractors'] = createExtractors
+				createExtractors.withArgs(config).returns(expectedExtractors)
+
+				let bizDataExtractors = proxyquire('../server/biz/BizDataExtractors', stubs)
+				expect(bizDataExtractors).eqls(expectedExtractors)
+			})
+
 			describe('bas - 基础资料', () => {
 				describe('料品', () => {
-					it('料品数据抽取', () => {
-						const fields = ["partType", "partName", "spec", "unit"]
-						const rules = {
-							rule: 'define rules according npm rulebased-validator'
-						}
-						stubs['./PartValidateRules'] = rules
-
-						const expectedExtractor = {
-							extractor: 'expected extractor'
-						}
-						const createExtractor = sinon.stub()
-						stubs['../../../finelets/common/ExtractBasedRule'] = createExtractor
-						createExtractor.withArgs(fields, rules).returns(expectedExtractor)
-
-						let extractFromImportPurchaseTransaction = proxyquire('../server/biz/bas/SubdataFromImportPurchaseTransTask', stubs)
-						expect(extractFromImportPurchaseTransaction()).eqls(expectedExtractor)
-					})
 				})
 			})
 
 			describe('pur - 采购', () => {
 				describe('采购申请单', () => {
-					it('采购申请单数据抽取', () => {
-						const fields = ["partType", "partName", "spec", "unit", "qty", "price", "amount",
-							"supplier", "supply", "supplyLink",
-							"purPeriod", "applier", "appDate"
-						]
-						const rules = {
-							rule: 'define rules according npm rulebased-validator'
-						}
-						stubs['./PurApplyValidateRules'] = rules
-
-						const expectedExtractor = {
-							extractor: 'expected extractor'
-						}
-						const createExtractor = sinon.stub()
-						stubs['../../../finelets/common/ExtractBasedRule'] = createExtractor
-						createExtractor.withArgs(fields, rules).returns(expectedExtractor)
-
-						let extractFromImportPurchaseTransaction = proxyquire('../server/biz/pur/SubdataFromImportPurchaseTransTask', stubs)
-						expect(extractFromImportPurchaseTransaction()).eqls(expectedExtractor)
-					})
 				})
 			})
 

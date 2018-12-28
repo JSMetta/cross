@@ -211,7 +211,7 @@ describe('Finelets', function () {
 		})
 		it('未通过数据校验', () => {
 			validate.withArgs(result, rules).returns(err)
-			
+
 			try {
 				extract(obj)
 			} catch (e) {
@@ -222,9 +222,39 @@ describe('Finelets', function () {
 
 		it('正确抽取数据', () => {
 			validate.withArgs(result, rules).returns(true)
-			
+
 			expect(extract(obj)).eql(result)
 
+		})
+
+		it('CreateDataExtractors', () => {
+			const fooFields = ['fooField']
+			const fooRules = {fooRule: 'fooRule'}
+			const fooExtractor = {foo: 'foo'}
+			const feeFields = ['feeField']
+			const feeRules = {feeRule: 'feeRule'}
+			const feeExtractor = {fee: 'fee'}
+			const createExtractor = sinon.stub()
+			stubs['./ExtractBasedRule'] = createExtractor
+
+			const config = {
+				foo: {
+					fields: fooFields,
+					rules: fooRules
+				},
+				fee: {
+					fields: feeFields,
+					rules: feeRules
+				},
+			}
+
+			createExtractor.withArgs(fooFields, fooRules).returns(fooExtractor)
+			createExtractor.withArgs(feeFields, feeRules).returns(feeExtractor)
+			const createDataExtractors = proxyquire('../finelets/common/CreateDataExtractors', stubs)
+			let extractors = createDataExtractors(config)
+
+			expect(extractors.foo).eqls(fooExtractor)
+			expect(extractors.fee).eqls(feeExtractor)
 		})
 	})
 })
