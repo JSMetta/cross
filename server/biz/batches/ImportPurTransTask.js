@@ -1,7 +1,6 @@
 const dbSave = require('../../../finelets/db/mongoDb/SaveDoc'),
     schema = require('../../../db/schema/PurTransTask'),
     extract = require('../BizDataExtractors').importPurTransTask,
-    publish = require('../../CrossMessageCenter').importPurTransTaskCreated,
     logger = require('@finelets/hyper-rest/app/Logger');
 
 module.exports = {
@@ -16,6 +15,7 @@ module.exports = {
         logger.debug('Create import purchase transaction task: \r\n' + JSON.stringify(obj))
         return dbSave(schema, obj)
             .then((doc) => {
+                let publish = require('../../CrossMessageCenter').importPurTransTaskCreated
                 publish(doc)
                 return doc
             })

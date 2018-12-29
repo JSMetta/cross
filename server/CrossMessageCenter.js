@@ -1,16 +1,15 @@
 const mq = require('../finelets/mq/RabbitMessageCenter'),
-    config = require('./CrossMessageCenterConfig'),
     __ = require('underscore');
 
-const startup = () => {
+const startup = (config) => {
     return mq.start(config)
         .then(() => {
-            __.each(config.exchanges, (ex) => {
+            __.each(config.exchanges, (ex, exName) => {
                 if (ex.publishes && ex.publishes.length > 0) {
                     let exPublishes = {}
                     ex.publishes.forEach((p) => {
                         exPublishes[p] = (msg) => {
-                            return mq.publish(ex, p, msg)
+                            return mq.publish(exName, p, msg)
                         }
                     })
                     if (ex.isDefault) {
@@ -23,18 +22,8 @@ const startup = () => {
         })
 }
 
-/* const __publishMessage = (type, msg) => {
-    return mq.publish('cross', type, msg)
-} */
-
 const crossMC = {
     start: startup,
-    /* importPurchaseTransactions: (msg) => {
-        return __publishMessage('importPurchaseTransactions', msg)
-    },
-    createImportPurTransTask: (msg) => {
-        return __publishMessage('createImportPurTransTask', msg)
-    } */
 }
 
 module.exports = crossMC

@@ -1,3 +1,5 @@
+const toCreatePurchase = (doc)=>{return Promise.resolve(true)}
+
 module.exports = {
     connect: process.env.MQ,
     exchanges: {
@@ -7,6 +9,10 @@ module.exports = {
                 'importPurTransTaskCreated'
             ],
             queues: {
+                CreatePurchase: {
+                    topic: 'importPurTransTaskCreated',
+                    consumer: toCreatePurchase
+                },
             }
         }
     }

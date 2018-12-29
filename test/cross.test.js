@@ -28,13 +28,11 @@ describe('Cross', function () {
 				mqStart.withArgs(config).resolves()
 				let crossMC = proxyquire('../server/CrossMessageCenter.js', stubs)
 
-				return crossMC.start()
+				return crossMC.start(config)
 					.then(() => {
 						mqStart.callCount.should.eql(1)
-						/* crossMC.importPurchaseTransactions(msg)
 						crossMC.importPurTransTaskCreated(msg)
-						mqPublish.calledWith('cross', 'importPurchaseTransactions', msg).calledOnce
-						mqPublish.calledWith('cross', 'importPurTransTaskCreated', msg).calledOnce */
+						mqPublish.calledWith('cross', 'importPurTransTaskCreated', msg).calledOnce
 					})
 
 
@@ -135,9 +133,19 @@ describe('Cross', function () {
 						expect(val.invLoc).eqls(expected.invLoc)
 						expect(val.remark).eqls(expected.remark)
 					})
+
+					it('PurchaseCsvSaver', () => {
+						let createImportPurTransTask = sinon.stub()
+						stubs['./ImportPurTransTask'] = {create: createImportPurTransTask}
+						let purchaseCsvSaver = proxyquire('../server/biz/batches/PurchaseCsvSaver', stubs)
+
+						createImportPurTransTask.rejects(err)
+						return purchaseCsvSaver({transNo: 'No123456'})
+					})
+
 					it('PurchasesCSVStream', () => {
 						const parser = require('../server/biz/batches/PurchaseCsvParser')
-						const saver = require('../server/biz/batches/ImportPurTransTask').create
+						const saver = require('../server/biz/batches/PurchaseCsvSaver')
 						const stream = {
 							stream: 'expected the PurchasesCSVStream created'
 						}

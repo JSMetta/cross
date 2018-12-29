@@ -1,6 +1,6 @@
 const createStream = require('../../../finelets/streams/CSVStream'),
     parser = require('./PurchaseCsvParser'),
-    saver = require('./ImportPurTransTask').create;
+    saver = require('./PurchaseCsvSaver');
 
 
 module.exports = () => {
