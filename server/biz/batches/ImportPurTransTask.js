@@ -1,6 +1,7 @@
 const dbSave = require('@finelets/hyper-rest/db/mongoDb/SaveObjectToDb'),
     schema = require('../../../db/schema/PurTransTask'),
     extract = require('../BizDataExtractors').importPurTransTask,
+    __ = require('underscore'),
     logger = require('@finelets/hyper-rest/app/Logger');
 
 module.exports = {
@@ -35,5 +36,21 @@ module.exports = {
                     })
             })
 
+    },
+
+    findById: function (id) {
+        return schema.findById(id)
+            .then((data) => {
+                return data
+            })
+    },
+
+    find: function (condi) {
+        return schema.find(condi)
+            .then((docs) => {
+                return __.map(docs, function (doc) {
+                    return doc.toJSON();
+                })
+            })
     }
 }

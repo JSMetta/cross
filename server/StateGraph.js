@@ -1,5 +1,9 @@
 module.exports = {
     Cross: {
-        UploadPurchases: "UploadPurchases"
+        uploadPurTransTasks: "UploadPurchases",
+        queryPurchaseTransTasks: 'PurchaseTransTasks'
+    },
+    PurchaseTransTasks: {
+        exit: 'Cross'
     }
 }

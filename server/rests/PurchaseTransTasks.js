@@ -1,0 +1,34 @@
+const taskDb = require('../biz/batches/ImportPurTransTask'),
+    logger = require('@finelets/hyper-rest/app/Logger');
+
+const list = function (query) {
+    logger.debug(JSON.stringify(query));
+    var condi;
+    try {
+        condi = JSON.parse(query.q);
+    } catch (e) {
+        condi = {}
+    }
+    logger.debug(JSON.stringify(condi));
+    return taskDb.find(condi)
+        .then(function (list) {
+            return {
+                items: list
+            }
+        })
+};
+
+module.exports = {
+    url: '/cross/task/purTransTasks',
+    rests: [{
+            type: 'create',
+            target: 'PurchaseTransTask',
+            handler: taskDb.create
+        },
+        {
+            type: 'query',
+            element: 'PurchaseTransTask',
+            handler: list
+        }
+    ]
+}
