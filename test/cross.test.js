@@ -136,11 +136,24 @@ describe('Cross', function () {
 
 					it('PurchaseCsvSaver', () => {
 						let createImportPurTransTask = sinon.stub()
-						stubs['./ImportPurTransTask'] = {create: createImportPurTransTask}
+						stubs['./ImportPurTransTask'] = {
+							create: createImportPurTransTask
+						}
 						let purchaseCsvSaver = proxyquire('../server/biz/batches/PurchaseCsvSaver', stubs)
 
-						createImportPurTransTask.rejects(err)
-						return purchaseCsvSaver({transNo: 'No123456'})
+						createImportPurTransTask.onCall(0).resolves()
+						createImportPurTransTask.onCall(1).rejects(err)
+						return purchaseCsvSaver({
+								transNo: 'No123456'
+							})
+							.then(() => {
+								return purchaseCsvSaver({
+									transNo: 'No123456'
+								})
+							})
+							.then(() => {
+								expect(createImportPurTransTask.callCount).eqls(2)
+							})
 					})
 
 					it('PurchasesCSVStream', () => {
@@ -157,25 +170,32 @@ describe('Cross', function () {
 						expect(created).eqls(stream)
 					})
 
-
 					describe('ImportPurTransTask', () => {
-						const taskSchema = {
-							schema: 'data of schema'
-						}
+						let findOneStub, schema
 						const doc = {
+							transNo: 'foo',
 							doc: 'any data of doc'
+						}
+						const taskDoc = {
+							transNo: 'foo',
+							task: doc
 						}
 						let extract, dbSave, task, publishImportPurTransTaskCreated;
 
 						beforeEach(() => {
+							findOneStub = sinon.stub()
+							schema = {
+								findOne: findOneStub
+							}
+							stubs['../../../db/schema/PurTransTask'] = schema
+
 							extract = sinon.stub()
 							stubs['../BizDataExtractors'] = {
 								importPurTransTask: extract
 							}
 
-							stubs['../../../db/schema/PurTransTask'] = taskSchema
 							dbSave = sinon.stub()
-							stubs['../../../finelets/db/mongoDb/SaveDoc'] = dbSave
+							stubs['@finelets/hyper-rest/db/mongoDb/SaveObjectToDb'] = dbSave
 
 							publishImportPurTransTaskCreated = sinon.spy()
 							stubs['../../CrossMessageCenter'] = {
@@ -196,9 +216,23 @@ describe('Cross', function () {
 								})
 						})
 
+						it('忽略已存在的交易', () => {
+							extract.withArgs(doc).returns(doc)
+							findOneStub.withArgs({
+								transNo: 'foo'
+							}).resolves(taskDoc)
+							return task.create(doc)
+								.then(() => {
+									expect(dbSave.callCount).eqls(0)
+								})
+						})
+
 						it('新增失败', () => {
 							extract.withArgs(doc).returns(doc)
-							dbSave.withArgs(taskSchema, doc).rejects(err)
+							findOneStub.withArgs({
+								transNo: 'foo'
+							}).resolves(null)
+							dbSave.withArgs(schema, taskDoc).rejects(err)
 							return task.create(doc)
 								.then(() => {
 									should.fail
@@ -210,7 +244,10 @@ describe('Cross', function () {
 
 						it('新增成功', () => {
 							extract.withArgs(doc).returns(doc)
-							dbSave.withArgs(taskSchema, doc).resolves(doc)
+							findOneStub.withArgs({
+								transNo: 'foo'
+							}).resolves(null)
+							dbSave.withArgs(schema, taskDoc).resolves(doc)
 							return task.create(doc)
 								.then((data) => {
 									expect(data).eqls(doc)

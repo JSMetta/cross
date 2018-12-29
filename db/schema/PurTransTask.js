@@ -6,8 +6,11 @@ const mongoose = require('mongoose'),
 const PurTransTaskSchema = new Schema({
     transNo: String,
     task: Map,
-    state: Number,
-    createDate: Date
+    state: {
+      type: Number,
+      default: 0
+    },
+    createDate: {type: Date, default: new Date()}
   },
   transformOption
 )
