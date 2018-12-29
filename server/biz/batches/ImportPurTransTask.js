@@ -1,13 +1,23 @@
 const dbSave = require('../../../finelets/db/mongoDb/SaveDoc'),
     schema = require('../../../db/schema/PurTransTask'),
-    publish = require('../../CrossMessageCenter').importPurTransTaskCreated;
+    extract = require('../BizDataExtractors').importPurTransTask,
+    publish = require('../../CrossMessageCenter').importPurTransTaskCreated,
+    logger = require('@finelets/hyper-rest/app/Logger');
 
 module.exports = {
     create: (doc) => {
-        return dbSave(schema, doc)
+        let obj;
+        try {
+            obj = extract(doc)
+        } catch (err) {
+            return Promise.reject(err)
+        }
+
+        logger.debug('Create import purchase transaction task: \r\n' + JSON.stringify(obj))
+        return dbSave(schema, obj)
             .then((doc) => {
                 publish(doc)
-                return
+                return doc
             })
     }
 }
