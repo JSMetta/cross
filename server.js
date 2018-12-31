@@ -4,10 +4,14 @@ const connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
 	logger = require('@finelets/hyper-rest/app/Logger'),
 	crossMessageCenter = require('./server/CrossMessageCenter'),
 	mcConfig = require('./server/CrossMessageCenterConfig'),
+	cors = require('cors'),
 	path = require('path'),
 	restDir = path.join(__dirname, './server/rests'),
 	graph = require('./server/StateGraph'),
 	rests = require('@finelets/hyper-rest/rests')(restDir, graph);
+
+var app = appBuilder.getApp();
+app.use(cors())
 
 appBuilder
 	.setWebRoot('/cross/root', './client')
