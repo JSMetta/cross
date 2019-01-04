@@ -4,8 +4,6 @@ var proxyquire = require('proxyquire'),
 
 describe('Cross', function () {
 	var stubs, err;
-	before(function () {});
-
 	beforeEach(function () {
 		stubs = {};
 		err = new Error('any error message');
@@ -34,8 +32,6 @@ describe('Cross', function () {
 						crossMC.importPurTransTaskCreated(msg)
 						mqPublish.calledWith('cross', 'importPurTransTaskCreated', msg).calledOnce
 					})
-
-
 			})
 		})
 
@@ -66,7 +62,9 @@ describe('Cross', function () {
 			})
 
 			describe('pur - 采购', () => {
-				describe('采购申请单', () => {})
+				describe('采购申请单', () => {
+
+				})
 			})
 
 			describe('batches - 批处理作业', () => {
@@ -254,6 +252,14 @@ describe('Cross', function () {
 									expect(publishImportPurTransTaskCreated).calledWith(doc).calledOnce
 								})
 						})
+					})
+
+					describe('ExcutePurTransTask', () => {
+						const taskId = 12345
+						const tastData = {taskData: 'Raw data of the task'}
+						const taskDoc = {task: tastData}
+
+						// TODO: 设计状态机后再实现采购交易数据处理流程
 					})
 				})
 			})
