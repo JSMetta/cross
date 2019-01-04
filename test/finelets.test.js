@@ -187,4 +187,227 @@ describe('Finelets', function () {
 		})
 	})
 
+	describe('TaskExecutionStates', () => {
+		const createFsm = require('../finelets/fsm/TaskExecutionStates')
+		const id = 1234,
+			eventPayload = {
+				eventPayload: 'eventPayload'
+			}
+		let fsm, statesGraph, context;
+
+		beforeEach(() => {
+			context = sinon.stub({
+				getState: () => {},
+				updateState: () => {}
+			})
+			statesGraph = {
+				context: context,
+				transitions: [{
+					when: 'foo',
+					from: 0,
+					to: 1
+				}]
+			}
+			fsm = createFsm(statesGraph)
+		})
+
+		it('未指定状态迁移图', () => {
+			expect(() => {
+				createFsm()
+			}).throws('States transition graph is not defined')
+
+		})
+
+		it('状态迁移图中未实现context上下文接口', () => {
+			expect(() => {
+				createFsm({})
+			}).throws('context interface is not defined in states transition graph')
+		})
+
+		it('状态迁移图中未实现context.getState接口', () => {
+			expect(() => {
+				createFsm({
+					context: {}
+				})
+			}).throws('context.getState interface is not defined in states transition graph')
+		})
+
+		it('未读到当前状态', () => {
+			context.getState.withArgs(id).rejects(err)
+			return fsm.on('invalid', eventPayload, id)
+				.then(() => {
+					should.fail('should not come here')
+				})
+				.catch((e) => {
+					expect(e).eqls(err)
+				})
+		})
+
+		it('当前状态下收到无效消息', () => {
+			context.getState.withArgs(id).resolves(0)
+			return fsm.on('invalid', eventPayload, id)
+				.then((state) => {
+					expect(state).eqls(0)
+				})
+		})
+
+		it('当前状态下发生迁移时状态更新失败', () => {
+			context.getState.withArgs(id).resolves(0)
+			context.updateState.withArgs(1, eventPayload, id).rejects(err)
+			return fsm.on('foo', eventPayload, id)
+				.then(() => {
+					should.fail('should not come here')
+				})
+				.catch((e) => {
+					expect(e).eqls(err)
+				})
+		})
+
+		it('当前状态下发生迁移', () => {
+			context.getState.withArgs(id).resolves(0)
+			context.updateState.withArgs(1, eventPayload, id).resolves()
+			return fsm.on('foo', eventPayload, id)
+				.then((state) => {
+					expect(state).eqls(1)
+				})
+		})
+
+		it('当前状态下发生迁移时执行新状态的入口动作失败，则迁移失败', () => {
+			let action = sinon.stub()
+			statesGraph = {
+				context: context,
+				transitions: [{
+					when: 'foo',
+					from: 0,
+					to: {
+						state: 1,
+						entry: action
+					}
+				}]
+			}
+			fsm = createFsm(statesGraph)
+			context.getState.withArgs(id).resolves(0)
+			action.withArgs(eventPayload, id).rejects(err)
+			return fsm.on('foo', eventPayload, id)
+				.then(() => {
+					should.fail('should not come here')
+				})
+				.catch((e) => {
+					expect(e).eqls(err)
+				})
+		})
+
+		it('当前状态下发生迁移时执行当前状态的出口动作失败，则迁移失败', () => {
+			let action = sinon.stub()
+			statesGraph = {
+				context: context,
+				transitions: [{
+					when: 'foo',
+					from: {
+						state: 0,
+						exit: action
+					},
+					to: 1
+				}]
+			}
+			fsm = createFsm(statesGraph)
+			context.getState.withArgs(id).resolves(0)
+			action.withArgs(eventPayload, id).rejects(err)
+			return fsm.on('foo', eventPayload, id)
+				.then(() => {
+					should.fail('should not come here')
+				})
+				.catch((e) => {
+					expect(e).eqls(err)
+				})
+		})
+
+		it('当前状态下发生迁移时可执行出口和入口动作', () => {
+			let action = sinon.stub()
+			statesGraph = {
+				context: context,
+				transitions: [{
+					when: 'foo',
+					from: {
+						state: 0,
+						exit: action
+					},
+					to: {
+						state: 1,
+						entry: action
+					}
+				}]
+			}
+			fsm = createFsm(statesGraph)
+			context.getState.withArgs(id).resolves(0)
+			action.withArgs(eventPayload, id).resolves()
+			return fsm.on('foo', eventPayload, id)
+				.then((state) => {
+					expect(state).eqls(1)
+				})
+		})
+
+		it('守护异常', () => {
+			let action = sinon.stub()
+			statesGraph = {
+				context: context,
+				transitions: [{
+					when: 'foo',
+					from: 0,
+					guard: action,
+					to: 1
+				}]
+			}
+			fsm = createFsm(statesGraph)
+			context.getState.withArgs(id).resolves(0)
+			action.withArgs(eventPayload, id).rejects(err)
+			return fsm.on('foo', eventPayload, id)
+				.then(() => {
+					should.fail('should not come here')
+				})
+				.catch((e) => {
+					expect(e).eqls(err)
+				})
+		})
+
+		it('未通过守护', () => {
+			let action = sinon.stub()
+			statesGraph = {
+				context: context,
+				transitions: [{
+					when: 'foo',
+					from: 0,
+					guard: action,
+					to: 1
+				}]
+			}
+			fsm = createFsm(statesGraph)
+			context.getState.withArgs(id).resolves(0)
+			action.withArgs(eventPayload, id).resolves(false)
+			return fsm.on('foo', eventPayload, id)
+				.then((state) => {
+					expect(state).eqls(0)
+				})
+		})
+
+		it('通过守护', () => {
+			let action = sinon.stub()
+			statesGraph = {
+				context: context,
+				transitions: [{
+					when: 'foo',
+					from: 0,
+					guard: action,
+					to: 1
+				}]
+			}
+			fsm = createFsm(statesGraph)
+			context.getState.withArgs(id).resolves(0)
+			action.withArgs(eventPayload, id).resolves(true)
+			return fsm.on('foo', eventPayload, id)
+				.then((state) => {
+					expect(state).eqls(1)
+				})
+		})
+	})
 })
