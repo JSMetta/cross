@@ -47,11 +47,17 @@ const __createQueue = (ch, ex, name, config) => {
                 let payload = JSON.parse(msg.content.toString())
                 return config.consumer(payload)
                     .then((ok) => {
-                        return ok ? ch.ack(msg) : ch.nack(msg)
+                        if (ok === true || ok === false) {
+                            if(!ok) 
+                            logger.warn('The message consumer decide to requeue the message!')
+                            return ok ? ch.ack(msg) : ch.nack(msg)
+                        }
+                        logger.warn('You should ack the message by true or false!')
+                        return ch.ack(msg)
                     })
                     .catch((err) => {
-                        logger.error('the consumer has rejected message:\r\n' + JSON.stringify(payload) + 
-                        '\r\nError:' + JSON.stringify(err))
+                        logger.warn('the consumer has rejected message:\r\n' + JSON.stringify(payload) +
+                            '\r\nError:' + JSON.stringify(err))
                         return ch.nack(msg, false, false)
                     })
             })
@@ -89,7 +95,7 @@ const rabbitMessageCenter = {
                 return Promise.all(exchanges)
             })
     },
-    
+
     publish: (name, type, msg) => {
         return __publishes[name].publish(type, msg)
     }
