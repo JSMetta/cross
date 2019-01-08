@@ -22,9 +22,6 @@ module.exports = {
             })
             .then((doc) => {
                 if (doc) {
-                    // doc = doc.toJSON()
-                    logger.info('The purTransTask - ' + obj.transNo + ' already exists, it will be ignored!')
-                    logger.info(JSON.stringify(doc, null, 2))
                     return doc
                 }
                 return dbSave(schema, obj)
@@ -51,6 +48,21 @@ module.exports = {
                 return __.map(docs, function (doc) {
                     return doc.toJSON();
                 })
+            })
+    },
+
+    updateState: (id, states) => {
+        return schema.findById(id)
+            .then((doc) => {
+                if (states.purchase) doc.po = states.purchase
+                if (states.review) doc.review = states.review
+                if (states.inInv) doc.inInv = states.inInv
+                if (states.outInv) doc.outInv = states.outInv
+                return doc.save()
+            })
+            .then((doc) => {
+                logger.debug('Purchase trans task state:\r\n' + JSON.stringify(doc, null, 2))
+                return doc.toJSON()
             })
     }
 }

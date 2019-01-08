@@ -4,11 +4,11 @@ const __doNothing = () => {
 }
 
 class State {
-    constructor(stateDef) {
+    constructor(ctx, stateDef) {
         if (__.isObject(stateDef)) {
             this.__state = stateDef.state
-            this.entry = stateDef.entry ? stateDef.entry : __doNothing
-            this.exit = stateDef.exit ? stateDef.exit : __doNothing
+            this.entry = stateDef.entry ? (__.isString(stateDef.entry) ? ctx[stateDef.entry] : stateDef.entry) : __doNothing
+            this.exit = stateDef.exit ? (__.isString(stateDef.exit) ? ctx[stateDef.exit] : stateDef.exit) : __doNothing
         } else {
             this.__state = stateDef
             this.entry = __doNothing
@@ -22,11 +22,11 @@ class State {
 }
 
 class Transition {
-    constructor(def) {
-        this.__from = new State(def.from)
-        this.__to = new State(def.to)
+    constructor(ctx, def) {
+        this.__from = new State(ctx, def.from)
+        this.__to = new State(ctx, def.to)
         this.__when = def.when
-        this.__guard = def.guard ? def.guard : () => {
+        this.__guard = def.guard ? (__.isString(def.guard) ? ctx[def.guard] : def.guard) : () => {
             return Promise.resolve(true)
         }
     }
@@ -56,11 +56,11 @@ class TaskExecutionStates {
     constructor(graph) {
         this.__ctx = graph.context
         this.__transitions = __.map(graph.transitions, (e) => {
-            return new Transition(e)
+            return new Transition(this.__ctx, e)
         })
     }
 
-    on(when, payLoad, id) {
+    trigger(when, payLoad, id) {
         let ctx = this.__ctx
         let trans = this.__transitions
         let toState

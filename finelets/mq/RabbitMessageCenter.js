@@ -47,6 +47,7 @@ const __createQueue = (ch, ex, name, config) => {
                 let payload = JSON.parse(msg.content.toString())
                 return config.consumer(payload)
                     .then((ok) => {
+                        logger.debug('The message consumer result is ' + ok)
                         return ok ? ch.ack(msg) : ch.nack(msg)
                     })
                     .catch((err) => {

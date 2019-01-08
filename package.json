@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "debug": "node --nolazy --inspect-brk=8090 server.js",
     "test": "./node_modules/.bin/mocha -t 9000 --reporter spec --exit"
   },
   "repository": {

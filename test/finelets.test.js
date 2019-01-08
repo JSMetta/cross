@@ -306,7 +306,7 @@ describe('Finelets', function () {
 
 		it('未读到当前状态', () => {
 			context.getState.withArgs(id).rejects(err)
-			return fsm.on('invalid', eventPayload, id)
+			return fsm.trigger('invalid', eventPayload, id)
 				.then(() => {
 					should.fail('should not come here')
 				})
@@ -317,7 +317,7 @@ describe('Finelets', function () {
 
 		it('当前状态下收到无效消息', () => {
 			context.getState.withArgs(id).resolves(0)
-			return fsm.on('invalid', eventPayload, id)
+			return fsm.trigger('invalid', eventPayload, id)
 				.then((state) => {
 					expect(state).eqls(0)
 				})
@@ -326,7 +326,7 @@ describe('Finelets', function () {
 		it('当前状态下发生迁移时状态更新失败', () => {
 			context.getState.withArgs(id).resolves(0)
 			context.updateState.withArgs(1, eventPayload, id).rejects(err)
-			return fsm.on('foo', eventPayload, id)
+			return fsm.trigger('foo', eventPayload, id)
 				.then(() => {
 					should.fail('should not come here')
 				})
@@ -338,7 +338,7 @@ describe('Finelets', function () {
 		it('当前状态下发生迁移', () => {
 			context.getState.withArgs(id).resolves(0)
 			context.updateState.withArgs(1, eventPayload, id).resolves()
-			return fsm.on('foo', eventPayload, id)
+			return fsm.trigger('foo', eventPayload, id)
 				.then((state) => {
 					expect(state).eqls(1)
 				})
@@ -360,7 +360,7 @@ describe('Finelets', function () {
 			fsm = createFsm(statesGraph)
 			context.getState.withArgs(id).resolves(0)
 			action.withArgs(eventPayload, id).rejects(err)
-			return fsm.on('foo', eventPayload, id)
+			return fsm.trigger('foo', eventPayload, id)
 				.then(() => {
 					should.fail('should not come here')
 				})
@@ -385,7 +385,7 @@ describe('Finelets', function () {
 			fsm = createFsm(statesGraph)
 			context.getState.withArgs(id).resolves(0)
 			action.withArgs(eventPayload, id).rejects(err)
-			return fsm.on('foo', eventPayload, id)
+			return fsm.trigger('foo', eventPayload, id)
 				.then(() => {
 					should.fail('should not come here')
 				})
@@ -413,9 +413,39 @@ describe('Finelets', function () {
 			fsm = createFsm(statesGraph)
 			context.getState.withArgs(id).resolves(0)
 			action.withArgs(eventPayload, id).resolves()
-			return fsm.on('foo', eventPayload, id)
+			return fsm.trigger('foo', eventPayload, id)
 				.then((state) => {
 					expect(state).eqls(1)
+				})
+		})
+
+		it('可以以字符串定义出口/入口/守护动作', () => {
+			let action = sinon.stub()
+			context.fooEntry = action
+			context.fooExit = action
+			context.fooGuard = action
+			statesGraph = {
+				context: context,
+				transitions: [{
+					when: 'foo',
+					from: {
+						state: 0,
+						exit: 'fooExit'
+					},
+					guard: 'fooGuard',
+					to: {
+						state: 1,
+						entry: 'fooEntry'
+					}
+				}]
+			}
+			fsm = createFsm(statesGraph)
+			context.getState.withArgs(id).resolves(0)
+			action.withArgs(eventPayload, id).resolves(true)
+			return fsm.trigger('foo', eventPayload, id)
+				.then((state) => {
+					expect(state).eqls(1)
+					expect(action.callCount).eqls(3)
 				})
 		})
 
@@ -433,7 +463,7 @@ describe('Finelets', function () {
 			fsm = createFsm(statesGraph)
 			context.getState.withArgs(id).resolves(0)
 			action.withArgs(eventPayload, id).rejects(err)
-			return fsm.on('foo', eventPayload, id)
+			return fsm.trigger('foo', eventPayload, id)
 				.then(() => {
 					should.fail('should not come here')
 				})
@@ -456,7 +486,7 @@ describe('Finelets', function () {
 			fsm = createFsm(statesGraph)
 			context.getState.withArgs(id).resolves(0)
 			action.withArgs(eventPayload, id).resolves(false)
-			return fsm.on('foo', eventPayload, id)
+			return fsm.trigger('foo', eventPayload, id)
 				.then((state) => {
 					expect(state).eqls(0)
 				})
@@ -476,7 +506,7 @@ describe('Finelets', function () {
 			fsm = createFsm(statesGraph)
 			context.getState.withArgs(id).resolves(0)
 			action.withArgs(eventPayload, id).resolves(true)
-			return fsm.on('foo', eventPayload, id)
+			return fsm.trigger('foo', eventPayload, id)
 				.then((state) => {
 					expect(state).eqls(1)
 				})
