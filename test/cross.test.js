@@ -114,6 +114,25 @@ describe('Cross', function () {
 								expect(data).eqls(created)
 							})
 					})
+
+					it('findById', () => {
+						return dbSave(schema, {
+								name: 'foo'
+							})
+							.then((doc) => {
+								return testTarget.findById(doc.id)
+							})
+							.then((doc) => {
+								expect(doc.name).eqls('foo')
+							})
+					})
+
+					it('findById - 未找到', () => {
+						return testTarget.findById("5c349d1a6cf8de3cd4a5bc2c")
+							.then((doc) => {
+								expect(doc).not.exist
+							})
+					})
 				})
 
 				describe('Suppliers - 供应商', () => {
@@ -209,7 +228,7 @@ describe('Cross', function () {
 
 			describe('pur - 采购', () => {
 				let schema, dbSaveStub, testTarget
-				let poData
+				let poData, partStub
 
 				const partId = "5c349d1a6cf8de3cd4a5bc2c"
 				const source = 'any source'
@@ -221,6 +240,11 @@ describe('Cross', function () {
 						amount: 5000,
 						source: source
 					}
+
+					partStub = sinon.stub({
+						findById: () => {}
+					})
+					stubs['../bas/Parts'] = partStub
 
 					dbSaveStub = sinon.stub()
 					stubs['../../../finelets/db/mongoDb/dbSave'] = dbSaveStub
@@ -255,6 +279,53 @@ describe('Cross', function () {
 							.then((data) => {
 								expect(data).eqls(created)
 							})
+					})
+
+					it('getPart', () => {
+						const partExpected = {
+							part: 'part expected'
+						}
+						const ObjectId = require('mongoose').mongo.ObjectId
+						let partObjId = new ObjectId(partId)
+						partStub.findById.withArgs(partObjId).resolves(partExpected)
+						return dbSave(schema, {
+								part: partObjId,
+								qty: 100,
+								amount: 20000
+							})
+							.then((doc) => {
+								return testTarget.getPart(doc.id)
+							})
+							.then((doc) => {
+								expect(doc).eqls(partExpected)
+							})
+					})
+
+					describe('采购入库抵扣采购单', () => {
+						it('成功', () => {
+							const poQty = 400,
+								qty = 120
+							let purId
+							return dbSave(schema, {
+									part: partId,
+									qty: poQty,
+									amount: 20000
+								})
+								.then((data) => {
+									purId = data.id
+									return testTarget.inInv({
+										po: purId,
+										qty: qty
+									})
+								})
+								.then((result) => {
+									expect(result).true
+									return schema.findById(purId)
+								})
+								.then((doc) => {
+									expect(doc.left).eqls(280)
+								})
+						})
 					})
 				})
 
@@ -332,13 +403,16 @@ describe('Cross', function () {
 				const aDate = new Date()
 
 				beforeEach(() => {
-					dbSaveStub = sinon.stub()
-					stubs['../../../finelets/db/mongoDb/dbSave'] = dbSaveStub
 				})
 
-				describe('InInv - 入库单', () => {
+				describe('InInvs - 采购入库单', () => {
 					const purId = "5c349d1a6cf8de3cd4a5bc2c"
+					let msgSender
 					beforeEach(() => {
+						msgSender = sinon.spy()
+						stubs['../../CrossMessageCenter'] = {poInInv: msgSender}
+						dbSaveStub = sinon.stub()
+						stubs['../../../finelets/db/mongoDb/dbSave'] = dbSaveStub
 						transData = {
 							po: purId,
 							qty: 100,
@@ -347,6 +421,7 @@ describe('Cross', function () {
 							source: transNo
 						}
 						schema = require('../db/schema/inv/InInv')
+
 						testTarget = proxyquire('../server/biz/inv/InInvs', stubs)
 					})
 
@@ -372,14 +447,19 @@ describe('Cross', function () {
 						return testTarget.create(transData)
 							.then((data) => {
 								expect(data).eqls(created)
+								expect(msgSender.withArgs(data)).calledOnce
 							})
 					})
 				})
 
-				describe('OutInv - 出库单', () => {
+				describe('OutInvs - 出库单', () => {
 					const partId = "5c349d1a6cf8de3cd4a5bc2c"
-
+					let msgSender
 					beforeEach(() => {
+						msgSender = sinon.spy()
+						stubs['../../CrossMessageCenter'] = {outInv: msgSender}
+						dbSaveStub = sinon.stub()
+						stubs['../../../finelets/db/mongoDb/dbSave'] = dbSaveStub
 						transData = {
 							part: partId,
 							qty: 200,
@@ -414,6 +494,131 @@ describe('Cross', function () {
 						return testTarget.create(transData)
 							.then((data) => {
 								expect(data).eqls(created)
+								expect(msgSender.withArgs(data)).calledOnce
+							})
+					})
+				})
+
+				describe('Invs - 库存', () => {
+					const invSchema = require('../db/schema/inv/Inv')
+					const partId = "5c349d1a6cf8de3cd4a5bc2c"
+					let invs, po
+
+					beforeEach(() => {
+						po = sinon.stub({
+							getPart: () => {}
+						})
+						stubs['../pur/Purchases'] = po
+						invs = proxyquire('../server/biz/inv/Invs', stubs)
+					})
+					describe('处理入库单', () => {
+						const poId = '123455'
+						const initQty = 150
+						const qty = 210
+						const doc = {
+							po: poId,
+							qty: qty
+						}
+
+						beforeEach(() => {
+							po.getPart.withArgs(poId).resolves({
+								id: partId
+							})
+						})
+						it('首次库存开账', () => {
+							return invs.inInv(doc)
+								.then((result) => {
+									expect(result).true
+									return invSchema.findOne({
+										part: partId
+									})
+								})
+								.then((data) => {
+									expect(data.qty).eqls(qty)
+								})
+						})
+
+						it('更新库存', () => {
+							return dbSave(invSchema, {
+									part: partId,
+									qty: initQty
+								})
+								.then(() => {
+									return invs.inInv(doc)
+								})
+								.then((result) => {
+									expect(result).true
+									return invSchema.findOne({
+										part: partId
+									})
+								})
+								.then((data) => {
+									expect(data.qty).eqls(qty + initQty)
+								})
+						})
+					})
+				})
+
+				describe('Loc - 库位', () => {
+					const partId = "5c349d1a6cf8de3cd4a5bc2c"
+					const purId = '12345'
+					const qty = 230
+					const loc = 'foo'
+					const date = new Date()
+					let inInvDoc
+					const locSchema = require('../db/schema/inv/Loc')
+					let LOC, po
+					
+					beforeEach(() => {
+						inInvDoc = {
+							po: purId,
+							qty: qty,
+							loc: loc,
+							date: date
+						}
+						po = sinon.stub({
+							getPart: () => {}
+						})
+						stubs['../pur/Purchases'] = po
+						po.getPart.withArgs(purId).resolves({
+							id: partId
+						})
+						LOC = proxyquire('../server/biz/inv/Locs', stubs)
+					})
+
+					it('首次入库', () => {
+						return LOC.inInv(inInvDoc)
+							.then((result) => {
+								expect(result).true
+								return locSchema.find({
+									loc: loc,
+									part: partId,
+									date: date
+								})
+							})
+							.then((docs) => {
+								expect(docs.length).eqls(1)
+								let doc = docs[0].toJSON()
+								expect(doc.qty).eqls(qty)
+							})
+					})
+
+					it('使用缺省库位和缺省日期', () => {
+						delete inInvDoc.loc
+						delete inInvDoc.date
+						return LOC.inInv(inInvDoc)
+							.then((result) => {
+								expect(result).true
+								return locSchema.find({
+									loc: '@@@CROSS@@@',
+									part: partId,
+								})
+							})
+							.then((docs) => {
+								expect(docs.length).eqls(1)
+								let doc = docs[0].toJSON()
+								expect(doc.qty).eqls(qty)
+								expect(doc.date < new Date().toJSON()).true
 							})
 					})
 				})

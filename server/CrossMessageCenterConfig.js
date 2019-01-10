@@ -1,6 +1,9 @@
 const logger = require('@finelets/hyper-rest/app/Logger');
 
-const executePurTransTask = require('./biz/batches/ExecutePurTransTask')
+const executePurTransTask = require('./biz/batches/ExecutePurTransTask'),
+purchaseInInv = require('./biz/pur/Purchases').inInv,
+InvInInv = require('./biz/inv/Invs').inInv,
+InvLocInInv = require('./biz/inv/Locs').inInv
 
 module.exports = {
     connect: process.env.MQ,
@@ -8,7 +11,9 @@ module.exports = {
         cross: {
             isDefault: true,
             publishes: [
-                'importPurTransTaskCreated'
+                'importPurTransTaskCreated',
+                'poInInv',
+                'outInv'
             ],
             queues: {
                 ImportedPurchaseTransactions: {
@@ -21,6 +26,18 @@ module.exports = {
                                 return true
                             })
                     }
+                },
+                PoInInv_Purchase: {
+                    topic: 'poInInv',
+                    consumer: purchaseInInv
+                },
+                PoInInv_Inv: {
+                    topic: 'poInInv',
+                    consumer: InvInInv
+                },
+                PoInInv_InvLoc: {
+                    topic: 'poInInv',
+                    consumer: InvLocInInv
                 },
             }
         }

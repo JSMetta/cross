@@ -84,7 +84,7 @@ const __extractInInv = (po, doc) => {
         po: po,
         source: doc.transNo
     }
-    if (doc.qty) data.qty = doc.qty
+    data.qty = doc.qty
     if (doc.invLoc) data.loc = doc.invLoc
     data.date = doc.invDate
 
@@ -252,15 +252,16 @@ class ExecutePurTransTask {
             })
             .then((id) => {
                 inInvId = id
-                return task.pubOutInv(partId, doc.task)
+                // TODO: 暂不处理出库交易
+                // return task.pubOutInv(partId, doc.task)
             })
             .then((id) => {
-                outInvId = id
+                // outInvId = id
                 return purTransTask.updateState(doc.id, {
                     purchase: purId,
                     review: reviewId,
                     inInv: inInvId,
-                    outInv: outInvId
+                    // outInv: outInvId
                 })
             })
             .catch((err) => {
@@ -270,7 +271,7 @@ class ExecutePurTransTask {
                     }
                     if (reviewId) state.review = reviewId
                     if (inInvId) state.inInv = inInvId
-                    if (outInvId) state.outInv = outInvId
+                    // if (outInvId) state.outInv = outInvId
 
                     return purTransTask.updateState(doc.id, state)
                 }

@@ -12,6 +12,7 @@ const PurchaseSchema = new Schema({
             type: Number,
             required: true
         },
+        left: Number,
         price: Number,
         amount: {
             type: Number,
