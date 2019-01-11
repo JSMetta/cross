@@ -49,14 +49,6 @@ const func = {
 			},
 			// {"$match": {"state": "payed"}},
 			{
-				$project: {
-					part: 1,
-					partDoc: 1,
-					qty: 1,
-					amount: 1
-				}
-			},
-			{
 				$facet: {
 					byType: [{
 							$group: {
@@ -94,16 +86,7 @@ const func = {
 							}
 						}
 					],
-					byPo: [{
-							$group: {
-								_id: {
-									_id: "$_id",
-									part: "$partDoc",
-									qty: "$qty",
-									amount: "$amount"
-								}
-							}
-						},
+					byPo: [
 						{
 							$sort: {
 								amount: -1
@@ -134,8 +117,8 @@ const func = {
 				let byPo = data.byPo;
 
 				__.each(byPo, po => {
-					let type = po._id.part[0].type
-					let part = po._id.part[0]
+					let type = po.partDoc[0].type
+					let part = po.partDoc[0]
 					let typeDoc = __.find(result.types, t => {
 						return t.type === type
 					})
@@ -154,31 +137,22 @@ const func = {
 					}
 
 					let partDoc = __.find(typeDoc.parts, p => {
-						return p.part.id.equals(part._id)
+						return p.part._id.equals(part._id)
 					})
 					if (!partDoc) {
-						let partVal = {
-							id: part._id,
-							name: part.name
-						}
-						if (part.spec) partVal.spec = part.spec
-
 						let byPartElement = __.find(byPart, p => {
 							return p._id.part[0]._id.equals(part._id)
 						})
 						partDoc = {
-							part: partVal,
+							part: part,
 							pos: [],
 							total: byPartElement.amount
 						}
 						typeDoc.parts.push(partDoc)
 					}
-					val = {
-						id: po._id._id,
-						qty: po._id.qty,
-						amount: po._id.amount
-					}
-					partDoc.pos.push(val)
+					delete po.__v
+					delete po.partDoc
+					partDoc.pos.push(po)
 				})
 
 				result.total = data.total[0].amount
