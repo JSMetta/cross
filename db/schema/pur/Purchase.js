@@ -29,12 +29,9 @@ const PurchaseSchema = new Schema({
         creator: ObjectId,
         createDate: Date,
         remark: String,
-        source: {
-            type: String,
-            unique: true
-        }
+        source: String
     },
     transformOption
 )
 
-module.exports = mongoose.model('PurApply', PurchaseSchema);
+module.exports = mongoose.model('Purchase', PurchaseSchema);
