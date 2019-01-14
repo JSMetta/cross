@@ -714,12 +714,12 @@ describe('Cross', function() {
 				describe('Import Purchases CSV', () => {
 					it('PurchaseCsvParser', () => {
 						const line =
-							'xulei00001,物料,"JSM-A1实验用格子布",abcd,米,150,8800,8800,绍兴惟楚纺织品有限公司,厂商,' +
-							'JSMCONV20181109A,开票中,80,徐存辉,2018/11/9,徐存辉,2018/11/9,徐存辉,2018/11/9,2018/12/12,' +
-							'测试组,2018/12/12,100,测试组, h234,remark,';
+							'xulei00001,料品,"JSM-A1实验用格子布",abcd,米,150,8800,8800,绍兴惟楚纺织品有限公司,厂家,' +
+							'JSMCONV20181109A,开票中,80,徐存辉,2018/11/9,徐存辉,2018/11/9,徐存辉,2018/12/12,' +
+							'测试组,2018/12/12,100,测试组, h234,remark';
 						const expected = {
 							transNo: 'xulei00001',
-							partType: '物料',
+							partType: '料品',
 							partName: 'JSM-A1实验用格子布',
 							spec: 'abcd',
 							unit: '米',
@@ -727,7 +727,7 @@ describe('Cross', function() {
 							price: 8800,
 							amount: 8800,
 							supplier: '绍兴惟楚纺织品有限公司',
-							supply: '厂商',
+							supply: '厂家',
 							refNo: 'JSMCONV20181109A',
 							supplyLink: '开票中',
 							purPeriod: 80,
@@ -736,7 +736,6 @@ describe('Cross', function() {
 							reviewer: '徐存辉',
 							reviewDate: new Date('2018/11/9').toJSON(),
 							purchaser: '徐存辉',
-							purDate: new Date('2018/11/9').toJSON(),
 							invDate: new Date('2018/12/12').toJSON(),
 							user: '测试组',
 							useDate: new Date('2018/12/12').toJSON(),
@@ -992,7 +991,7 @@ describe('Cross', function() {
 
 							describe('pubPart', () => {
 								const taskData = {
-									partType: '物料',
+									partType: '料品',
 									partName: 'JSM-A1实验用格子布',
 									spec: 'abcd',
 									unit: '米'
@@ -1048,7 +1047,7 @@ describe('Cross', function() {
 							describe('pubSupplier', () => {
 								const taskData = {
 									supplier: '绍兴惟楚纺织品有限公司',
-									supply: '厂商'
+									supply: '厂家'
 								};
 
 								it('厂商类型错', () => {

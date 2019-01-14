@@ -131,21 +131,16 @@ describe('Finelets', function () {
 			}).throws('no column is defined')
 		})
 
-		it('未以逗号结尾', () => {
-			csvToJson.addColumn('foo')
-			expect(csvToJson.parse('abc')).null
-		})
-
 		it('数据格式和字段个数不一致', () => {
 			csvToJson.addColumn('foo')
-			expect(csvToJson.parse('abc,123,')).null
+			expect(csvToJson.parse('abc,123')).null
 		})
 
 		it('字段无法解析', () => {
 			let type = sinon.stub()
 			type.withArgs('abc').returns(null)
 			csvToJson.addColumn('foo', type)
-			expect(csvToJson.parse('abc,')).null
+			expect(csvToJson.parse('abc')).null
 		})
 
 		it('正确解析', () => {
@@ -155,7 +150,7 @@ describe('Finelets', function () {
 			csvToJson
 				.addColumn('foo', type)
 				.addColumn('fee', type)
-			expect(csvToJson.parse('abc,def,')).eqls({
+			expect(csvToJson.parse('abc,def')).eqls({
 				foo: 123,
 				fee: 456
 			})
@@ -170,7 +165,7 @@ describe('Finelets', function () {
 			csvToJson = proxyquire('../finelets/csv/CSVToJson.js', stubs)()
 
 			csvToJson.addColumn('foo')
-			expect(csvToJson.parse('abc,')).eqls({
+			expect(csvToJson.parse('abc')).eqls({
 				foo: '234'
 			})
 		})
@@ -181,7 +176,7 @@ describe('Finelets', function () {
 			type.withArgs('def').returns(undefined)
 			csvToJson.addColumn('foo', type)
 			csvToJson.addColumn('fee', type)
-			expect(csvToJson.parse('abc,def,')).eqls({
+			expect(csvToJson.parse('abc,def')).eqls({
 				foo: 123
 			})
 		})

@@ -10,6 +10,7 @@ module.exports = {
         try {
             obj = extract(doc)
         } catch (err) {
+            logger.error('extract Object error: \r\n' + JSON.stringify(err, null, 2))
             return Promise.reject(err)
         }
         obj = Object.assign({}, {
@@ -43,7 +44,7 @@ module.exports = {
     },
 
     find: function (condi) {
-        return schema.find(condi)
+        return schema.find(condi).sort({transNo:1})
             .then((docs) => {
                 return __.map(docs, function (doc) {
                     return doc.toJSON();

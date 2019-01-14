@@ -12,12 +12,13 @@ const po = require('../pur/Purchases'),
 const partType = {
     耗材: 3,
     资产: 2,
-    物料: 1
+    料品: 1
 };
 
 const supplyType = {
-    厂商: 1,
-    电商: 2
+    厂家: 1,
+    电商: 2,
+    实体店: 3
 };
 
 const __extractFields = (source, fields) => {
@@ -63,7 +64,7 @@ const __extractPurchase = (doc) => {
     const fields = ['qty', 'price', 'amount', 'refNo', 'supplyLink', 'purPeriod', 'appDate', 'remark'];
 
     let data = __extractFields(doc, fields);
-    if (doc.purDate) data.createDate = doc.purDate;
+    if (doc.appDate) data.createDate = doc.appDate;
     if (doc.transNo) data.source = doc.transNo;
 
     return data;
@@ -240,18 +241,22 @@ class ExecutePurTransTask {
                     return Promise.reject()
                 }
                 partId = data.id
+                logger.debug('purchase trans ' + doc.transNo + ' part is published')
                 return task.pubPurchase(partId, doc.task)
             })
             .then((id) => {
                 purId = id;
+                logger.debug('purchase trans ' + doc.transNo + ' purchase is published')
                 return task.pubReview(purId, doc.task)
             })
             .then((id) => {
                 reviewId = id
+                logger.debug('purchase trans ' + doc.transNo + ' review is published')
                 return task.pubInInv(purId, doc.task)
             })
             .then((id) => {
                 inInvId = id
+                logger.debug('purchase trans ' + doc.transNo + ' inInv is published')
                 // TODO: 暂不处理出库交易
                 // return task.pubOutInv(partId, doc.task)
             })

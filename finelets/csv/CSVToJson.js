@@ -1,5 +1,6 @@
-const __ = require('underscore')
-const defaultType = require('./JsonValueTypes').Default
+const __ = require('underscore'),
+    logger = require('@finelets/hyper-rest/app/Logger'),
+    defaultType = require('./JsonValueTypes').Default
 
 class CsvToJson {
     constructor() {
@@ -15,14 +16,22 @@ class CsvToJson {
     }
 
     parse(csv) {
-        if (this.__columns.length === 0) throw 'no column is defined'
+        if (this.__columns.length === 0) {
+            logger.error('no column is defined')
+            throw 'no column is defined'
+        }
         let vals = csv.split(',')
-        if (vals[vals.length - 1].length > 0) return null
-        if (vals.length - 1 !== this.__columns.length) return null
+        if (vals.length !== this.__columns.length) {
+            logger.error('format error: the row val acturally have ' + vals.length + ' fields')
+            return null
+        }
         let cols = []
-        for (let i = 0; i < vals.length - 1; i++) {
+        for (let i = 0; i < vals.length; i++) {
             let colval = this.__columns[i].type(vals[i])
-            if (colval === null) return null;
+            if (colval === null) {
+                logger.error('format error: the column ' + this.__columns[i].name + ' value ' + colval + ' is not match type defined')
+                return null;
+            }
             if (colval !== undefined) cols.push([this.__columns[i].name, colval])
         }
 

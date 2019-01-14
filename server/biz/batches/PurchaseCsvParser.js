@@ -20,7 +20,6 @@ csvToJson
     .addColumn('reviewer')
     .addColumn('reviewDate', jsonValueTypes.Date)
     .addColumn('purchaser')
-    .addColumn('purDate', jsonValueTypes.Date)
     .addColumn('invDate', jsonValueTypes.Date)
     .addColumn('user')
     .addColumn('useDate', jsonValueTypes.Date)
