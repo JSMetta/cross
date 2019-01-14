@@ -2,9 +2,9 @@ var proxyquire = require('proxyquire'),
 	logger = require('@finelets/hyper-rest/app/Logger'),
 	dbSave = require('../finelets/db/mongoDb/dbSave');
 
-describe('Cross', function() {
+describe('Cross', function () {
 	var stubs, err;
-	beforeEach(function() {
+	beforeEach(function () {
 		stubs = {};
 		err = new Error('any error message');
 	});
@@ -34,7 +34,7 @@ describe('Cross', function() {
 		});
 
 		describe('biz - 业务模块', () => {
-			beforeEach(function(done) {
+			beforeEach(function (done) {
 				return clearDB(done);
 			});
 
@@ -44,7 +44,7 @@ describe('Cross', function() {
 				describe('ImportPurTransTask', () => {
 					const extractor = bizDataExtractors.importPurTransTask;
 					it('required fields', () => {
-						const fields = [ 'transNo', 'partName', 'qty', 'amount', 'supplier' ];
+						const fields = ['transNo', 'partName', 'qty', 'amount', 'supplier'];
 						try {
 							extractor({});
 						} catch (e) {
@@ -113,8 +113,8 @@ describe('Cross', function() {
 
 					it('findById', () => {
 						return dbSave(schema, {
-							name: 'foo'
-						})
+								name: 'foo'
+							})
 							.then((doc) => {
 								return testTarget.findById(doc.id);
 							})
@@ -281,10 +281,10 @@ describe('Cross', function() {
 						let partObjId = new ObjectId(partId);
 						partStub.findById.withArgs(partObjId).resolves(partExpected);
 						return dbSave(schema, {
-							part: partObjId,
-							qty: 100,
-							amount: 20000
-						})
+								part: partObjId,
+								qty: 100,
+								amount: 20000
+							})
 							.then((doc) => {
 								return testTarget.getPart(doc.id);
 							})
@@ -299,10 +299,10 @@ describe('Cross', function() {
 								qty = 120;
 							let purId;
 							return dbSave(schema, {
-								part: partId,
-								qty: poQty,
-								amount: 20000
-							})
+									part: partId,
+									qty: poQty,
+									amount: 20000
+								})
 								.then((data) => {
 									purId = data.id;
 									return testTarget.inInv({
@@ -336,8 +336,7 @@ describe('Cross', function() {
 							const part3 = '5c349d1a6cf8de3cd4a5bc4c';
 							const part4 = '5c349d1a6cf8de3cd4a5bc5c';
 							const day1 = new Date(2018, 9, 10);
-							const parts = [
-								{
+							const parts = [{
 									_id: part1,
 									type: 1,
 									name: 'foo',
@@ -359,8 +358,7 @@ describe('Cross', function() {
 									name: 'fuu'
 								}
 							];
-							let pos = [
-								{
+							let pos = [{
 									part: part1,
 									qty: 100,
 									amount: 1000,
@@ -626,9 +624,9 @@ describe('Cross', function() {
 
 						it('更新库存', () => {
 							return dbSave(invSchema, {
-								part: partId,
-								qty: initQty
-							})
+									part: partId,
+									qty: initQty
+								})
 								.then(() => {
 									return invs.inInv(doc);
 								})
@@ -708,6 +706,112 @@ describe('Cross', function() {
 							});
 					});
 				});
+
+				describe('Loc - 库位状态', () => {
+					const locSchema = require('../db/schema/inv/Loc'),
+						partSchema = require('../db/schema/bas/Part'),
+						LOC = require('../server/biz/inv/Locs');
+
+					it('无任何记录', () => {
+						return LOC.listLocState()
+							.then((result) => {
+								expect(result).eqls({
+									items: []
+								});
+							})
+					});
+
+					it('使用缺省库位和缺省日期', () => {
+						const part1 = '5c349d1a6cf8de3cd4a5bc2c',
+							part2 = '5c349d1a6cf8de3cd4a5bc3c',
+							part3 = '5c349d1a6cf8de3cd4a5bc4c';
+						const parts = [{
+								_id: part1,
+								name: 'foo',
+								spec: 'foo spec'
+							},
+							{
+								_id: part2,
+								name: 'fee'
+							},
+							{
+								_id: part3,
+								name: 'fuu'
+							}
+						];
+						let dbParts;
+						let addParts = []
+						parts.forEach(p => {
+							addParts.push(dbSave(partSchema, p))
+						})
+
+						return Promise.all(addParts)
+							.then(data => {
+								dbParts = data
+								expect(dbParts.length).eqls(3)
+								return dbSave(locSchema, {
+									loc: '002',
+									part: part1,
+									qty: 100
+								})
+							})
+							.then(() => {
+								return dbSave(locSchema, {
+									loc: '002',
+									part: part2,
+									qty: 200
+								})
+							})
+							.then(() => {
+								return dbSave(locSchema, {
+									loc: '001',
+									part: part1,
+									qty: 100
+								})
+							})
+							.then(() => {
+								return dbSave(locSchema, {
+									loc: '001',
+									part: part1,
+									qty: 100
+								})
+							})
+							.then(() => {
+								return LOC.listLocState()
+							})
+							.then((result) => {
+								let items = result.items
+								expect(items.length).eqls(3);
+								expect(items).eqls([{
+										loc: '001',
+										part: {
+											id: part1,
+											name: 'foo',
+											spec: 'foo spec'
+										},
+										qty: 200
+									},
+									{
+										loc: '002',
+										part: {
+											id: part1,
+											name: 'foo',
+											spec: 'foo spec'
+										},
+										qty: 100
+									},
+									{
+										loc: '002',
+										part: {
+											id: part2,
+											name: 'fee'
+										},
+										qty: 200
+									}
+								])
+							})
+					});
+				});
 			});
 
 			describe('batches - 批处理作业', () => {
@@ -785,8 +889,8 @@ describe('Cross', function() {
 						createImportPurTransTask.onCall(0).resolves();
 						createImportPurTransTask.onCall(1).rejects(err);
 						return purchaseCsvSaver({
-							transNo: 'No123456'
-						})
+								transNo: 'No123456'
+							})
 							.then(() => {
 								return purchaseCsvSaver({
 									transNo: 'No123456'
@@ -909,8 +1013,8 @@ describe('Cross', function() {
 							it('成功', () => {
 								const id = '5c349d1a6cf8de3cd4a5bc2c';
 								return dbSave(schema, {
-									transNo: '000123'
-								})
+										transNo: '000123'
+									})
 									.then((doc) => {
 										return task.updateState(doc.id, {
 											purchase: id,
@@ -1004,13 +1108,13 @@ describe('Cross', function() {
 											partName: 'foo'
 										})
 										.then((result) => {
-											expectedResult(result, undefined, [ 'invalid part type value: invalid' ]);
+											expectedResult(result, undefined, ['invalid part type value: invalid']);
 										});
 								});
 
 								it('无料品名称', () => {
 									return taskExec.pubPart({}).then((result) => {
-										expectedResult(result, undefined, [ 'Part name is required' ]);
+										expectedResult(result, undefined, ['Part name is required']);
 									});
 								});
 
@@ -1025,7 +1129,7 @@ describe('Cross', function() {
 											partName: taskData.partName
 										})
 										.then((result) => {
-											expectedResult(result, undefined, [ err ]);
+											expectedResult(result, undefined, [err]);
 										});
 								});
 
@@ -1057,7 +1161,7 @@ describe('Cross', function() {
 											supplier: 'foo'
 										})
 										.then((result) => {
-											expectedResult(result, undefined, [ 'supply value is invalid: invalid' ]);
+											expectedResult(result, undefined, ['supply value is invalid: invalid']);
 										});
 								});
 
@@ -1078,7 +1182,7 @@ describe('Cross', function() {
 											supplier: 'foo'
 										})
 										.then((result) => {
-											expectedResult(result, undefined, [ err ]);
+											expectedResult(result, undefined, [err]);
 										});
 								});
 
@@ -1109,7 +1213,7 @@ describe('Cross', function() {
 										})
 										.rejects(err);
 									return taskExec.pubEmployee('foo').then((result) => {
-										expectedResult(result, undefined, [ err ]);
+										expectedResult(result, undefined, [err]);
 									});
 								});
 

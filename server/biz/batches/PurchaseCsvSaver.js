@@ -1,4 +1,4 @@
-const logger = require('@finelets/hyper-rest/app/Logger'),
+/* const logger = require('@finelets/hyper-rest/app/Logger'),
 saver = require('./ImportPurTransTask').create;
 
 module.exports = (obj) => {
@@ -6,4 +6,4 @@ module.exports = (obj) => {
         .catch((err) => {
             logger.error('ImportPurTrans error: [' + obj.transNo + ']\r\n' + JSON.stringify(err))
         })
-}
+} */

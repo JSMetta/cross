@@ -39,6 +39,8 @@ docker run -d --name nginx -p 80:80 --link cross:cross cross/nginx
 
 docker-compose up --build
 
+docker exec -it mongodb mongo
+
 #### Remove dangling images
 docker images -f dangling=true
 docker images purge
