@@ -23,12 +23,7 @@ services:
       - "27017"
   cross:
     container_name: cross
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 10s
-        max_attempts: 3
-        window: 50s
+    restart: on-failure
     build: .
     ports:
       - "8080"
