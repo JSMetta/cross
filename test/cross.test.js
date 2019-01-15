@@ -879,20 +879,6 @@ describe('Cross', function () {
 						expect(val.remark).eqls(expected.remark);
 					});
 
-					it('PurchasesCSVStream', () => {
-						const parser = require('../server/biz/batches/PurchaseCsvParser');
-						const saver = require('../server/biz/batches/ImportPurTransTask').create;
-						const stream = {
-							stream: 'expected the PurchasesCSVStream created'
-						};
-						let createStream = sinon.stub();
-						stubs['../../../finelets/streams/CSVStream'] = createStream;
-						createStream.withArgs(saver, parser).returns(stream);
-
-						let created = proxyquire('../server/biz/batches/PurchasesCSVStream.js', stubs)();
-						expect(created).eqls(stream);
-					});
-
 					describe('ImportPurTransTask', () => {
 						let findOneStub, schema;
 						const doc = {
