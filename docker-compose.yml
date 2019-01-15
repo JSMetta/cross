@@ -31,6 +31,10 @@ services:
       - mongodb:crossdb
       - redis:redis
       - rabbitmq:rabbitmq
+    depends_on: 
+      - rabbitmq
+      - mongodb
+      - redis
   nginx:
     build: ./VCross
     container_name: nginx-vcross
