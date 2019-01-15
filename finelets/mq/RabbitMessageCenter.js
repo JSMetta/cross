@@ -81,37 +81,33 @@ const __createExchange = (ch, name, config) => {
         })
 }
 
-const __connect = (connStr) => {
-    logger.debug('MQ connection: ' + connStr)
-    return amqp.connect(connStr)
+const __start = (config) => {
+    logger.debug('MQ connection: ' + config.connect)
+    return amqp.connect(config.connect)
         .then((conn) => {
             logger.debug('MQ connected successfully!')
             __connTimes = 0
-            return conn
+            __conn = conn
+            return __conn.createChannel()
         })
-        .catch(e => {
-            setTimeout(() => {
-                ++__connTimes
-                logger.error('Times: ' + __connTimes)
-                logger.error('Failed to connect to MQ:\n\r' + JSON.stringify(e, null, 2))
-            }, 2000);
-            return __connect(connStr)
+        .then((ch) => {
+            let exchanges = []
+            __.each(config.exchanges, (element, key) => {
+                exchanges.push(__createExchange(ch, key, element))
+            })
+            return Promise.all(exchanges)
+        })
+        .catch(err => {
+            ++__connTimes
+            logger.error('Times: ' + __connTimes)
+            logger.error('Failed to connect to MQ:\n\r' + JSON.stringify(err, null, 2))
+            setTimeout(__start, 2000, config);
         })
 }
+
 const rabbitMessageCenter = {
     start: (config) => {
-        return __connect(config.connect)
-            .then((conn) => {
-                __conn = conn
-                return __conn.createChannel()
-            })
-            .then((ch) => {
-                let exchanges = []
-                __.each(config.exchanges, (element, key) => {
-                    exchanges.push(__createExchange(ch, key, element))
-                })
-                return Promise.all(exchanges)
-            })
+        return __start(config)
     },
 
     publish: (name, type, msg) => {
