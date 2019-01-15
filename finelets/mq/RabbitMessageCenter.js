@@ -4,6 +4,7 @@ const amqp = require('amqplib'),
     logger = require('@finelets/hyper-rest/app/Logger');
 
 let __conn;
+let __connTimes = 0
 let __publishes = {}
 
 class __Publish {
@@ -48,8 +49,8 @@ const __createQueue = (ch, ex, name, config) => {
                 return config.consumer(payload)
                     .then((ok) => {
                         if (ok === true || ok === false) {
-                            if(!ok) 
-                            logger.warn('The message consumer decide to requeue the message!')
+                            if (!ok)
+                                logger.warn('The message consumer decide to requeue the message!')
                             return ok ? ch.ack(msg) : ch.nack(msg)
                         }
                         logger.warn('You should ack the message by true or false!')
@@ -80,12 +81,25 @@ const __createExchange = (ch, name, config) => {
         })
 }
 
+const __connect = (connStr) => {
+    logger.debug('MQ connection: ' + connStr)
+    return amqp.connect(connStr)
+        .then((conn) => {
+            logger.debug('MQ connected successfully!')
+            __connTimes = 0
+            return conn
+        })
+        .catch(e => {
+            ++__connTimes
+            logger.error('Times: ' + __connTimes)
+            logger.error('Failed to connect to MQ:\n\r' + JSON.stringify(e, null, 2))
+            return __connect(connStr)
+        })
+}
 const rabbitMessageCenter = {
     start: (config) => {
-        logger.debug('MQ connection: ' + config.connect)
-        return amqp.connect(config.connect)
+        return __connect(config.connect)
             .then((conn) => {
-                logger.debug('MQ connected successfully!')
                 __conn = conn
                 return __conn.createChannel()
             })
