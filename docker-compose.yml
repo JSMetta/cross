@@ -23,7 +23,12 @@ services:
       - "27017"
   cross:
     container_name: cross
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 50s
     build: .
     ports:
       - "8080"
@@ -31,8 +36,6 @@ services:
       - mongodb:crossdb
       - redis:redis
       - rabbitmq:rabbitmq
-    depends_on: 
-      - waitforrabbit
   nginx:
     build: ./VCross
     container_name: nginx-vcross
@@ -40,8 +43,3 @@ services:
         - cross:cross
     ports:
         - "80:80"
-  waitforrabbit:
-    image: dadarek/wait-for-dependencies
-    depends_on:
-        - rabbitmq 
-    command: rabbitmq:5672
