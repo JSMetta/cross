@@ -12,6 +12,7 @@ ADD . /src
 ENV PORT 8080
 ENV MONGODB=mongodb://crossdb:27017/Cross
 ENV CLIENT_ORIGIN=http://192.168.5.166/jsmetta
+ENV MQ=amqp://jsm:jsm@rabbitmq
 
 # Expose port
 EXPOSE  8080

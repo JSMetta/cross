@@ -31,10 +31,6 @@ services:
       - mongodb:crossdb
       - redis:redis
       - rabbitmq:rabbitmq
-    environment:
-      - PORT=8080
-      - MONGODB=mongodb://crosssdb:27017/cross
-      - MQ=amqp://jsm:jsm@rabbitmq
   nginx:
     build: ./VCross
     container_name: nginx-vcross

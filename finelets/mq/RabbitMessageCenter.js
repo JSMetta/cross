@@ -82,8 +82,10 @@ const __createExchange = (ch, name, config) => {
 
 const rabbitMessageCenter = {
     start: (config) => {
+        logger.debug('MQ connection: ' + config.connect)
         return amqp.connect(config.connect)
             .then((conn) => {
+                logger.debug('MQ connected successfully!')
                 __conn = conn
                 return __conn.createChannel()
             })
