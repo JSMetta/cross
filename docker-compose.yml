@@ -32,9 +32,7 @@ services:
       - redis:redis
       - rabbitmq:rabbitmq
     depends_on: 
-      - rabbitmq
-      - mongodb
-      - redis
+      - waitforrabbit
   nginx:
     build: ./VCross
     container_name: nginx-vcross
@@ -42,3 +40,8 @@ services:
         - cross:cross
     ports:
         - "80:80"
+  waitforrabbit:
+    image: dadarek/wait-for-dependencies
+    depends_on:
+        - rabbitmq 
+    command: rabbitmq:5672
