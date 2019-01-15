@@ -90,9 +90,11 @@ const __connect = (connStr) => {
             return conn
         })
         .catch(e => {
-            ++__connTimes
-            logger.error('Times: ' + __connTimes)
-            logger.error('Failed to connect to MQ:\n\r' + JSON.stringify(e, null, 2))
+            setTimeout(() => {
+                ++__connTimes
+                logger.error('Times: ' + __connTimes)
+                logger.error('Failed to connect to MQ:\n\r' + JSON.stringify(e, null, 2))
+            }, 2000);
             return __connect(connStr)
         })
 }
