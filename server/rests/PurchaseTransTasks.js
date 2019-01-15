@@ -1,5 +1,4 @@
-const taskDb = require('../biz/batches/ImportPurTransTask'),
-    logger = require('@finelets/hyper-rest/app/Logger');
+const taskDb = require('../biz/batches/ImportPurTransTask');
 
 const list = function (query) {
     var condi;

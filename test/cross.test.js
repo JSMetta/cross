@@ -644,174 +644,178 @@ describe('Cross', function () {
 				});
 
 				describe('Loc - 库位', () => {
-					const partId = '5c349d1a6cf8de3cd4a5bc2c';
-					const purId = '12345';
-					const qty = 230;
-					const loc = 'foo';
-					const date = new Date();
-					let inInvDoc;
-					const locSchema = require('../db/schema/inv/Loc');
-					let LOC, po;
+					describe('Loc - 入库单更新库位', () => {
+						const partId = '5c349d1a6cf8de3cd4a5bc2c';
+						const purId = '12345';
+						const qty = 230;
+						const loc = 'foo';
+						const date = new Date();
+						let inInvDoc;
+						const locSchema = require('../db/schema/inv/Loc');
+						let LOC, po;
 
-					beforeEach(() => {
-						inInvDoc = {
-							po: purId,
-							qty: qty,
-							loc: loc,
-							date: date
-						};
-						po = sinon.stub({
-							getPart: () => {}
-						});
-						stubs['../pur/Purchases'] = po;
-						po.getPart.withArgs(purId).resolves({
-							id: partId
-						});
-						LOC = proxyquire('../server/biz/inv/Locs', stubs);
-					});
-
-					it('首次入库', () => {
-						return LOC.inInv(inInvDoc)
-							.then((result) => {
-								expect(result).true;
-								return locSchema.find({
-									loc: loc,
-									part: partId,
-									date: date
-								});
-							})
-							.then((docs) => {
-								expect(docs.length).eqls(1);
-								let doc = docs[0].toJSON();
-								expect(doc.qty).eqls(qty);
+						beforeEach(() => {
+							inInvDoc = {
+								po: purId,
+								qty: qty,
+								loc: loc,
+								date: date
+							};
+							po = sinon.stub({
+								getPart: () => {}
 							});
-					});
-
-					it('使用缺省库位和缺省日期', () => {
-						delete inInvDoc.loc;
-						delete inInvDoc.date;
-						return LOC.inInv(inInvDoc)
-							.then((result) => {
-								expect(result).true;
-								return locSchema.find({
-									loc: '@@@CROSS@@@',
-									part: partId
-								});
-							})
-							.then((docs) => {
-								expect(docs.length).eqls(1);
-								let doc = docs[0].toJSON();
-								expect(doc.qty).eqls(qty);
-								expect(doc.date < new Date().toJSON()).true;
+							stubs['../pur/Purchases'] = po;
+							po.getPart.withArgs(purId).resolves({
+								id: partId
 							});
-					});
-				});
+							LOC = proxyquire('../server/biz/inv/Locs', stubs);
+						});
 
-				describe('Loc - 库位状态', () => {
-					const locSchema = require('../db/schema/inv/Loc'),
-						partSchema = require('../db/schema/bas/Part'),
-						LOC = require('../server/biz/inv/Locs');
-
-					it('无任何记录', () => {
-						return LOC.listLocState()
-							.then((result) => {
-								expect(result).eqls({
-									items: []
+						it('首次入库', () => {
+							return LOC.inInv(inInvDoc)
+								.then((result) => {
+									expect(result).true;
+									return locSchema.find({
+										loc: loc,
+										part: partId,
+										date: date
+									});
+								})
+								.then((docs) => {
+									expect(docs.length).eqls(1);
+									let doc = docs[0].toJSON();
+									expect(doc.qty).eqls(qty);
 								});
-							})
+						});
+
+						it('使用缺省库位和缺省日期', () => {
+							delete inInvDoc.loc;
+							delete inInvDoc.date;
+							return LOC.inInv(inInvDoc)
+								.then((result) => {
+									expect(result).true;
+									return locSchema.find({
+										loc: '@@@CROSS@@@',
+										part: partId
+									});
+								})
+								.then((docs) => {
+									expect(docs.length).eqls(1);
+									let doc = docs[0].toJSON();
+									expect(doc.qty).eqls(qty);
+									expect(doc.date < new Date().toJSON()).true;
+								});
+						});
 					});
 
-					it('使用缺省库位和缺省日期', () => {
-						const part1 = '5c349d1a6cf8de3cd4a5bc2c',
-							part2 = '5c349d1a6cf8de3cd4a5bc3c',
-							part3 = '5c349d1a6cf8de3cd4a5bc4c';
-						const parts = [{
-								_id: part1,
-								name: 'foo',
-								spec: 'foo spec'
-							},
-							{
-								_id: part2,
-								name: 'fee'
-							},
-							{
-								_id: part3,
-								name: 'fuu'
-							}
-						];
-						let dbParts;
-						let addParts = []
-						parts.forEach(p => {
-							addParts.push(dbSave(partSchema, p))
-						})
+					describe('Loc - 查询库位状态', () => {
+						const locSchema = require('../db/schema/inv/Loc'),
+							partSchema = require('../db/schema/bas/Part'),
+							LOC = require('../server/biz/inv/Locs');
 
-						return Promise.all(addParts)
-							.then(data => {
-								dbParts = data
-								expect(dbParts.length).eqls(3)
-								return dbSave(locSchema, {
-									loc: '002',
-									part: part1,
-									qty: 100
+						it('无任何记录', () => {
+							return LOC.listLocState()
+								.then((result) => {
+									expect(result).eqls({
+										items: []
+									});
 								})
+						});
+
+						it('库位料品存量表', () => {
+							const part1 = '5c349d1a6cf8de3cd4a5bc2c',
+								part2 = '5c349d1a6cf8de3cd4a5bc3c',
+								part3 = '5c349d1a6cf8de3cd4a5bc4c';
+							const parts = [{
+									_id: part1,
+									name: 'foo',
+									spec: 'foo spec'
+								},
+								{
+									_id: part2,
+									name: 'fee'
+								},
+								{
+									_id: part3,
+									name: 'fuu'
+								}
+							];
+							let dbParts;
+							let addParts = []
+							parts.forEach(p => {
+								addParts.push(dbSave(partSchema, p))
 							})
-							.then(() => {
-								return dbSave(locSchema, {
-									loc: '002',
-									part: part2,
-									qty: 200
-								})
-							})
-							.then(() => {
-								return dbSave(locSchema, {
-									loc: '001',
-									part: part1,
-									qty: 100
-								})
-							})
-							.then(() => {
-								return dbSave(locSchema, {
-									loc: '001',
-									part: part1,
-									qty: 100
-								})
-							})
-							.then(() => {
-								return LOC.listLocState()
-							})
-							.then((result) => {
-								let items = result.items
-								expect(items.length).eqls(3);
-								expect(items).eqls([{
-										loc: '001',
-										part: {
-											id: part1,
-											name: 'foo',
-											spec: 'foo spec'
-										},
-										qty: 200
-									},
-									{
+
+							return Promise.all(addParts)
+								.then(data => {
+									dbParts = data
+									expect(dbParts.length).eqls(3)
+									return dbSave(locSchema, {
 										loc: '002',
-										part: {
-											id: part1,
-											name: 'foo',
-											spec: 'foo spec'
-										},
+										part: part1,
 										qty: 100
-									},
-									{
+									})
+								})
+								.then(() => {
+									return dbSave(locSchema, {
 										loc: '002',
-										part: {
-											id: part2,
-											name: 'fee'
-										},
+										part: part2,
 										qty: 200
-									}
-								])
-							})
+									})
+								})
+								.then(() => {
+									return dbSave(locSchema, {
+										loc: '001',
+										part: part1,
+										qty: 100
+									})
+								})
+								.then(() => {
+									return dbSave(locSchema, {
+										loc: '001',
+										part: part1,
+										qty: 100
+									})
+								})
+								.then(() => {
+									return LOC.listLocState()
+								})
+								.then((result) => {
+									let items = result.items
+									expect(items.length).eqls(3);
+									expect(items).eqls([{
+											loc: '001',
+											part: {
+												id: part1,
+												name: 'foo',
+												spec: 'foo spec'
+											},
+											qty: 200
+										},
+										{
+											loc: '002',
+											part: {
+												id: part1,
+												name: 'foo',
+												spec: 'foo spec'
+											},
+											qty: 100
+										},
+										{
+											loc: '002',
+											part: {
+												id: part2,
+												name: 'fee'
+											},
+											qty: 200
+										}
+									])
+								})
+						});
 					});
-				});
+				})
+
+
 			});
 
 			describe('batches - 批处理作业', () => {

@@ -2,7 +2,8 @@ module.exports = {
     Cross: {
         uploadPurTransTasks: "UploadPurchases",
         queryPurchaseTransTasks: 'PurchaseTransTasks',
-        reportPeriodPurchases: 'ReportPeriodPurchases'
+        reportPeriodPurchases: 'ReportPeriodPurchases',
+        reportInvLocStates: 'InvLocStates'
     },
     PurchaseTransTasks: {
         exit: 'Cross'
