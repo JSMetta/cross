@@ -879,31 +879,9 @@ describe('Cross', function () {
 						expect(val.remark).eqls(expected.remark);
 					});
 
-					it('PurchaseCsvSaver', () => {
-						let createImportPurTransTask = sinon.stub();
-						stubs['./ImportPurTransTask'] = {
-							create: createImportPurTransTask
-						};
-						let purchaseCsvSaver = proxyquire('../server/biz/batches/PurchaseCsvSaver', stubs);
-
-						createImportPurTransTask.onCall(0).resolves();
-						createImportPurTransTask.onCall(1).rejects(err);
-						return purchaseCsvSaver({
-								transNo: 'No123456'
-							})
-							.then(() => {
-								return purchaseCsvSaver({
-									transNo: 'No123456'
-								});
-							})
-							.then(() => {
-								expect(createImportPurTransTask.callCount).eqls(2);
-							});
-					});
-
 					it('PurchasesCSVStream', () => {
 						const parser = require('../server/biz/batches/PurchaseCsvParser');
-						const saver = require('../server/biz/batches/PurchaseCsvSaver');
+						const saver = require('../server/biz/batches/ImportPurTransTask').create;
 						const stream = {
 							stream: 'expected the PurchasesCSVStream created'
 						};
