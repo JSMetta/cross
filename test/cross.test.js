@@ -128,6 +128,26 @@ describe('Cross', function () {
 							expect(doc).not.exist;
 						});
 					});
+
+					describe('查询料品', () => {
+						it('无任何记录', () => {
+							let saveParts = []
+							saveParts.push(dbSave(schema, {
+								name: 'foo',
+								spec: 'spec'
+							}))
+							saveParts.push(dbSave(schema, {
+								name: 'fee'
+							}))
+							return Promise.all(saveParts)
+								.then(() => {
+									return testTarget.find()
+								})
+								.then(data => {
+									expect(data.length).eqls(2)
+								})
+						})
+					})
 				});
 
 				describe('Suppliers - 供应商', () => {
