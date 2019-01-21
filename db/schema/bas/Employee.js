@@ -4,7 +4,10 @@ const mongoose = require('mongoose'),
     transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
 
 const EmployeeSchema = new Schema({
-        name: String
+        userId: String,
+        name: String,
+        password: String,
+        pic: String
     },
     transformOption
 )

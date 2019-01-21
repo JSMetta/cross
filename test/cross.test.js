@@ -237,6 +237,50 @@ describe('Cross', function () {
 							expect(data).eqls(created);
 						});
 					});
+
+					describe('Auth', () => {
+						it('使用name认证', () => {
+							let user
+							return dbSave(schema, toCreate)
+								.then((doc) => {
+									user = doc
+									delete user.__v
+									return testTarget.authenticate('foo')
+								})
+								.then(doc => {
+									expect(doc).eqls(user)
+								})
+						})
+
+						it('使用userId和password认证', () => {
+							let user
+							return dbSave(schema, {userId: 'foo', password: '9', name: 'foo name'})
+								.then((doc) => {
+									user = {
+										id: doc.id,
+										name: doc.name
+									}
+									return testTarget.authenticate('foo', '9')
+								})
+								.then(doc => {
+									expect(doc).eqls(user)
+								})
+						})
+
+						it('获得用户信息', () => {
+							let id
+							toCreate = {name: 'foo', pic: 'pic'}
+							return dbSave(schema, toCreate)
+								.then((doc) => {
+									id = doc.id
+									return testTarget.getUser(id)
+								})
+								.then(doc => {
+									expect(doc).eqls({id: id, ...toCreate})
+								})
+						})
+
+					})
 				});
 			});
 
