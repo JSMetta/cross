@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken'),
-    fs = require('fs');
+    logger = require('@finelets/hyper-rest/app/Logger');
 
 const defaultLoginUrl = '/auth/login'
 const defaultBaseUrl = '/api'
@@ -40,6 +40,7 @@ const authenticate = (req, res) => {
         username,
         password
     } = req.body
+    logger.debug('bagin to auth: ' + JSON.stringify(req.body))
     return __config.authenticate(username, password)
         .then(user => {
             if (!user) return res.status(403).end()
