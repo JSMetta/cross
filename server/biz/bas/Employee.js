@@ -1,5 +1,6 @@
 const schema = require('../../../db/schema/bas/Employee'),
-    dbSave = require('../../../finelets/db/mongoDb/dbSave')
+    dbSave = require('../../../finelets/db/mongoDb/dbSave'),
+    logger = require('@finelets/hyper-rest/app/Logger')
 
 const userFields = ['name', 'pic']
 const obj = {
@@ -16,6 +17,7 @@ const obj = {
             })
     },
     authenticate: (userName, password) => {
+        logger.debug('Begin authenticate, userName = ' + userName + ' password: ' + password)
         return schema.findOne({
                 $or: [{
                     userId: userName,
@@ -35,6 +37,7 @@ const obj = {
                 }]
             }, userFields)
             .then(doc => {
+                logger.debug('find user: ' + doc ? JSON.stringify(doc.toJSON()) : 'null')
                 if (doc) {
                     return doc.toJSON()
                 }
