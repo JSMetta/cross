@@ -1,5 +1,5 @@
 module.exports = {
-    url: '/cross',
+    url: '/cross/api',
     rests: [
         {
             type: 'entry'

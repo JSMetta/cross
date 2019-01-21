@@ -4,7 +4,7 @@
 const parts = require('../biz/bas/Parts');
 
 module.exports = {
-    url: '/cross/bas/parts/:id',
+    url: '/cross/api/bas/parts/:id',
     rests: [
         {
             type: 'read',

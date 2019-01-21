@@ -1,7 +1,7 @@
 const periodPurchases = require('../biz/pur/Purchases').periodPurchases
 
 module.exports = {
-    url: '/cross/reports/pur/periodPurchases',
+    url: '/cross/api/reports/pur/periodPurchases',
     rests: [{
         type: 'get',
         handler: periodPurchases

@@ -1,9 +1,10 @@
 const {authenticate, getUser} = require('./biz/bas/Employee')
 const adminId = 'cbbdhbcc'
 const admin = {id: adminId, name: '开发者'}
-const baseUrl = '/cross'
+const baseUrl = '/cross/api'
+const loginUrl = '/cross/auth/login'
 const prodConfig = {
-    authenticate, getUser, baseUrl
+    authenticate, getUser, baseUrl,loginUrl
 }
 const devConfig = {
     authenticate: (username, password) => {
@@ -14,7 +15,7 @@ const devConfig = {
         let user = id === adminId ? admin : null
         return Promise.resolve(user)
     },
-    baseUrl
+    baseUrl,loginUrl
 }
 const create = () => {
     return process.env.DEVELOPMENT ? devConfig : prodConfig

@@ -16,7 +16,7 @@ const list = function (query) {
 };
 
 module.exports = {
-    url: '/cross/task/purTransTasks',
+    url: '/cross/api/task/purTransTasks',
     rests: [{
             type: 'create',
             target: 'PurchaseTransTask',

@@ -3,7 +3,7 @@
  */
 const taskDb = require('../biz/batches/ImportPurTransTask');
 module.exports = {
-    url: '/cross/task/purTransTasks/:id',
+    url: '/cross/api/task/purTransTasks/:id',
     rests: [{
         type: 'read',
         handler: function (req, res) {

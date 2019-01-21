@@ -16,7 +16,7 @@ const list = function (query) {
 };
 
 module.exports = {
-    url: '/cross/bas/parts',
+    url: '/cross/api/bas/parts',
     rests: [{
             type: 'create',
             target: 'Part',
