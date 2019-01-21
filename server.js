@@ -15,7 +15,11 @@ app.use(cors())
 
 app.post('/cross/login', function (req, res) {
 	logger.debug('client login !');
-	res.json({name: 'foo'});
+	res.json({name: 'foo', token:'fake-jwt-token'});
+});
+app.post('/cross/logout', function (req, res) {
+	logger.debug('client logout !');
+	res.json({});
 });
 
 appBuilder
