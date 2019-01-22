@@ -4,6 +4,5 @@ coverage/
 .vscode/
 node_modules/
 .env
-1.env
 uploads/
 test/data/
