@@ -20,7 +20,7 @@ services:
       - /home/mongo/data:/data/db
       - /home/mongo/backups:/backups
     ports:
-      - "27017"
+      - "27017:27017"
   cross:
     container_name: cross
     restart: on-failure
