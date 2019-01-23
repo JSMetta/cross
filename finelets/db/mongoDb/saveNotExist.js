@@ -26,22 +26,3 @@ module.exports = (schema, uniqueFields, data) => {
             return doc.toJSON()
         })
 }
-
-/* module.exports = (schema, query, data) => {
-    return schema.find(query)
-        .then((docs) => {
-            if(docs.length === 0){
-                return schema.findOneAndUpdate(query, data, {upsert: true})
-            }
-            else if(docs.length > 1) {
-                logger.error('Duplcate error !!!!!!!!!!!!!!!!!')
-                return Promise.reject('Deplicated')
-            }
-            else {
-                return docs[0]
-            }
-        })
-        .then(doc => {
-            return doc ? doc.toJSON() : doc
-        })
-} */
