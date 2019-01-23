@@ -46,7 +46,7 @@ describe('Finelets', function () {
 				authenticate,
 				getUser
 			}
-			jwt = proxyquire('../finelets/jwt/ExpressJwt', stubs)
+			jwt = proxyquire('@finelets/hyper-rest/jwt/ExpressJwt', stubs)
 		})
 
 		it('未配置用户身份认证方法', () => {
@@ -158,7 +158,7 @@ describe('Finelets', function () {
 			jwtConfig.loginUrl = '/auth/auth'
 			jwtConfig.baseUrl = '/foo'
 
-			jwt = require('../finelets/jwt/ExpressJwt')
+			jwt = require('@finelets/hyper-rest/jwt/ExpressJwt')
 			jwt(app, jwtConfig)
 
 			let called = 0

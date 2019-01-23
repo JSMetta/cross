@@ -38,6 +38,106 @@ describe('Cross', function () {
 				return clearDB(done);
 			});
 
+			describe('SaveNotExist', () => {
+				const schema = require('../db/schema/bas/Part')
+				const save = require('../finelets/db/mongoDb/saveNotExist')
+				const data = {
+					name: '料品'
+				}
+				const uniqueFields = ['name', 'spec']
+				let id, __v
+
+				it('use findOneAndUpdate', () => {
+					return save(schema, uniqueFields, data)
+						.then(doc => {
+							let {
+								id,
+								__v,
+								...expected
+							} = doc
+							expect(expected).eqls(data)
+							return schema.count()
+						})
+						.then(count => {
+							expect(count).eqls(1)
+						})
+				})
+
+				it('已存在一类似记录', () => {
+					return dbSave(schema, {
+							spec: 'spec',
+							...data
+						})
+						.then(() => {
+							return save(schema, uniqueFields, data)
+						})
+						.then(doc => {
+							let {
+								id,
+								__v,
+								...expected
+							} = doc
+							expect(expected).eqls(data)
+							return schema.find().lean()
+						})
+						.then(docs => {
+							expect(docs.length).eqls(2)
+						})
+				})
+
+				it('已存在', () => {
+					return dbSave(schema, {
+							spec: 'spec',
+							...data
+						})
+						.then(() => {
+							return save(schema, uniqueFields, {
+								spec: 'spec',
+								...data
+							})
+						})
+						.then(doc => {
+							let {
+								id,
+								__v,
+								spec,
+								...expected
+							} = doc
+							expect(expected).eqls(data)
+							return schema.find().lean()
+						})
+						.then(docs => {
+							expect(docs.length).eqls(1)
+						})
+				})
+
+				it('如果并行执行，则会出现Diplicated错', () => {
+					let saves = []
+					const wrap = () => {
+						return save(schema, uniqueFields, data)
+							.then((doc) => {
+								return doc
+							})
+							.catch(e => {
+								++times
+							})
+					}
+					for (let i = 0; i < 2; i++) {
+						saves.push(wrap())
+					}
+					return dbSave(schema, data)
+						.then(() => {
+							return Promise.all(saves)
+						})
+						.then(() => {
+							should.fail('Failed if we come here!')
+						})
+						.catch(e => {
+							expect(e.code).eqls(11000)
+						})
+				})
+			})
+
 			describe('BizDataExtractors', () => {
 				const bizDataExtractors = require('../server/biz/BizDataExtractors');
 
@@ -99,16 +199,6 @@ describe('Cross', function () {
 							.then((doc) => {
 								expect(doc).eqls(existed);
 							});
-					});
-
-					it('create', () => {
-						const created = {
-							data: 'created data'
-						};
-						dbSaveStub.withArgs(schema, toCreate).resolves(created);
-						return testTarget.create(toCreate).then((data) => {
-							expect(data).eqls(created);
-						});
 					});
 
 					it('findById', () => {
@@ -183,16 +273,6 @@ describe('Cross', function () {
 								expect(doc).eqls(existed);
 							});
 					});
-
-					it('create', () => {
-						const created = {
-							data: 'created data'
-						};
-						dbSaveStub.withArgs(schema, toCreate).resolves(created);
-						return testTarget.create(toCreate).then((data) => {
-							expect(data).eqls(created);
-						});
-					});
 				});
 
 				describe('Employee - 员工', () => {
@@ -227,17 +307,6 @@ describe('Cross', function () {
 								expect(doc).eqls(existed);
 							});
 					});
-
-					it('create', () => {
-						const created = {
-							data: 'created data'
-						};
-						dbSaveStub.withArgs(schema, toCreate).resolves(created);
-						return testTarget.create(toCreate).then((data) => {
-							expect(data).eqls(created);
-						});
-					});
-
 					describe('Auth', () => {
 						it('使用name认证', () => {
 							let user
@@ -254,7 +323,11 @@ describe('Cross', function () {
 
 						it('使用userId和password认证', () => {
 							let user
-							return dbSave(schema, {userId: 'foo', password: '9', name: 'foo name'})
+							return dbSave(schema, {
+									userId: 'foo',
+									password: '9',
+									name: 'foo name'
+								})
 								.then((doc) => {
 									user = {
 										id: doc.id,
@@ -269,14 +342,20 @@ describe('Cross', function () {
 
 						it('获得用户信息', () => {
 							let id
-							toCreate = {name: 'foo', pic: 'pic'}
+							toCreate = {
+								name: 'foo',
+								pic: 'pic'
+							}
 							return dbSave(schema, toCreate)
 								.then((doc) => {
 									id = doc.id
 									return testTarget.getUser(id)
 								})
 								.then(doc => {
-									expect(doc).eqls({id: id, ...toCreate})
+									expect(doc).eqls({
+										id: id,
+										...toCreate
+									})
 								})
 						})
 
@@ -419,7 +498,7 @@ describe('Cross', function () {
 								},
 								{
 									_id: part4,
-									name: 'fuu'
+									name: 'fuuu'
 								}
 							];
 							let pos = [{

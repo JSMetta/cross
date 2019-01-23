@@ -1,20 +1,12 @@
 const schema = require('../../../db/schema/bas/Employee'),
-    dbSave = require('../../../finelets/db/mongoDb/dbSave'),
+    dbSave = require('../../../finelets/db/mongoDb/saveNotExist'),
     logger = require('@finelets/hyper-rest/app/Logger')
 
 const userFields = ['name', 'pic']
 const obj = {
     create: (data) => {
-        if (!data.name) return Promise.reject('employee name is required')
-        return schema.findOne({
-                name: data.name
-            })
-            .then((doc) => {
-                if (doc) {
-                    return doc.toJSON()
-                }
-                return dbSave(schema, data)
-            })
+        if(!data.name) return Promise.reject('employee name is required')
+        return dbSave(schema, ['name'], data)
     },
     authenticate: (userName, password) => {
         logger.debug('Begin authenticate, userName = ' + userName + ' password: ' + password)

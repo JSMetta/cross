@@ -12,4 +12,11 @@ const EmployeeSchema = new Schema({
     transformOption
 )
 
+EmployeeSchema.index({
+    name: 1
+}, {
+    unique: true,
+    background: false
+})
+
 module.exports = mongoose.model('Employee', EmployeeSchema);

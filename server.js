@@ -23,6 +23,7 @@ appBuilder
 	.end();
 
 connectDb(function () {
+	logger.info('db: ' + process.env.MONGODB);
 	logger.info('connect mongodb success .......');
 	return crossMessageCenter.start(mcConfig)
 		.then(() => {

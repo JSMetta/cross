@@ -12,4 +12,12 @@ const PartSchema = new Schema({
     transformOption
 )
 
+PartSchema.index({
+    name: 1,
+    spec: 1,
+  }, {
+    unique: true,
+    background: false
+  });
+
 module.exports = mongoose.model('Part', PartSchema);

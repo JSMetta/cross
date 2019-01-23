@@ -10,4 +10,11 @@ const SupplierSchema = new Schema({
     transformOption
 )
 
+SupplierSchema.index({
+    name: 1
+}, {
+    unique: true,
+    background: false
+})
+
 module.exports = mongoose.model('Supplier', SupplierSchema);

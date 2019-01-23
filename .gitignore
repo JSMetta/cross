@@ -3,6 +3,5 @@
 coverage/
 .vscode/
 node_modules/
-.env
 uploads/
 test/data/
