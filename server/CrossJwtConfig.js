@@ -18,7 +18,7 @@ const devConfig = {
     baseUrl,loginUrl
 }
 const create = () => {
-    return process.env.DEVELOPMENT ? devConfig : prodConfig
+    return process.env.RUNNING_MODE ? devConfig : prodConfig
 }
 
 module.exports = create() 

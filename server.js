@@ -13,14 +13,24 @@ const connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
 	rests = require('@finelets/hyper-rest/rests')(restDir, graph);
 
 var app = appBuilder.getApp();
-app.use(cors())
 
-appBuilder
-	.setWebRoot('/cross/root', './client')
-	.setFavicon('client/imgs/favicon.jpg')
-	.setJwt(jwt, jwtConfig)
-	.setResources(...rests)
-	.end();
+let mode = process.env.RUNNING_MODE
+logger.info('Server is running at ' + mode + ' mode')
+if (mode === 'rest') {
+	appBuilder
+		.setWebRoot('/cross/root', './client')
+		.setFavicon('client/imgs/favicon.jpg')
+		.setResources(...rests)
+		.end();
+} else {
+	app.use(cors())
+	appBuilder
+		.setWebRoot('/cross/root', './client')
+		.setFavicon('client/imgs/favicon.jpg')
+		.setJwt(jwt, jwtConfig)
+		.setResources(...rests)
+		.end();
+}
 
 connectDb(function () {
 	logger.info('db: ' + process.env.MONGODB);
