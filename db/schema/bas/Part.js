@@ -5,9 +5,19 @@ const mongoose = require('mongoose'),
 
 const PartSchema = new Schema({
         type: Number,
+        code: String,
         name: String,
         spec: String,
-        unit: String
+        unit: String,
+        img: String,
+        createDate: {
+            type: Date,
+            default: Date.now
+        },
+        updateDate: {
+            type: Date,
+            default: Date.now
+        }
     },
     transformOption
 )
@@ -15,9 +25,9 @@ const PartSchema = new Schema({
 PartSchema.index({
     name: 1,
     spec: 1,
-  }, {
+}, {
     unique: true,
     background: false
-  });
+});
 
 module.exports = mongoose.model('Part', PartSchema);

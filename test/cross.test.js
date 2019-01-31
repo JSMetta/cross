@@ -219,22 +219,127 @@ describe('Cross', function () {
 						});
 					});
 
-					describe('查询料品', () => {
-						it('无任何记录', () => {
+					describe('搜索料品', () => {
+						it('搜索字段包括name, code, spec', () => {
 							let saveParts = []
 							saveParts.push(dbSave(schema, {
-								name: 'foo',
-								spec: 'spec'
+								type: 1,
+								name: '弹簧垫片螺母'
 							}))
 							saveParts.push(dbSave(schema, {
-								name: 'fee'
+								type: 1,
+								name: 'fee',
+								spec: '弹簧垫片螺母'
+							}))
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								code: '弹簧垫片螺母',
+								name: 'fee1',
+								spec: 'spec1'
+							}))
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: 'fee2',
+								spec: 'spec2'
 							}))
 							return Promise.all(saveParts)
 								.then(() => {
-									return testTarget.find()
+									return testTarget.search({type: 1}, '垫片')
+								})
+								.then(data => {
+									expect(data.length).eqls(3)
+								})
+						})
+
+						it('不区分大小写', () => {
+							let saveParts = []
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: '弹簧垫片螺母'
+							}))
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: 'fEe',
+								spec: '齿轮油'
+							}))
+							return Promise.all(saveParts)
+								.then(() => {
+									return testTarget.search({type: 1}, 'Fee')
+								})
+								.then(data => {
+									expect(data.length).eqls(1)
+								})
+						})
+
+						it('可以使用通配符‘.’匹配一个字', () => {
+							let saveParts = []
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: '弹簧垫片螺母'
+							}))
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: '弹螺母垫片螺'
+							}))
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: 'fEe',
+								spec: '齿轮油'
+							}))
+							return Promise.all(saveParts)
+								.then(() => {
+									return testTarget.search({type: 1}, '弹.垫')
+								})
+								.then(data => {
+									expect(data.length).eqls(1)
+								})
+						})
+
+						it('可以使用通配符‘*’', () => {
+							let saveParts = []
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: '弹簧垫片螺母'
+							}))
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: '弹螺母垫片螺'
+							}))
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: 'fEe',
+								spec: '齿轮油'
+							}))
+							return Promise.all(saveParts)
+								.then(() => {
+									return testTarget.search({type: 1}, '弹*垫')
 								})
 								.then(data => {
 									expect(data.length).eqls(2)
+								})
+						})
+
+						it('无条件', () => {
+							let saveParts = []
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: '弹簧垫片螺母'
+							}))
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: '弹螺母垫片螺'
+							}))
+							saveParts.push(dbSave(schema, {
+								type: 1,
+								name: 'fEe',
+								spec: '齿轮油'
+							}))
+							return Promise.all(saveParts)
+								.then(() => {
+									return testTarget.search({}, '.')
+								})
+								.then(data => {
+									expect(data.length).eqls(3)
 								})
 						})
 					})
