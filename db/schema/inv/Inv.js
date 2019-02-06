@@ -7,7 +7,11 @@ const InvSchema = new Schema({
         part: ObjectId,
         qty: Number
     },
-    transformOption
+    { 
+        ...transformOption,
+        autoCreate: true,
+        timestamps: { updatedAt: 'modifiedDate' }
+     }
 )
 
 module.exports = mongoose.model('Inv', InvSchema);

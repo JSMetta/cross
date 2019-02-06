@@ -41,21 +41,20 @@ describe('Cross', function () {
 			describe('SaveNotExist', () => {
 				const schema = require('../db/schema/bas/Part')
 				const save = require('../finelets/db/mongoDb/saveNotExist')
-				const data = {
-					name: '料品'
-				}
+				let data
 				const uniqueFields = ['name', 'spec']
 				let id, __v
+
+				beforeEach(() => {
+					data = {
+						name: '料品'
+					}
+				})
 
 				it('use findOneAndUpdate', () => {
 					return save(schema, uniqueFields, data)
 						.then(doc => {
-							let {
-								id,
-								__v,
-								...expected
-							} = doc
-							expect(expected).eqls(data)
+							expect(doc.name).eqls(data.name)
 							return schema.count()
 						})
 						.then(count => {
@@ -72,13 +71,9 @@ describe('Cross', function () {
 							return save(schema, uniqueFields, data)
 						})
 						.then(doc => {
-							let {
-								id,
-								__v,
-								...expected
-							} = doc
-							expect(expected).eqls(data)
-							return schema.find().lean()
+							expect(doc.name).eqls(data.name)
+							expect(doc.spec).undefined
+							return schema.find()
 						})
 						.then(docs => {
 							expect(docs.length).eqls(2)
@@ -91,19 +86,14 @@ describe('Cross', function () {
 							...data
 						})
 						.then(() => {
-							return save(schema, uniqueFields, {
+							data = {
 								spec: 'spec',
 								...data
-							})
+							}
+							return save(schema, uniqueFields, data)
 						})
 						.then(doc => {
-							let {
-								id,
-								__v,
-								spec,
-								...expected
-							} = doc
-							expect(expected).eqls(data)
+							expect({name: doc.name, spec: doc.spec}).eqls(data)
 							return schema.find().lean()
 						})
 						.then(docs => {
@@ -196,9 +186,16 @@ describe('Cross', function () {
 								existed = doc;
 								return testTarget.create(toCreate);
 							})
-							.then((doc) => {
-								expect(doc).eqls(existed);
-							});
+							.then(() => {
+								return schema.find()
+								
+							})
+							.then(docs => {
+								expect(docs.length).eqls(1);
+								let doc = docs[0].toJSON()
+								expect(existed.createAt).eqls(doc.createAt)
+								expect(existed.modifiedDate).not.eqls(doc.modifiedDate)
+							})
 					});
 
 					it('findById', () => {
@@ -375,7 +372,8 @@ describe('Cross', function () {
 								return testTarget.create(toCreate);
 							})
 							.then((doc) => {
-								expect(doc).eqls(existed);
+								doc = {...doc, modifiedDate: existed.modifiedDate}
+								expect(doc).eqls(existed); // 仅仅只有modifiedDate值发了变化
 							});
 					});
 				});
@@ -389,6 +387,29 @@ describe('Cross', function () {
 						schema = require('../db/schema/bas/Employee');
 						testTarget = proxyquire('../server/biz/bas/Employee', stubs);
 					});
+
+					it('dbSave will create doc using schema default', ()=>{
+						return dbSave(schema, {name: 'foo'})
+						.then(doc => {
+							expect(doc.modifiedDate).exist
+						})
+					})
+
+					it('saveNotExist will create doc using schema default', ()=>{
+						const saveNotExist = require('../finelets/db/mongoDb/saveNotExist')
+						let id, modifiedDate
+						return saveNotExist(schema, ['name'], {name: 'foofoo111111'})
+						.then(doc => {
+							expect(doc.modifiedDate).exist
+							id = doc.id
+							modifiedDate = doc.modifiedDate
+							return schema.find()
+						})
+						.then(docs => {
+							doc = docs[0].toJSON()
+							expect(doc.modifiedDate).eqls(modifiedDate)
+						})
+					})
 
 					it('name is required', () => {
 						return testTarget
@@ -409,6 +430,7 @@ describe('Cross', function () {
 								return testTarget.create(toCreate);
 							})
 							.then((doc) => {
+								doc = {...doc, modifiedDate: existed.modifiedDate}
 								expect(doc).eqls(existed);
 							});
 					});
@@ -422,7 +444,7 @@ describe('Cross', function () {
 									return testTarget.authenticate('foo')
 								})
 								.then(doc => {
-									expect(doc).eqls(user)
+									expect(doc).exist
 								})
 						})
 
@@ -441,7 +463,7 @@ describe('Cross', function () {
 									return testTarget.authenticate('foo', '9')
 								})
 								.then(doc => {
-									expect(doc).eqls(user)
+									expect(doc).exist
 								})
 						})
 
@@ -457,13 +479,67 @@ describe('Cross', function () {
 									return testTarget.getUser(id)
 								})
 								.then(doc => {
-									expect(doc).eqls({
-										id: id,
-										...toCreate
-									})
+									expect(doc.id).eqls(id)
 								})
 						})
 
+					})
+
+					describe('ifUnmodifiedSince', () => {
+						it('版本不一致', () => {
+							return dbSave(schema, toCreate)
+								.then((doc) => {
+									return testTarget.ifUnmodifiedSince(doc.id, new Date())
+								})
+								.then((result) => {
+									expect(result).false;
+								});
+						});
+
+						it('版本一致', () => {
+							return dbSave(schema, toCreate)
+								.then((doc) => {
+									return testTarget.ifUnmodifiedSince(doc.id, new Date(doc.modifiedDate).toJSON())
+								})
+								.then((result) => {
+									expect(result).true;
+								});
+						});
+					})
+
+					describe('update', ()=>{
+						it('版本不一致', () => {
+							return dbSave(schema, toCreate)
+								.then((doc) => {
+									return testTarget.update({id: doc.id, name: 'foo1', modifiedDate: new Date()});
+								})
+								.then((doc) => {
+									expect(doc).not.exist;
+								});
+						});
+
+						it('成功', () => {
+							let modifiedDate
+							return dbSave(schema, toCreate)
+								.then((doc) => {
+									modifiedDate = doc.modifiedDate
+									return testTarget.update(
+										{
+											id: doc.id,
+											modifiedDate: modifiedDate,
+											userId: '1234',
+											name: 'foo1',
+											email: 'email'
+										});
+								})
+								.then((doc) => {
+									expect(doc.userId).eqls('1234');
+									expect(doc.name).eqls('foo1');
+									expect(doc.password).eqls('9');   // 缺省密码为'9'
+									expect(doc.email).eqls('email');
+									expect(doc.modifiedDate > modifiedDate).true
+								});
+						});
 					})
 				});
 			});
@@ -720,7 +796,7 @@ describe('Cross', function () {
 							.then((doc) => {
 								expect(doc.id).eqls(purId);
 								expect(doc.reviewer.toString()).eqls(reviewer);
-								expect(doc.reviewDate < new Date().toJSON()).true;
+								expect(doc.reviewDate).exist;
 							});
 					});
 				});
@@ -951,7 +1027,7 @@ describe('Cross', function () {
 									expect(docs.length).eqls(1);
 									let doc = docs[0].toJSON();
 									expect(doc.qty).eqls(qty);
-									expect(doc.date < new Date().toJSON()).true;
+									expect(doc.date).exist;
 								});
 						});
 					});

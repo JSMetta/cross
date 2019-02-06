@@ -7,9 +7,13 @@ const LocSchema = new Schema({
         loc: String,
         part: ObjectId,
         date: Date,
-        qty: Number
+        qty: Number,
     },
-    transformOption
+    { 
+        ...transformOption,
+        autoCreate: true,
+        timestamps: { updatedAt: 'modifiedDate' }
+     }
 )
 
 module.exports = mongoose.model('Loc', LocSchema);

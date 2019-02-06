@@ -17,7 +17,8 @@ module.exports = (schema, uniqueFields, data) => {
         $and: condi
     }
     return schema.findOneAndUpdate(query, data, {
-            upsert: true
+            upsert: true,
+            runValidators: true
         })
         .then(() => {
             return schema.findOne(query)

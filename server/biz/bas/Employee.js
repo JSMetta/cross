@@ -1,12 +1,42 @@
 const schema = require('../../../db/schema/bas/Employee'),
     dbSave = require('../../../finelets/db/mongoDb/saveNotExist'),
+    moment = require('moment'),
     logger = require('@finelets/hyper-rest/app/Logger')
 
-const userFields = ['name', 'pic']
+const userFields =  ['userId', 'name', 'pic', 'email', 'modifiedDate']
 const obj = {
     create: (data) => {
-        if(!data.name) return Promise.reject('employee name is required')
+        if (!data.name) return Promise.reject('employee name is required')
         return dbSave(schema, ['name'], data)
+    },
+
+    ifUnmodifiedSince(id, modifiedDate) {
+        return schema.findById(id)
+            .then(doc => {
+                if(doc){
+                    doc = doc.toJSON()
+                    return doc.modifiedDate === modifiedDate
+                }
+                return false
+            })
+    },
+
+    update(data) {
+        return schema.findById(data.id)
+            .then(doc => {
+                if (doc && doc.modifiedDate.toJSON() === data.modifiedDate) {
+                    if (data.userId){
+                        if(!doc.password) doc.password = '9'
+                        doc.userId = data.userId
+                    } 
+                    if (data.name) doc.name = data.name
+                    if (data.email) doc.email = data.email
+                    return doc.save()
+                        .then(doc => {
+                            return doc.toJSON()
+                        })
+                }
+            })
     },
     authenticate: (userName, password) => {
         logger.debug('Begin authenticate, userName = ' + userName + ' password: ' + password)
@@ -36,10 +66,10 @@ const obj = {
             })
     },
     getUser: (id) => {
-        return schema.findById(id, userFields)
-        .then(doc => {
-            return doc.toJSON()
-        })
+        return schema.findById(id)
+            .then(doc => {
+                return doc.toJSON()
+            })
     }
 }
 

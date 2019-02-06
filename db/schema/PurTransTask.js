@@ -4,15 +4,18 @@ const mongoose = require('mongoose'),
   transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
 
 const PurTransTaskSchema = new Schema({
-    transNo: String,
-    task: Map,
-    po: ObjectId,
-    review: ObjectId,
-    inInv: ObjectId,
-    outInv: ObjectId,
-    createDate: {type: Date, default: new Date()}
-  },
-  transformOption
-)
+  transNo: String,
+  task: Map,
+  po: ObjectId,
+  review: ObjectId,
+  inInv: ObjectId,
+  outInv: ObjectId
+}, {
+  ...transformOption,
+  autoCreate: true,
+  timestamps: {
+    updatedAt: 'modifiedDate'
+  }
+})
 
 module.exports = mongoose.model('PurTransTask', PurTransTaskSchema);

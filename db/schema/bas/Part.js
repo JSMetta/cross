@@ -9,17 +9,13 @@ const PartSchema = new Schema({
         name: String,
         spec: String,
         unit: String,
-        img: String,
-        createDate: {
-            type: Date,
-            default: Date.now
-        },
-        updateDate: {
-            type: Date,
-            default: Date.now
-        }
+        img: String
     },
-    transformOption
+    { 
+        ...transformOption,
+        autoCreate: true,
+        timestamps: { updatedAt: 'modifiedDate' }
+     }
 )
 
 PartSchema.index({

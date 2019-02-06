@@ -7,9 +7,14 @@ const EmployeeSchema = new Schema({
         userId: String,
         name: String,
         password: String,
-        pic: String
+        pic: String,
+        email: String
     },
-    transformOption
+    { 
+        ...transformOption,
+        autoCreate: true,
+        timestamps: { updatedAt: 'modifiedDate' }
+     }
 )
 
 EmployeeSchema.index({

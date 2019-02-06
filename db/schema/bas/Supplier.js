@@ -7,7 +7,11 @@ const SupplierSchema = new Schema({
         type: Number,
         name: String
     },
-    transformOption
+    { 
+        ...transformOption,
+        autoCreate: true,
+        timestamps: { updatedAt: 'modifiedDate' }
+     }
 )
 
 SupplierSchema.index({

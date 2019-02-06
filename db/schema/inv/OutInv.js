@@ -14,7 +14,11 @@ const OutInvSchema = new Schema({
             unique: true
         }
     },
-    transformOption
+    { 
+        ...transformOption,
+        autoCreate: true,
+        timestamps: { updatedAt: 'modifiedDate' }
+     }
 )
 
 module.exports = mongoose.model('OutInv', OutInvSchema);

@@ -10,7 +10,11 @@ const InInvSchema = new Schema({
         loc: String,
         source: {type:String, unique:true}
     },
-    transformOption
+    { 
+        ...transformOption,
+        autoCreate: true,
+        timestamps: { updatedAt: 'modifiedDate' }
+     }
 )
 
 module.exports = mongoose.model('InInv', InInvSchema);

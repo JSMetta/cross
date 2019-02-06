@@ -31,7 +31,11 @@ const PurchaseSchema = new Schema({
         remark: String,
         source: String
     },
-    transformOption
+    { 
+        ...transformOption,
+        autoCreate: true,
+        timestamps: { updatedAt: 'modifiedDate' }
+     }
 )
 
 module.exports = mongoose.model('Purchase', PurchaseSchema);
