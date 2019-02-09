@@ -1,45 +1,32 @@
 const schema = require('../../../db/schema/bas/Employee'),
-    dbSave = require('../../../finelets/db/mongoDb/saveNotExist'),
-    moment = require('moment'),
-    logger = require('@finelets/hyper-rest/app/Logger')
+    createEntity = require('../../../finelets/db/mongoDb/Entity'),
+    dbSave = require('../../../finelets/db/mongoDb/saveNotExist')
 
-const userFields =  ['userId', 'name', 'pic', 'email', 'modifiedDate']
+const employeeEntity = createEntity({
+    schema,
+    updatable: ['userId', 'password', 'name', 'pic', 'email'],
+    setValues: (doc, data) => {
+        if (data.userId && !doc.password) {
+            doc.password = '9'
+        }
+    }
+})
+
 const obj = {
     create: (data) => {
         if (!data.name) return Promise.reject('employee name is required')
         return dbSave(schema, ['name'], data)
     },
 
-    ifUnmodifiedSince(id, modifiedDate) {
-        return schema.findById(id)
-            .then(doc => {
-                if(doc){
-                    doc = doc.toJSON()
-                    return doc.modifiedDate === modifiedDate
-                }
-                return false
-            })
+    ifUnmodifiedSince(id, version){
+        return employeeEntity.ifUnmodifiedSince(id, version)
+    },
+    
+    update(data){
+        return employeeEntity.update(data)
     },
 
-    update(data) {
-        return schema.findById(data.id)
-            .then(doc => {
-                if (doc && doc.modifiedDate.toJSON() === data.modifiedDate) {
-                    if (data.userId){
-                        if(!doc.password) doc.password = '9'
-                        doc.userId = data.userId
-                    } 
-                    if (data.name) doc.name = data.name
-                    if (data.email) doc.email = data.email
-                    return doc.save()
-                        .then(doc => {
-                            return doc.toJSON()
-                        })
-                }
-            })
-    },
     authenticate: (userName, password) => {
-        logger.debug('Begin authenticate, userName = ' + userName + ' password: ' + password)
         return schema.findOne({
                 $or: [{
                     userId: userName,
@@ -57,9 +44,8 @@ const obj = {
                         }
                     }]
                 }]
-            }, userFields)
+            }, ['userId', 'name', 'pic', 'email', 'modifiedDate'])
             .then(doc => {
-                logger.debug('find user: ' + doc ? JSON.stringify(doc.toJSON()) : 'null')
                 if (doc) {
                     return doc.toJSON()
                 }

@@ -1,6 +1,13 @@
 const schema = require('../../../db/schema/bas/Part'),
     __ = require('underscore'),
+    createEntity = require('../../../finelets/db/mongoDb/Entity'),
     dbSave = require('../../../finelets/db/mongoDb/saveNotExist')
+
+const partEntity = createEntity({
+    schema,
+    updatable:['type', 'code', 'name', 'spec', 'unit', 'img']
+})
+
 const parts = {
     create: (data) => {
         if (!data.name) return Promise.reject('part name is required')
@@ -30,11 +37,27 @@ const parts = {
     search(cond, text) {
         let items = []
         let query = {
-            $and: [cond, {$or: [
-                {name: { $regex: text, $options: 'si'}},
-                {code: { $regex: text, $options: 'si'}},
-                {spec: { $regex: text, $options: 'si'}},
-            ]}]
+            $and: [cond, {
+                $or: [{
+                        name: {
+                            $regex: text,
+                            $options: 'si'
+                        }
+                    },
+                    {
+                        code: {
+                            $regex: text,
+                            $options: 'si'
+                        }
+                    },
+                    {
+                        spec: {
+                            $regex: text,
+                            $options: 'si'
+                        }
+                    },
+                ]
+            }]
         }
         return schema.find(query)
             .then(data => {
@@ -43,6 +66,14 @@ const parts = {
                 })
                 return items
             })
+    },
+
+    ifUnmodifiedSince(id, version){
+        return partEntity.ifUnmodifiedSince(id, version)
+    },
+    
+    update(data){
+        return partEntity.update(data)
     }
 }
 

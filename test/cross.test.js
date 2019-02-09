@@ -340,6 +340,35 @@ describe('Cross', function () {
 								})
 						})
 					})
+
+					describe('update', ()=>{
+						beforeEach(() => {
+							testTarget = require('../server/biz/bas/Parts');
+						})
+						
+						it('成功', () => {
+							let modifiedDate
+							return dbSave(schema, toCreate)
+								.then((doc) => {
+									modifiedDate = doc.modifiedDate
+									return testTarget.update(
+										{
+											id: doc.id,
+											modifiedDate: modifiedDate,
+											type: 1,
+											code: '23456',
+											name: 'foo1',
+											spec: 'spec',
+											unit: 'm',
+											img: 'img'
+										});
+								})
+								.then((doc) => {
+									expect(doc.modifiedDate > modifiedDate).true
+								});
+						});
+					})
+
 				});
 
 				describe('Suppliers - 供应商', () => {
@@ -485,39 +514,7 @@ describe('Cross', function () {
 
 					})
 
-					describe('ifUnmodifiedSince', () => {
-						it('版本不一致', () => {
-							return dbSave(schema, toCreate)
-								.then((doc) => {
-									return testTarget.ifUnmodifiedSince(doc.id, new Date())
-								})
-								.then((result) => {
-									expect(result).false;
-								});
-						});
-
-						it('版本一致', () => {
-							return dbSave(schema, toCreate)
-								.then((doc) => {
-									return testTarget.ifUnmodifiedSince(doc.id, new Date(doc.modifiedDate).toJSON())
-								})
-								.then((result) => {
-									expect(result).true;
-								});
-						});
-					})
-
 					describe('update', ()=>{
-						it('版本不一致', () => {
-							return dbSave(schema, toCreate)
-								.then((doc) => {
-									return testTarget.update({id: doc.id, name: 'foo1', modifiedDate: new Date()});
-								})
-								.then((doc) => {
-									expect(doc).not.exist;
-								});
-						});
-
 						it('成功', () => {
 							let modifiedDate
 							return dbSave(schema, toCreate)
@@ -537,7 +534,6 @@ describe('Cross', function () {
 									expect(doc.name).eqls('foo1');
 									expect(doc.password).eqls('9');   // 缺省密码为'9'
 									expect(doc.email).eqls('email');
-									expect(doc.modifiedDate > modifiedDate).true
 								});
 						});
 					})

@@ -13,6 +13,155 @@ describe('Finelets', function () {
 		request = requestAgent(app);
 	})
 
+	describe('Db Entity', () => {
+		let dbModel, entityConfig, entity
+		const toCreate = {
+			fld: 'foo'
+		}
+		const dbSave = require('../finelets/db/mongoDb/dbSave')
+
+		const createEntity = require('../finelets/db/mongoDb/Entity')
+
+		before(() => {
+			const mongoose = require('mongoose'),
+				Schema = mongoose.Schema,
+				transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
+
+			const fooSchema = new Schema({
+				fld: String
+			}, {
+				...transformOption,
+				timestamps: {
+					updatedAt: 'modifiedDate'
+				}
+			})
+
+			dbModel = mongoose.model('Foo', fooSchema);
+		})
+
+		beforeEach((done) => {
+			entityConfig = {
+				schema: dbModel,
+				updatable: ['fld']
+			}
+			entity = createEntity(entityConfig)
+			return clearDB(done);
+		})
+
+		describe('ifUnmodifiedSince', () => {
+			it('版本不一致', () => {
+				return dbSave(dbModel, toCreate)
+					.then((doc) => {
+						return entity.ifUnmodifiedSince(doc.id, new Date().toJSON())
+					})
+					.then((result) => {
+						expect(result).false;
+					});
+			})
+
+			it('一致', () => {
+				return dbSave(dbModel, toCreate)
+					.then((doc) => {
+						return entity.ifUnmodifiedSince(doc.id, doc.modifiedDate)
+					})
+					.then((result) => {
+						expect(result).true;
+					});
+			});
+		})
+
+		describe('update', () => {
+			it('版本不一致', () => {
+				return dbSave(dbModel, toCreate)
+					.then((doc) => {
+						return entity.update({
+							id: doc.id,
+							modifiedDate: new Date().toJSON()
+						});
+					})
+					.then((doc) => {
+						expect(doc).not.exist;
+					});
+			});
+
+			it('成功', () => {
+				let modifiedDate
+				return dbSave(dbModel, toCreate)
+					.then((doc) => {
+						modifiedDate = doc.modifiedDate
+						return entity.update({
+							id: doc.id,
+							modifiedDate: modifiedDate,
+							fld: 'fld'
+						});
+					})
+					.then((doc) => {
+						expect(doc.fld).eqls('fld')
+						expect(doc.modifiedDate > modifiedDate).true
+					});
+			});
+
+			it('删除字段值', () => {
+				let modifiedDate
+				return dbSave(dbModel, toCreate)
+					.then((doc) => {
+						modifiedDate = doc.modifiedDate
+						expect(doc.fld).eqls('foo')
+						return entity.update({
+							id: doc.id,
+							modifiedDate: modifiedDate,
+						});
+					})
+					.then((doc) => {
+						expect(doc.fld).undefined
+						expect(doc.modifiedDate > modifiedDate).true
+					});
+			});
+
+			it('以空字串删除字段值', () => {
+				let modifiedDate
+				return dbSave(dbModel, toCreate)
+					.then((doc) => {
+						modifiedDate = doc.modifiedDate
+						expect(doc.fld).eqls('foo')
+						return entity.update({
+							id: doc.id,
+							modifiedDate: modifiedDate,
+							fld: ''
+						});
+					})
+					.then((doc) => {
+						expect(doc.fld).undefined
+						expect(doc.modifiedDate > modifiedDate).true
+					});
+			});
+
+			it('可以定义一个字段更新逻辑', () => {
+				let modifiedDate
+				const setvalues = (doc, data) => {
+					doc.fld = 'fee'
+					expect(data.fld).eqls('fld')
+				}
+				entityConfig.setValues = setvalues
+				return dbSave(dbModel, toCreate)
+					.then((doc) => {
+						modifiedDate = doc.modifiedDate
+						expect(doc.fld).eqls('foo')
+						return entity.update({
+							id: doc.id,
+							modifiedDate: modifiedDate,
+							fld: 'fld'
+						})
+					})
+					.then((doc) => {
+						expect(doc.fld).eqls('fee')
+						expect(doc.modifiedDate > modifiedDate).true
+					});
+			});
+		})
+	})
+
+
 	describe('JWT - User Authentication', () => {
 		const defaultUriLogin = '/auth/login'
 		const username = 'foo'

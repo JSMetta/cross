@@ -1,8 +1,7 @@
 /**
  * Created by clx on 2017/10/13.
  */
-const {ifUnmodifiedSince, update} = require('../biz/bas/Employee'),
-logger = require('@finelets/hyper-rest/app/Logger');
+const {ifUnmodifiedSince, update} = require('../biz/bas/Employee')
 
 module.exports = {
     url: '/cross/api/bas/users/:id',
