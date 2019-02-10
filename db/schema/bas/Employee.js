@@ -17,11 +17,7 @@ const EmployeeSchema = new Schema({
      }
 )
 
-EmployeeSchema.index({
-    name: 1
-}, {
-    unique: true,
-    background: false
-})
+// EmployeeSchema.index({userId: 1}, {unique: true})
+EmployeeSchema.index({name: 1}, {unique: true})
 
 module.exports = mongoose.model('Employee', EmployeeSchema);

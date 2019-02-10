@@ -3,8 +3,15 @@ const mongoose = require('mongoose'),
     ObjectId = Schema.Types.ObjectId,
     transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
 
+// TODO: set autoIndex, autoCreate to false in product mode
+/*
+The autoIndex option is set to true by default. You can change this
+default by setting mongoose.use('autoIndex', false);
+*/
+
 const SupplierSchema = new Schema({
         type: Number,
+        code: String,
         name: String
     },
     { 
@@ -14,11 +21,7 @@ const SupplierSchema = new Schema({
      }
 )
 
-SupplierSchema.index({
-    name: 1
-}, {
-    unique: true,
-    background: false
-})
+// SupplierSchema.index({code: 1}, {unique: true})
+SupplierSchema.index({name: 1}, {unique: true})
 
 module.exports = mongoose.model('Supplier', SupplierSchema);

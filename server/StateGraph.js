@@ -21,6 +21,21 @@ module.exports = {
         }, */
         parts: "Parts"
     },
+    Suppliers: {
+        create: 'Suppliers'
+    },
+    Supplier: {
+        self: "Supplier",
+        /* edit: {
+            id: "DraftOrder",
+            condition: __checkIfModifyIsPermited
+        },
+        cancel: {
+            id: "DraftOrder",
+            condition: __checkIfModifyIsPermited
+        }, */
+        suppliers: "Suppliers"
+    },
     PurchaseTransTasks: {
         exit: 'Cross'
     },

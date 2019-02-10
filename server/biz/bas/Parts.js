@@ -5,7 +5,8 @@ const schema = require('../../../db/schema/bas/Part'),
 
 const partEntity = createEntity({
     schema,
-    updatable:['type', 'code', 'name', 'spec', 'unit', 'img']
+    updatables:['type', 'code', 'name', 'spec', 'unit', 'img'],
+    searchables:['code', 'name', 'spec']
 })
 
 const parts = {
@@ -35,37 +36,7 @@ const parts = {
     },
 
     search(cond, text) {
-        let items = []
-        let query = {
-            $and: [cond, {
-                $or: [{
-                        name: {
-                            $regex: text,
-                            $options: 'si'
-                        }
-                    },
-                    {
-                        code: {
-                            $regex: text,
-                            $options: 'si'
-                        }
-                    },
-                    {
-                        spec: {
-                            $regex: text,
-                            $options: 'si'
-                        }
-                    },
-                ]
-            }]
-        }
-        return schema.find(query)
-            .then(data => {
-                __.each(data, part => {
-                    items.push(part.toJSON())
-                })
-                return items
-            })
+        return partEntity.search(cond, text)
     },
 
     ifUnmodifiedSince(id, version){

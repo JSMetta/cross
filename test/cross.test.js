@@ -221,10 +221,12 @@ describe('Cross', function () {
 							let saveParts = []
 							saveParts.push(dbSave(schema, {
 								type: 1,
+								code: '01',
 								name: '弹簧垫片螺母'
 							}))
 							saveParts.push(dbSave(schema, {
 								type: 1,
+								code: '02',
 								name: 'fee',
 								spec: '弹簧垫片螺母'
 							}))
@@ -236,6 +238,7 @@ describe('Cross', function () {
 							}))
 							saveParts.push(dbSave(schema, {
 								type: 1,
+								code: '03',
 								name: 'fee2',
 								spec: 'spec2'
 							}))
@@ -256,6 +259,7 @@ describe('Cross', function () {
 							}))
 							saveParts.push(dbSave(schema, {
 								type: 1,
+								code: '01',
 								name: 'fEe',
 								spec: '齿轮油'
 							}))
@@ -272,14 +276,17 @@ describe('Cross', function () {
 							let saveParts = []
 							saveParts.push(dbSave(schema, {
 								type: 1,
+								code: '01',
 								name: '弹簧垫片螺母'
 							}))
 							saveParts.push(dbSave(schema, {
 								type: 1,
+								code: '02',
 								name: '弹螺母垫片螺'
 							}))
 							saveParts.push(dbSave(schema, {
 								type: 1,
+								code: '03',
 								name: 'fEe',
 								spec: '齿轮油'
 							}))
@@ -405,6 +412,34 @@ describe('Cross', function () {
 								expect(doc).eqls(existed); // 仅仅只有modifiedDate值发了变化
 							});
 					});
+
+					it('搜索字段包括name, code', () => {
+						let saves = []
+						saves.push(dbSave(schema, {
+							type: 1,
+							name: '弹簧垫片螺母'
+						}))
+						saves.push(dbSave(schema, {
+							type: 1,
+							name: 'fee'
+						}))
+						saves.push(dbSave(schema, {
+							type: 1,
+							code: '弹簧垫片螺母',
+							name: 'fee1'
+						}))
+						saves.push(dbSave(schema, {
+							type: 1,
+							name: 'fee2'
+						}))
+						return Promise.all(saves)
+							.then(() => {
+								return testTarget.search({type: 1}, '垫片')
+							})
+							.then(data => {
+								expect(data.length).eqls(2)
+							})
+					})
 				});
 
 				describe('Employee - 员工', () => {

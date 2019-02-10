@@ -28,7 +28,9 @@ describe('Finelets', function () {
 				transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
 
 			const fooSchema = new Schema({
-				fld: String
+				fld: String,
+				fld1: String,
+				type: Number
 			}, {
 				...transformOption,
 				timestamps: {
@@ -42,7 +44,7 @@ describe('Finelets', function () {
 		beforeEach((done) => {
 			entityConfig = {
 				schema: dbModel,
-				updatable: ['fld']
+				updatables: ['fld']
 			}
 			entity = createEntity(entityConfig)
 			return clearDB(done);
@@ -158,6 +160,121 @@ describe('Finelets', function () {
 						expect(doc.modifiedDate > modifiedDate).true
 					});
 			});
+		})
+
+		describe('search', () => {
+			beforeEach(()=>{
+				entityConfig.searchables = ['fld', 'fld1']
+			})
+
+			it('搜索字段包括fld, fld1', () => {
+				let saves = []
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: '弹簧垫片螺母'
+				}))
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: 'fee',
+					fld1: '弹簧垫片螺母'
+				}))
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: 'fee1',
+					fld1: 'spec1'
+				}))
+				return Promise.all(saves)
+					.then(() => {
+						return entity.search({type: 1}, '垫片')
+					})
+					.then(data => {
+						expect(data.length).eqls(2)
+					})
+			})
+
+			it('不区分大小写', () => {
+				let saves = []
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: '弹簧垫片螺母'
+				}))
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: 'fEe'
+				}))
+				return Promise.all(saves)
+					.then(() => {
+						return entity.search({type: 1}, 'Fee')
+					})
+					.then(data => {
+						expect(data.length).eqls(1)
+					})
+			})
+
+			it('可以使用通配符‘.’匹配一个字', () => {
+				let saves = []
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: '弹簧垫片螺母'
+				}))
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: '弹螺母垫片螺'
+				}))
+				return Promise.all(saves)
+					.then(() => {
+						return entity.search({type: 1}, '弹.垫')
+					})
+					.then(data => {
+						expect(data.length).eqls(1)
+					})
+			})
+
+			it('可以使用通配符‘*’', () => {
+				let saves = []
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: '弹簧垫片螺母'
+				}))
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: '弹螺母垫片螺'
+				}))
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: 'fEe'
+				}))
+				return Promise.all(saves)
+					.then(() => {
+						return entity.search({type: 1}, '弹*垫')
+					})
+					.then(data => {
+						expect(data.length).eqls(2)
+					})
+			})
+
+			it('无条件', () => {
+				let saves = []
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: '弹簧垫片螺母'
+				}))
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: '弹螺母垫片螺'
+				}))
+				saves.push(dbSave(dbModel, {
+					type: 1,
+					fld: 'fEe'
+				}))
+				return Promise.all(saves)
+					.then(() => {
+						return entity.search({}, '.')
+					})
+					.then(data => {
+						expect(data.length).eqls(3)
+					})
+			})
 		})
 	})
 

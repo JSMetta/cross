@@ -4,7 +4,8 @@ const schema = require('../../../db/schema/bas/Employee'),
 
 const employeeEntity = createEntity({
     schema,
-    updatable: ['userId', 'password', 'name', 'pic', 'email'],
+    updatables: ['userId', 'password', 'name', 'pic', 'email'],
+    searchables: ['userId', 'name', 'email'],
     setValues: (doc, data) => {
         if (data.userId && !doc.password) {
             doc.password = '9'
@@ -16,6 +17,10 @@ const obj = {
     create: (data) => {
         if (!data.name) return Promise.reject('employee name is required')
         return dbSave(schema, ['name'], data)
+    },
+
+    search(cond, text) {
+        return employeeEntity.search(cond, text)
     },
 
     ifUnmodifiedSince(id, version){

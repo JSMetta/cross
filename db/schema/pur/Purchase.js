@@ -28,6 +28,7 @@ const PurchaseSchema = new Schema({
         reviewDate: Date,
         creator: ObjectId,
         createDate: Date,
+        state: {type: String, default: 'Open'},   // Draft, Approved, Open, Closed, Canceled
         remark: String,
         source: String
     },
