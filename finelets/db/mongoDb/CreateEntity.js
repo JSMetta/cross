@@ -36,28 +36,24 @@ class Entity {
 
     search(cond, text) {
         let config = this.__config
-        let filters = __.map(config.searchables, fld => {
-            let filter = {}
-            filter[fld] = {
-                $regex: text,
-                $options: 'si'
+        let query = cond
+        
+        if (text && text.length > 0){
+            let filters = __.map(config.searchables, fld => {
+                let filter = {}
+                filter[fld] = {
+                    $regex: text,
+                    $options: 'si'
+                }
+                return filter
+            })
+            query = {
+                $and: [cond, {
+                    $or: filters
+                }]
             }
-            return filter
-        })
-
-        /* let notExists = __.map(config.searchables, fld => {
-            let filter = {}
-            filter[fld] = {
-                $exists: false
-            }
-            return filter
-        }) */
-
-        let query = {
-            $and: [cond, {
-                $or: filters
-            }]
         }
+        
         return config.schema.find(query)
             .then(data => {
                 return __.map(data, item => {
@@ -74,15 +70,15 @@ const __create = (config, addIn) => {
         search(cond, text) {
             return entity.search(cond, text)
         },
-    
-        ifUnmodifiedSince(id, version){
+
+        ifUnmodifiedSince(id, version) {
             return entity.ifUnmodifiedSince(id, version)
         },
-        
-        update(data){
+
+        update(data) {
             return entity.update(data)
         },
-    
+
         ...addIn
     }
 

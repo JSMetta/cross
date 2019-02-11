@@ -177,6 +177,20 @@ describe('Finelets', function () {
 						return entity.search({}, '.')
 					})
 					.then(data => {
+						expect(data.length).eqls(0)
+					})
+			})
+
+			it('无条件搜索时文档中无任何搜索字段', () => {
+				let saves = []
+				saves.push(dbSave(dbModel, {
+					type: 1
+				}))
+				return Promise.all(saves)
+					.then(() => {
+						return entity.search({}, '')
+					})
+					.then(data => {
 						expect(data.length).eqls(1)
 					})
 			})
@@ -283,7 +297,7 @@ describe('Finelets', function () {
 				}))
 				return Promise.all(saves)
 					.then(() => {
-						return entity.search({}, '.')
+						return entity.search({}, '')
 					})
 					.then(data => {
 						expect(data.length).eqls(3)

@@ -650,11 +650,10 @@ describe('Cross', function () {
 					});
 
 					it('按料品搜索采购单', ()=>{
-						// poData.refNo = 'foo'
 						return dbSave(schema, poData)
 							.then((doc) => {
 								existed = doc;
-								return testTarget.search({part: partId}, '.')
+								return testTarget.search({part: partId}, '')
 							})
 							.then((docs) => {
 								expect(docs.length).eqls(1);
