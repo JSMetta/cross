@@ -20,7 +20,7 @@ describe('Finelets', function () {
 		}
 		const dbSave = require('../finelets/db/mongoDb/dbSave')
 
-		const createEntity = require('../finelets/db/mongoDb/Entity')
+		const createEntity = require('../finelets/db/mongoDb/CreateEntity')
 
 		before(() => {
 			const mongoose = require('mongoose'),
@@ -165,6 +165,20 @@ describe('Finelets', function () {
 		describe('search', () => {
 			beforeEach(()=>{
 				entityConfig.searchables = ['fld', 'fld1']
+			})
+
+			it('文档中无任何搜索字段', () => {
+				let saves = []
+				saves.push(dbSave(dbModel, {
+					type: 1
+				}))
+				return Promise.all(saves)
+					.then(() => {
+						return entity.search({}, '.')
+					})
+					.then(data => {
+						expect(data.length).eqls(1)
+					})
 			})
 
 			it('搜索字段包括fld, fld1', () => {

@@ -45,6 +45,14 @@ class Entity {
             return filter
         })
 
+        /* let notExists = __.map(config.searchables, fld => {
+            let filter = {}
+            filter[fld] = {
+                $exists: false
+            }
+            return filter
+        }) */
+
         let query = {
             $and: [cond, {
                 $or: filters
@@ -59,8 +67,26 @@ class Entity {
     }
 }
 
-function __create(config) {
-    return new Entity(config)
+const __create = (config, addIn) => {
+    const entity = new Entity(config)
+
+    const obj = {
+        search(cond, text) {
+            return entity.search(cond, text)
+        },
+    
+        ifUnmodifiedSince(id, version){
+            return entity.ifUnmodifiedSince(id, version)
+        },
+        
+        update(data){
+            return entity.update(data)
+        },
+    
+        ...addIn
+    }
+
+    return obj
 }
 
 module.exports = __create

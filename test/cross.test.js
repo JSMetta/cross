@@ -440,6 +440,7 @@ describe('Cross', function () {
 								expect(data.length).eqls(2)
 							})
 					})
+
 				});
 
 				describe('Employee - 员工', () => {
@@ -647,6 +648,18 @@ describe('Cross', function () {
 								expect(doc).eqls(partExpected);
 							});
 					});
+
+					it('按料品搜索采购单', ()=>{
+						// poData.refNo = 'foo'
+						return dbSave(schema, poData)
+							.then((doc) => {
+								existed = doc;
+								return testTarget.search({part: partId}, '.')
+							})
+							.then((docs) => {
+								expect(docs.length).eqls(1);
+							});
+					})
 
 					describe('采购入库抵扣采购单', () => {
 						it('成功', () => {

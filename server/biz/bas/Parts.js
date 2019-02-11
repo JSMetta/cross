@@ -1,13 +1,12 @@
 const schema = require('../../../db/schema/bas/Part'),
-    __ = require('underscore'),
-    createEntity = require('../../../finelets/db/mongoDb/Entity'),
+    createEntity = require('../../../finelets/db/mongoDb/CreateEntity'),
     dbSave = require('../../../finelets/db/mongoDb/saveNotExist')
 
-const partEntity = createEntity({
+const config = {
     schema,
     updatables:['type', 'code', 'name', 'spec', 'unit', 'img'],
     searchables:['code', 'name', 'spec']
-})
+}
 
 const parts = {
     create: (data) => {
@@ -33,19 +32,7 @@ const parts = {
                 })
                 return items
             })
-    },
-
-    search(cond, text) {
-        return partEntity.search(cond, text)
-    },
-
-    ifUnmodifiedSince(id, version){
-        return partEntity.ifUnmodifiedSince(id, version)
-    },
-    
-    update(data){
-        return partEntity.update(data)
     }
 }
 
-module.exports = parts
+module.exports = createEntity(config, parts)

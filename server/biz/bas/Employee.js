@@ -1,8 +1,8 @@
 const schema = require('../../../db/schema/bas/Employee'),
-    createEntity = require('../../../finelets/db/mongoDb/Entity'),
+    createEntity = require('../../../finelets/db/mongoDb/CreateEntity'),
     dbSave = require('../../../finelets/db/mongoDb/saveNotExist')
 
-const employeeEntity = createEntity({
+const config = {
     schema,
     updatables: ['userId', 'password', 'name', 'pic', 'email'],
     searchables: ['userId', 'name', 'email'],
@@ -11,24 +11,12 @@ const employeeEntity = createEntity({
             doc.password = '9'
         }
     }
-})
+}
 
 const obj = {
     create: (data) => {
         if (!data.name) return Promise.reject('employee name is required')
         return dbSave(schema, ['name'], data)
-    },
-
-    search(cond, text) {
-        return employeeEntity.search(cond, text)
-    },
-
-    ifUnmodifiedSince(id, version){
-        return employeeEntity.ifUnmodifiedSince(id, version)
-    },
-    
-    update(data){
-        return employeeEntity.update(data)
     },
 
     authenticate: (userName, password) => {
@@ -56,6 +44,7 @@ const obj = {
                 }
             })
     },
+
     getUser: (id) => {
         return schema.findById(id)
             .then(doc => {
@@ -64,4 +53,4 @@ const obj = {
     }
 }
 
-module.exports = obj
+module.exports = createEntity(config, obj)

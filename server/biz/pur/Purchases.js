@@ -1,9 +1,18 @@
 const schema = require('../../../db/schema/pur/Purchase'),
 	part = require('../bas/Parts'),
+	createEntity = require('../../../finelets/db/mongoDb/CreateEntity'),
 	__ = require('underscore'),
 	logger = require('@finelets/hyper-rest/app/Logger'),
 	dbSave = require('../../../finelets/db/mongoDb/dbSave');
-const func = {
+
+const config = {
+	schema,
+	updatables: ['code', 'part', 'qty', 'price', 'amount', 'supplier', 'refNo', 
+				'supplyLink', 'purPeriod', 'remark'],
+	searchables: ['code', 'refNo', 'remark']
+}
+
+const addIn = {
 	createBySource: (data) => {
 		return schema
 			.findOne({
@@ -86,13 +95,11 @@ const func = {
 							}
 						}
 					],
-					byPo: [
-						{
-							$sort: {
-								amount: -1
-							}
+					byPo: [{
+						$sort: {
+							amount: -1
 						}
-					],
+					}],
 					total: [{
 						$group: {
 							_id: undefined,
@@ -170,10 +177,10 @@ const func = {
 					return tt.total * -1
 				})
 			}
-			
+
 			return result;
 		});
 	}
 };
 
-module.exports = func;
+module.exports = createEntity(config, addIn);

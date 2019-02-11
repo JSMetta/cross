@@ -4,6 +4,7 @@ const mongoose = require('mongoose'),
     transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
 
 const PurchaseSchema = new Schema({
+        code: String,
         part: {
             type: ObjectId,
             required: true
