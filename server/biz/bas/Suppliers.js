@@ -12,6 +12,15 @@ const obj = {
     create: (data) => {
         if (!data.name) return Promise.reject('supplier name is required')
         return dbSave(schema, ['name'], data)
+    },
+
+    findById: (id) => {
+        return schema.findById(id)
+        .then(doc => {
+            let result
+            if(doc) result = doc.toJSON()
+            return result
+        })
     }
 }
 
