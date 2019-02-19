@@ -5,6 +5,16 @@ class Entity {
         this.__config = config
     }
 
+    findById(id) {
+        let __config = this.__config
+        return __config.schema.findById(id)
+        .then(doc => {
+            let result
+            if(doc) result = doc.toJSON()
+            return result
+        })
+    }
+
     update(data) {
         let __config = this.__config
         return __config.schema.findById(data.id)
@@ -54,7 +64,7 @@ class Entity {
             }
         }
         
-        return config.schema.find(query)
+        return config.schema.find(query).limit(20) // TODO: 通过参数设定笔数
             .then(data => {
                 return __.map(data, item => {
                     return item.toJSON()
@@ -67,6 +77,10 @@ const __create = (config, addIn) => {
     const entity = new Entity(config)
 
     const obj = {
+        findById(id) {
+            return entity.findById(id)
+        },
+
         search(cond, text) {
             return entity.search(cond, text)
         },

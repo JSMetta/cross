@@ -8,11 +8,21 @@ const mongoose = require('mongoose'),
 The autoIndex option is set to true by default. You can change this
 default by setting mongoose.use('autoIndex', false);
 */
+const ContactSchema = new Schema({
+    nick: String,
+    name: String,
+    phone: String,
+    email: String
+  },
+  transformOption
+)
 
 const SupplierSchema = new Schema({
         type: Number,
         code: String,
-        name: String
+        name: String,
+        address: String,
+        contacts: [ContactSchema]
     },
     { 
         ...transformOption,

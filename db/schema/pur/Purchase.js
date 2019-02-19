@@ -9,6 +9,7 @@ const PurchaseSchema = new Schema({
             type: ObjectId,
             required: true
         },
+        purDate: Date,
         qty: {
             type: Number,
             required: true

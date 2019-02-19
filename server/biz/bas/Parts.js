@@ -14,13 +14,6 @@ const parts = {
         return dbSave(schema, ['name', 'spec'], data)
     },
 
-    findById: (id) => {
-        return schema.findById(id)
-            .then((doc) => {
-                if (doc) return doc.toJSON()
-            })
-    },
-
     find: () => {
         let items = []
         return schema.find({}, null, {
