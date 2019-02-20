@@ -5,14 +5,22 @@ class Entity {
         this.__config = config
     }
 
+    create(data) {
+        const schema = this.__config.schema
+        return new schema(data).save()
+            .then(doc => {
+                return doc.toJSON()
+            })
+    }
+
     findById(id) {
         let __config = this.__config
         return __config.schema.findById(id)
-        .then(doc => {
-            let result
-            if(doc) result = doc.toJSON()
-            return result
-        })
+            .then(doc => {
+                let result
+                if (doc) result = doc.toJSON()
+                return result
+            })
     }
 
     update(data) {
@@ -47,8 +55,8 @@ class Entity {
     search(cond, text) {
         let config = this.__config
         let query = cond
-        
-        if (text && text.length > 0){
+
+        if (text && text.length > 0) {
             let filters = __.map(config.searchables, fld => {
                 let filter = {}
                 filter[fld] = {
@@ -63,7 +71,7 @@ class Entity {
                 }]
             }
         }
-        
+
         return config.schema.find(query).limit(20) // TODO: 通过参数设定笔数
             .then(data => {
                 return __.map(data, item => {
@@ -77,6 +85,10 @@ const __create = (config, addIn) => {
     const entity = new Entity(config)
 
     const obj = {
+        create(data) {
+            return entity.create(data)
+        },
+
         findById(id) {
             return entity.findById(id)
         },

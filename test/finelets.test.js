@@ -38,6 +38,9 @@ describe('Finelets', function () {
 				}
 			})
 
+			fooSchema.index({fld: 1}, {unique: true});
+			fooSchema.index({fld1: 1, type:1}, {unique: true});
+
 			dbModel = mongoose.model('Foo', fooSchema);
 		})
 
@@ -163,7 +166,7 @@ describe('Finelets', function () {
 		})
 
 		describe('search', () => {
-			beforeEach(()=>{
+			beforeEach(() => {
 				entityConfig.searchables = ['fld', 'fld1']
 			})
 
@@ -213,7 +216,9 @@ describe('Finelets', function () {
 				}))
 				return Promise.all(saves)
 					.then(() => {
-						return entity.search({type: 1}, '垫片')
+						return entity.search({
+							type: 1
+						}, '垫片')
 					})
 					.then(data => {
 						expect(data.length).eqls(2)
@@ -224,15 +229,19 @@ describe('Finelets', function () {
 				let saves = []
 				saves.push(dbSave(dbModel, {
 					type: 1,
+					fld1: 'foo',
 					fld: '弹簧垫片螺母'
 				}))
 				saves.push(dbSave(dbModel, {
 					type: 1,
+					fld1: 'fuu',
 					fld: 'fEe'
 				}))
 				return Promise.all(saves)
 					.then(() => {
-						return entity.search({type: 1}, 'Fee')
+						return entity.search({
+							type: 1
+						}, 'Fee')
 					})
 					.then(data => {
 						expect(data.length).eqls(1)
@@ -243,15 +252,19 @@ describe('Finelets', function () {
 				let saves = []
 				saves.push(dbSave(dbModel, {
 					type: 1,
+					fld1: 'foo',
 					fld: '弹簧垫片螺母'
 				}))
 				saves.push(dbSave(dbModel, {
 					type: 1,
+					fld1: 'fuu',
 					fld: '弹螺母垫片螺'
 				}))
 				return Promise.all(saves)
 					.then(() => {
-						return entity.search({type: 1}, '弹.垫')
+						return entity.search({
+							type: 1
+						}, '弹.垫')
 					})
 					.then(data => {
 						expect(data.length).eqls(1)
@@ -262,19 +275,24 @@ describe('Finelets', function () {
 				let saves = []
 				saves.push(dbSave(dbModel, {
 					type: 1,
+					fld1: 'foo',
 					fld: '弹簧垫片螺母'
 				}))
 				saves.push(dbSave(dbModel, {
 					type: 1,
+					fld1: 'fuu',
 					fld: '弹螺母垫片螺'
 				}))
 				saves.push(dbSave(dbModel, {
 					type: 1,
+					fld1: 'fee',
 					fld: 'fEe'
 				}))
 				return Promise.all(saves)
 					.then(() => {
-						return entity.search({type: 1}, '弹*垫')
+						return entity.search({
+							type: 1
+						}, '弹*垫')
 					})
 					.then(data => {
 						expect(data.length).eqls(2)
@@ -285,14 +303,17 @@ describe('Finelets', function () {
 				let saves = []
 				saves.push(dbSave(dbModel, {
 					type: 1,
+					fld1: 'foo',
 					fld: '弹簧垫片螺母'
 				}))
 				saves.push(dbSave(dbModel, {
 					type: 1,
+					fld1: 'fuu',
 					fld: '弹螺母垫片螺'
 				}))
 				saves.push(dbSave(dbModel, {
 					type: 1,
+					fld1: 'fee',
 					fld: 'fEe'
 				}))
 				return Promise.all(saves)
@@ -304,8 +325,62 @@ describe('Finelets', function () {
 					})
 			})
 		})
-	})
 
+		describe('findById', () => {
+			let id
+		
+			it('未找到', () => {
+				const idNotExist = '5c349d1a6cf8de3cd4a5bc2c'
+				return entity.findById(idNotExist)
+					.then(data => {
+						expect(data).not.exist
+					})
+
+			})
+
+			it('找到', () => {
+				let doc
+				return dbSave(dbModel, toCreate)
+					.then(data => {
+						doc = data
+						return entity.findById(doc.id)
+					})
+					.then(doc => {
+						expect(doc).eqls(doc)
+					})
+			})
+
+		})
+
+		describe('create', () => {
+			it('新增', () => {
+				let docCreated
+				return entity.create(toCreate)
+					.then(data => {
+						docCreated = data
+						return dbModel.findById(docCreated.id)
+					})
+					.then(doc => {
+						expect(doc.toJSON()).eqls(docCreated)
+					})
+			})
+
+			it('记录重复', () => {
+				return dbSave(dbModel, toCreate)
+					.then(data => {
+						return entity.create(toCreate)
+					})
+					.then(() => {
+						should.fail('Failed when come here ')
+					})
+					.catch(err => {
+						expect(err.code).eqls(11000)
+					})
+			})
+
+		})
+
+	})
 
 	describe('JWT - User Authentication', () => {
 		const defaultUriLogin = '/auth/login'
