@@ -14,7 +14,7 @@ const config = {
 }
 
 const obj = {
-    create: (data) => {
+    createNotExist: (data) => {
         if (!data.name) return Promise.reject('employee name is required')
         return dbSave(schema, ['name'], data)
     },

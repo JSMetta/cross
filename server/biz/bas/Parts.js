@@ -9,7 +9,7 @@ const config = {
 }
 
 const parts = {
-    create: (data) => {
+    createNotExist: (data) => {
         if (!data.name) return Promise.reject('part name is required')
         return dbSave(schema, ['name', 'spec'], data)
     },

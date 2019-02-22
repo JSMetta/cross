@@ -170,7 +170,7 @@ describe('Cross', function () {
 
 					it('name is required', () => {
 						return testTarget
-							.create({})
+							.createNotExist({})
 							.then(() => {
 								should.fail('failed if we come here');
 							})
@@ -184,7 +184,7 @@ describe('Cross', function () {
 						return dbSave(schema, toCreate)
 							.then((doc) => {
 								existed = doc;
-								return testTarget.create(toCreate);
+								return testTarget.createNotExist(toCreate);
 							})
 							.then(() => {
 								return schema.find()
@@ -391,7 +391,7 @@ describe('Cross', function () {
 
 					it('name is required', () => {
 						return testTarget
-							.create({})
+							.createNotExist({})
 							.then(() => {
 								should.fail('failed if we come here');
 							})
@@ -405,7 +405,7 @@ describe('Cross', function () {
 						return dbSave(schema, toCreate)
 							.then((doc) => {
 								existed = doc;
-								return testTarget.create(toCreate);
+								return testTarget.createNotExist(toCreate);
 							})
 							.then((doc) => {
 								doc = {...doc, modifiedDate: existed.modifiedDate}
@@ -478,7 +478,7 @@ describe('Cross', function () {
 
 					it('name is required', () => {
 						return testTarget
-							.create({})
+							.createNotExist({})
 							.then(() => {
 								should.fail('failed if we come here');
 							})
@@ -492,7 +492,7 @@ describe('Cross', function () {
 						return dbSave(schema, toCreate)
 							.then((doc) => {
 								existed = doc;
-								return testTarget.create(toCreate);
+								return testTarget.createNotExist(toCreate);
 							})
 							.then((doc) => {
 								doc = {...doc, modifiedDate: existed.modifiedDate}
@@ -1405,17 +1405,17 @@ describe('Cross', function () {
 							stubs['./ImportPurTransTask'] = purTransTask;
 
 							basParts = sinon.stub({
-								create: () => {}
+								createNotExist: () => {}
 							});
 							stubs['../bas/Parts'] = basParts;
 
 							basSuppliers = sinon.stub({
-								create: () => {}
+								createNotExist: () => {}
 							});
 							stubs['../bas/Suppliers'] = basSuppliers;
 
 							basEmployee = sinon.stub({
-								create: () => {}
+								createNotExist: () => {}
 							});
 							stubs['../bas/Employee'] = basEmployee;
 							taskExec = proxyquire('../server/biz/batches/ExecutePurTransTask', stubs)();
@@ -1454,7 +1454,7 @@ describe('Cross', function () {
 								});
 
 								it('创建失败', () => {
-									basParts.create
+									basParts.createNotExist
 										.withArgs({
 											name: taskData.partName
 										})
@@ -1469,7 +1469,7 @@ describe('Cross', function () {
 								});
 
 								it('创建', () => {
-									basParts.create
+									basParts.createNotExist
 										.withArgs({
 											type: 1,
 											name: taskData.partName,
@@ -1507,7 +1507,7 @@ describe('Cross', function () {
 								});
 
 								it('创建失败', () => {
-									basSuppliers.create
+									basSuppliers.createNotExist
 										.withArgs({
 											name: 'foo'
 										})
@@ -1522,7 +1522,7 @@ describe('Cross', function () {
 								});
 
 								it('创建', () => {
-									basSuppliers.create
+									basSuppliers.createNotExist
 										.withArgs({
 											type: 1,
 											name: taskData.supplier
@@ -1542,7 +1542,7 @@ describe('Cross', function () {
 								});
 
 								it('创建失败', () => {
-									basEmployee.create
+									basEmployee.createNotExist
 										.withArgs({
 											name: 'foo'
 										})
@@ -1553,7 +1553,7 @@ describe('Cross', function () {
 								});
 
 								it('创建', () => {
-									basEmployee.create
+									basEmployee.createNotExist
 										.withArgs({
 											name: 'foo'
 										})

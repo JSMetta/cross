@@ -9,7 +9,7 @@ const config = {
 }
 
 const obj = {
-    create: (data) => {
+    createNotExist: (data) => {
         if (!data.name) return Promise.reject('supplier name is required')
         return dbSave(schema, ['name'], data)
     }

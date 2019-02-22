@@ -129,7 +129,7 @@ const __pubBas = (doc, extract, create) => {
 class ExecutePurTransTask {
     pubPart(doc) {
         return __pubBas(doc, __extractPart, (data) => {
-            return part.create(data)
+            return part.createNotExist(data)
         })
     }
 
@@ -138,7 +138,7 @@ class ExecutePurTransTask {
             errors: []
         })
         return __pubBas(doc, __extractSupplier, (data) => {
-            return suppliers.create(data)
+            return suppliers.createNotExist(data)
         })
     }
 
@@ -148,7 +148,7 @@ class ExecutePurTransTask {
         };
         if (!who) return Promise.resolve(result)
 
-        return employee.create({
+        return employee.createNotExist({
                 name: who
             })
             .then((doc) => {
