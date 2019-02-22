@@ -18,4 +18,6 @@ const PurTransTaskSchema = new Schema({
   }
 })
 
+PurTransTaskSchema.index({transNo: 1}, {unique: true})
+
 module.exports = mongoose.model('PurTransTask', PurTransTaskSchema);
