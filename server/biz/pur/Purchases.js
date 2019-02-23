@@ -7,7 +7,7 @@ const schema = require('../../../db/schema/pur/Purchase'),
 
 const config = {
 	schema,
-	updatables: ['part', 'purDate', 'qty', 'price', 'amount', 'supplier', 'refNo', 'remark'],
+	updatables: ['code', 'part', 'purDate', 'qty', 'price', 'amount', 'supplier', 'refNo', 'remark'],
 	searchables: ['code', 'refNo', 'remark']
 }
 

@@ -22,6 +22,8 @@ const SupplierSchema = new Schema({
         code: String,
         name: String,
         address: String,
+        account: String,
+        link: String,
         contacts: [ContactSchema]
     },
     { 

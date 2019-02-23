@@ -4,7 +4,7 @@ const schema = require('../../../db/schema/bas/Supplier'),
 
 const config = {
     schema,
-    updatables:['type', 'code', 'name', 'address'],
+    updatables:['type', 'code', 'name', 'address', 'account', 'link'],
     searchables: ['name', 'code', 'address']
 }
 
