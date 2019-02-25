@@ -32,7 +32,7 @@ const addIn = {
 				}
 				data.left -= doc.qty;
 				if(data.left < data.qty) data.state = 'Open'
-				if (data.left < 0) {
+				if (data.left <= 0) {
 					data.left = 0;
 					data.state = 'Closed'
 				}
