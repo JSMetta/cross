@@ -56,7 +56,6 @@ const __extractSupplier = (doc) => {
     }
     if (type) data.type = type;
     data.name = doc.supplier;
-
     return data;
 };
 
@@ -64,27 +63,27 @@ const __extractPurchase = (doc) => {
     const fields = ['qty', 'price', 'amount', 'refNo', 'supplyLink', 'purPeriod', 'appDate', 'remark'];
 
     let data = __extractFields(doc, fields);
+    data.left = data.qty
     if (doc.appDate) data.createDate = doc.appDate;
-    if (doc.transNo) data.source = doc.transNo;
-
+    if (doc.transNo) {
+        data.code = doc.transNo;
+        data.source = doc.transNo;
+    }
+    data.state = 'Draft'
     return data;
 };
 
 const __extractReview = (po, reviewer, doc) => {
-    let data = {
-        po: po,
-        reviewer: reviewer
+    let data = {po, reviewer}
+    if (doc.reviewDate) {
+        data.reviewDate = doc.reviewDate
     }
-    if (doc.reviewDate) data.reviewDate = doc.reviewDate
 
     return data
 };
 
 const __extractInInv = (po, doc) => {
-    let data = {
-        po: po,
-        source: doc.transNo
-    }
+    let data = {po, source: doc.transNo}
     data.qty = doc.qty
     if (doc.invLoc) data.loc = doc.invLoc
     data.date = doc.invDate

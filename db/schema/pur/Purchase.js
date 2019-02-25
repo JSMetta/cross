@@ -9,28 +9,27 @@ const PurchaseSchema = new Schema({
             type: ObjectId,
             required: true
         },
-        purDate: Date,
         qty: {
             type: Number,
             required: true
         },
-        left: Number,
+        left: Number,  // 在单量
         price: Number,
         amount: {
             type: Number,
             required: true
         },
         supplier: ObjectId,
-        refNo: String,
-        supplyLink: String,
-        purPeriod: Number,
-        applier: ObjectId,
-        appDate: Date,
-        reviewer: ObjectId,
-        reviewDate: Date,
-        creator: ObjectId,
-        createDate: Date,
-        state: {type: String, default: 'Open'},   // Draft, Approved, Open, Closed, Canceled
+        refNo: String,  // 参考单号
+        supplyLink: String,   // 采购链接
+        purPeriod: Number,      // 采购周期
+        applier: ObjectId,  // 申请人
+        appDate: Date,      // 申请日期
+        reviewer: ObjectId, // 审核人
+        reviewDate: Date,   // 审核日期
+        creator: ObjectId,  // 采购人
+        createDate: Date,   // 采购日期
+        state: {type: String, default: 'Draft'},   // Draft, Approved, Open, Closed, Canceled
         remark: String,
         source: String
     },

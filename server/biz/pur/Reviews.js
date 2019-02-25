@@ -7,6 +7,7 @@ const func = {
                 if (!doc) return Promise.reject('po[' + data.po + '] not found')
                 doc.reviewer = data.reviewer
                 doc.reviewDate = data.reviewDate ? data.reviewDate : new Date()
+                doc.state = 'Approved'
                 return doc.save()
             })
             .then((doc) => {
