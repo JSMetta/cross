@@ -72,7 +72,7 @@ class Entity {
             }
         }
 
-        return config.schema.find(query).sort({modifiedDate: -1}).limit(20) // TODO: 通过参数设定笔数
+        return config.schema.find(query).sort({modifiedDate: -1})      // .limit(20) // TODO: 通过参数设定笔数
             .then(data => {
                 return __.map(data, item => {
                     return item.toJSON()

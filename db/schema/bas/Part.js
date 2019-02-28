@@ -7,9 +7,11 @@ const PartSchema = new Schema({
         type: Number,
         code: String,
         name: String,
+        brand: String,
         spec: String,
         unit: String,
-        img: String
+        img: String,
+        tags: String
     },
     { 
         ...transformOption,
@@ -19,6 +21,6 @@ const PartSchema = new Schema({
 )
 
 // PartSchema.index({code: 1}, {unique: true});
-PartSchema.index({name: 1, spec: 1}, {unique: true});
+PartSchema.index({name: 1, brand: 1, spec: 1}, {unique: true});
 
 module.exports = mongoose.model('Part', PartSchema);

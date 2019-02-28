@@ -4,14 +4,14 @@ const schema = require('../../../db/schema/bas/Part'),
 
 const config = {
     schema,
-    updatables:['type', 'code', 'name', 'spec', 'unit', 'img'],
-    searchables:['code', 'name', 'spec']
+    updatables:['type', 'code', 'name', 'brand', 'spec', 'unit', 'img', 'tags'],
+    searchables:['code', 'name', 'brand', 'spec', 'tags']
 }
 
 const parts = {
     createNotExist: (data) => {
         if (!data.name) return Promise.reject('part name is required')
-        return dbSave(schema, ['name', 'spec'], data)
+        return dbSave(schema, ['name', 'brand', 'spec'], data)
     },
 
     find: () => {

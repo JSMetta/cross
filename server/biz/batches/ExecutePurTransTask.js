@@ -52,15 +52,16 @@ const __extractSupplier = (doc) => {
     let type = doc.supply;
     if (type) {
         type = supplyType[type];
-        if (!type) throw 'supply value is invalid: ' + doc.supply;
+        // if (!type) throw 'supply value is invalid: ' + doc.supply;
     }
     if (type) data.type = type;
+    if (doc.supplyLink) data.link = doc.supplyLink
     data.name = doc.supplier;
     return data;
 };
 
 const __extractPurchase = (doc) => {
-    const fields = ['qty', 'price', 'amount', 'refNo', 'supplyLink', 'purPeriod', 'appDate', 'remark'];
+    const fields = ['qty', 'price', 'amount', 'refNo', 'purPeriod', 'appDate', 'remark'];
 
     let data = __extractFields(doc, fields);
     data.left = data.qty
@@ -249,6 +250,15 @@ class ExecutePurTransTask {
                 return task.pubReview(purId, doc.task)
             })
             .then((id) => {
+                // outInvId = id
+                return purTransTask.updateState(doc.id, {
+                    purchase: purId,
+                    review: reviewId,
+                    // inInv: inInvId,
+                    // outInv: outInvId
+                })
+            })
+            /* .then((id) => {
                 reviewId = id
                 logger.debug('purchase trans ' + doc.transNo + ' review is published')
                 return task.pubInInv(purId, doc.task)
@@ -267,7 +277,7 @@ class ExecutePurTransTask {
                     inInv: inInvId,
                     // outInv: outInvId
                 })
-            })
+            }) */
             .catch((err) => {
                 if (purId) {
                     let state = {

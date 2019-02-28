@@ -21,7 +21,6 @@ const PurchaseSchema = new Schema({
         },
         supplier: ObjectId,
         refNo: String,  // 参考单号
-        supplyLink: String,   // 采购链接
         purPeriod: Number,      // 采购周期
         applier: ObjectId,  // 申请人
         appDate: Date,      // 申请日期
