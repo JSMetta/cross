@@ -10,6 +10,7 @@ const po = require('../pur/Purchases'),
     __ = require('underscore');
 
 const partType = {
+    器具: 4,
     耗材: 3,
     资产: 2,
     料品: 1
