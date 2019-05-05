@@ -45,6 +45,10 @@ docker exec -it mongodb mongo
 docker images -f dangling=true
 docker images purge
 
+#### 备份数据库
+脚本文件：/home/mongo/dailybackup.sh
+shudo crontab -e
+
 ## 开发文档
 
 处理消息时，如果返回：
