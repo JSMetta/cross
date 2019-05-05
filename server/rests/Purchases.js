@@ -1,4 +1,4 @@
-const bizObj = require('../biz/pur/Purchases');
+const entity = require('../biz/pur/Purchases');
 
 const list = function (query) {
     let condi
@@ -7,8 +7,9 @@ const list = function (query) {
     } catch (e) {
         condi = {}
     }
-    let text = query.s
-    return bizObj.search(condi, text)
+    let text = query.s ? query.s : '.'
+    text = text.length > 0 ? text : '.'
+    return entity.search(condi, text)
         .then(function (list) {
             return {
                 items: list
@@ -21,7 +22,9 @@ module.exports = {
     rests: [{
             type: 'create',
             target: 'Purchase',
-            handler: bizObj.create
+            handler: (req) => {
+                return entity.create(req.body)
+            }
         },
         {
             type: 'query',

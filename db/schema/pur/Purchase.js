@@ -1,9 +1,10 @@
 const mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    ObjectId = Schema.Types.ObjectId,
-    transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
+    ObjectId = mongoose.Schema.Types.ObjectId,
+    createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection')
 
-const PurchaseSchema = new Schema({
+const dbModel = createCollection({
+    name: 'Purchase',
+    schema: {
         code: String,
         part: {
             type: ObjectId,
@@ -32,11 +33,7 @@ const PurchaseSchema = new Schema({
         remark: String,
         source: String
     },
-    { 
-        ...transformOption,
-        autoCreate: true,
-        timestamps: { updatedAt: 'modifiedDate' }
-     }
-)
+    timestamps: { updatedAt: 'modifiedDate' }
+})
 
-module.exports = mongoose.model('Purchase', PurchaseSchema);
+module.exports = dbModel

@@ -1,6 +1,6 @@
 const schema = require('../../../db/schema/bas/Supplier'),
-    dbSave = require('../../../finelets/db/mongoDb/saveNotExist'),
-    createEntity = require('../../../finelets/db/mongoDb/CreateEntity')
+    createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
+    dbSave = require('../../../finelets/db/mongoDb/saveNotExist')
 
 const config = {
     schema,

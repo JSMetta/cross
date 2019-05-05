@@ -18,11 +18,11 @@
   },
   "homepage": "https://github.com/JSMetta/cross#readme",
   "dependencies": {
-    "@finelets/hyper-rest": "^2.1.10-cross-1.17",
+    "@finelets/hyper-rest": "^2.1.10-cross-1.38",
     "amqplib": "^0.5.3",
-    "bluebird": "^3.5.3",
     "cors": "^2.8.5",
-    "dotenv": "^6.2.0",
+    "dotenv": "^7.0.0",
+    "moment": "^2.24.0",
     "rulebased-validator": "^1.0.2",
     "underscore": "^1.9.1"
   },
@@ -31,17 +31,16 @@
     "chai-as-promised": "^7.1.1",
     "chai-xml": "^0.3.2",
     "chance": "^1.0.18",
-    "mocha": "^5.2.0",
+    "mocha": "^6.1.4",
     "mocha-mongoose": "^1.2.0",
     "mock-express-request": "^0.2.2",
     "mock-express-response": "^0.2.2",
-    "moment": "^2.23.0",
     "node-xml-compare": "^0.1.0",
     "proxyquire": "^2.1.0",
     "should": "^13.2.3",
-    "sinon": "^7.2.3",
-    "sinon-chai": "^3.2.0",
+    "sinon": "^7.3.2",
+    "sinon-chai": "^3.3.0",
     "sinon-stub-promise": "^4.0.0",
-    "supertest": "^3.4.1"
+    "supertest": "^4.0.2"
   }
 }

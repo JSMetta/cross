@@ -1,6 +1,6 @@
 const schema = require('../../../db/schema/pur/Purchase'),
 	part = require('../bas/Parts'),
-	createEntity = require('../../../finelets/db/mongoDb/CreateEntity'),
+    createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
 	__ = require('underscore'),
 	logger = require('@finelets/hyper-rest/app/Logger'),
 	dbSave = require('../../../finelets/db/mongoDb/dbSave');

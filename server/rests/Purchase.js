@@ -1,34 +1,32 @@
 /**
  * Created by clx on 2017/10/13.
  */
-const {ifUnmodifiedSince, update, findById} = require('../biz/pur/Purchases');
+const {
+    ifMatch,
+    ifNoneMatch,
+    update,
+    remove,
+    findById
+} = require('../biz/pur/Purchases');
 
 module.exports = {
     url: '/cross/api/pur/purchases/:id',
     rests: [{
             type: 'read',
-            handler: function (req, res) {
-                var id = req.params["id"];
-                return findById(id);
-            }
+            ifNoneMatch,
+            handler: findById
         },
         {
             type: 'update',
-            handler: {
-                condition: ifUnmodifiedSince,
-                handle: (id, data) => {
-                    data.id = id
-                    return update(data)
-                }
+            ifMatch,
+            handler: (id, data) => {
+                data.id = id
+                return update(data)
             }
         },
-        /* {
+        {
             type: 'delete',
-            conditional: true,
-            handler: {
-                condition: salesOrders.checkVersion,
-                handle: salesOrders.cancelDraft
-            }
-        } */
+            handler: remove
+        }
     ]
 }

@@ -1,28 +1,32 @@
 /**
  * Created by clx on 2017/10/13.
  */
-const {ifUnmodifiedSince, update} = require('../biz/bas/Employee')
+const {
+    ifMatch,
+    ifNoneMatch,
+    update,
+    remove,
+    findById
+} = require('../biz/bas/Employee');
 
 module.exports = {
     url: '/cross/api/bas/users/:id',
-    rests: [
+    rests: [{
+            type: 'read',
+            ifNoneMatch,
+            handler: findById
+        },
         {
             type: 'update',
-            handler: {
-                condition: ifUnmodifiedSince,
-                handle: (id, data) => {
-                    data.id = id
-                    return update(data)
-                }
+            ifMatch,
+            handler: (id, data) => {
+                data.id = id
+                return update(data)
             }
         },
-        /* {
+        {
             type: 'delete',
-            conditional: true,
-            handler: {
-                condition: salesOrders.checkVersion,
-                handle: salesOrders.cancelDraft
-            }
-        } */
+            handler: remove
+        }
     ]
 }

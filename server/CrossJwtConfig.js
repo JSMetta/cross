@@ -3,9 +3,8 @@ const adminId = 'cbbdhbcc'
 const admin = {id: adminId, name: '开发者'}
 const baseUrl = '/cross/api'
 const loginUrl = '/cross/auth/login'
-const prodConfig = {
-    authenticate, getUser, baseUrl,loginUrl
-}
+const prodConfig = {authenticate, getUser, baseUrl, loginUrl}
+
 const devConfig = {
     authenticate: (username, password) => {
         let user = (username === 'admin' && password === '9') ? admin : null
@@ -15,7 +14,8 @@ const devConfig = {
         let user = id === adminId ? admin : null
         return Promise.resolve(user)
     },
-    baseUrl,loginUrl
+    baseUrl,
+    loginUrl
 }
 const create = () => {
     return process.env.RUNNING_MODE ? devConfig : prodConfig

@@ -1,23 +1,25 @@
-const mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    ObjectId = Schema.Types.ObjectId,
-    transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
+const createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection')
 
-const EmployeeSchema = new Schema({
+const dbModel = createCollection({
+    name: 'Employee',
+    schema: {
         userId: String,
         name: String,
         password: String,
         pic: String,
         email: String
     },
-    { 
-        ...transformOption,
-        autoCreate: true,
-        timestamps: { updatedAt: 'modifiedDate' }
-     }
-)
+    timestamps: { updatedAt: 'modifiedDate' },
+    indexes: [
+        {
+            index: {name: 1},
+            options: {unique: true}
+        },
+        {
+            index: {userId: 1},
+            options: {unique: true}
+        }
+    ]
+})
 
-// EmployeeSchema.index({userId: 1}, {unique: true})
-EmployeeSchema.index({name: 1}, {unique: true})
-
-module.exports = mongoose.model('Employee', EmployeeSchema);
+module.exports = dbModel

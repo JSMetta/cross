@@ -1,4 +1,4 @@
-const parts = require('../biz/bas/Parts');
+const entity = require('../biz/bas/Parts');
 
 const list = function (query) {
     let condi
@@ -8,8 +8,8 @@ const list = function (query) {
         condi = {}
     }
     let text = query.s ? query.s : '.'
-    text = text.length > 0 ? text : '.' 
-    return parts.search(condi, text)
+    text = text.length > 0 ? text : '.'
+    return entity.search(condi, text)
         .then(function (list) {
             return {
                 items: list
@@ -22,7 +22,9 @@ module.exports = {
     rests: [{
             type: 'create',
             target: 'Part',
-            handler: parts.create
+            handler: (req) => {
+                return entity.create(req.body)
+            }
         },
         {
             type: 'query',

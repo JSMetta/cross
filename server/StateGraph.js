@@ -1,45 +1,33 @@
 module.exports = {
     Cross: {
         parts: 'Parts',
+        suppliers: 'Suppliers',
+        purchases: 'Purchases',
         uploadPurTransTasks: "UploadPurchases",
         queryPurchaseTransTasks: 'PurchaseTransTasks',
         reportPeriodPurchases: 'ReportPeriodPurchases',
         reportInvLocStates: 'InvLocStates'
     },
     Parts: {
-        createPart: 'Parts'
+        add: 'Parts',
+        home: 'Cross'
     },
     Part: {
         self: "Part",
-        /* edit: {
-            id: "DraftOrder",
-            condition: __checkIfModifyIsPermited
-        },
-        cancel: {
-            id: "DraftOrder",
-            condition: __checkIfModifyIsPermited
-        }, */
-        parts: "Parts"
+        collection: "Parts"
     },
     Suppliers: {
-        create: 'Suppliers'
+        add: 'Suppliers',
+        home: 'Cross'
     },
     Supplier: {
         self: "Supplier",
-        /* edit: {
-            id: "DraftOrder",
-            condition: __checkIfModifyIsPermited
-        },
-        cancel: {
-            id: "DraftOrder",
-            condition: __checkIfModifyIsPermited
-        }, */
-        suppliers: "Suppliers"
+        collection: "Suppliers"
     },
     PurchaseTransTasks: {
         exit: 'Cross'
     },
-    /* PeriodPurchases: {
+    PeriodPurchases: {
         exit: 'Cross'
-    } */
+    }
 }
