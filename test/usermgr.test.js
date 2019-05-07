@@ -46,6 +46,7 @@ describe('权限管理', function () {
 		})
 
 		describe('authenticate', () => {
+			const DEFAULT_ADMIN = {id:DEFAULT_ADMIN_ID, name: '系统管理员'}
 			let authenticate
 
 			beforeEach(() => {
@@ -63,7 +64,7 @@ describe('权限管理', function () {
 				authenticate = createAuthConfig({}).authenticate
 				return authenticate('@admin@', '$9999$')
 					.then((user) => {
-						expect(user).eql({id:DEFAULT_ADMIN_ID})
+						expect(user).eql(DEFAULT_ADMIN)
 					})
 			})
 			
@@ -71,7 +72,7 @@ describe('权限管理', function () {
 				dbAuth.haveAdmin.resolves(0)
 				return authenticate('@admin@', '$9999$')
 				.then((user) => {
-					expect(user).eql({id:DEFAULT_ADMIN_ID})
+					expect(user).eql(DEFAULT_ADMIN)
 				})
 			})
 	

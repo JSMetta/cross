@@ -2,11 +2,12 @@ const employeeEntity = require('./biz/bas/Employee'),
     DEFAULT_ADMIN_ID = '$$$$cross$$admin',
     DEFAULT_ADMIN_NAME = '@admin@',
     DEFAULT_ADMIN_PWD = '$9999$',
-    DEFAULT_ADMIN = {
-        id: DEFAULT_ADMIN_ID
-    },
     DEFAULT_ADMIN_INFO = {
         name: '系统管理员'
+    },
+    DEFAULT_ADMIN = {
+        id: DEFAULT_ADMIN_ID,
+        ...DEFAULT_ADMIN_INFO
     }
 
 const baseUrl = '/cross/api',
