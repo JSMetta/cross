@@ -11,6 +11,9 @@ const {
 
 module.exports = {
     url: '/cross/api/bas/suppliers/:id',
+    transitions: {
+        Purchase: {id: 'context.supplier'}
+    },
     rests: [{
             type: 'read',
             ifNoneMatch,

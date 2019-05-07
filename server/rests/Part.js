@@ -11,6 +11,9 @@ const {
 
 module.exports = {
     url: '/cross/api/bas/parts/:id',
+    transitions: {
+        Purchase: {id: 'context.part'}
+    },
     rests: [{
             type: 'read',
             ifNoneMatch,
