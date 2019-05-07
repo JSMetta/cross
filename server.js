@@ -1,11 +1,10 @@
-require('dotenv').config();
 const connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
 	appBuilder = require('@finelets/hyper-rest/express/AppBuilder').begin(__dirname),
 	logger = require('@finelets/hyper-rest/app/Logger'),
 	crossMessageCenter = require('./server/CrossMessageCenter'),
 	mcConfig = require('./server/CrossMessageCenterConfig'),
 	jwt = require('@finelets/hyper-rest/jwt/ExpressJwt'),
-	jwtConfig = require('./server/CrossJwtConfig'),
+	jwtConfig = require('./server/CrossJwtConfig')(),
 	cors = require('cors'),
 	path = require('path'),
 	restDir = path.join(__dirname, './server/rests'),

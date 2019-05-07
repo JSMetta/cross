@@ -18,10 +18,9 @@
   },
   "homepage": "https://github.com/JSMetta/cross#readme",
   "dependencies": {
-    "@finelets/hyper-rest": "^2.1.10-cross-1.38",
+    "@finelets/hyper-rest": "^2.1.10-cross-1.39",
     "amqplib": "^0.5.3",
     "cors": "^2.8.5",
-    "dotenv": "^7.0.0",
     "moment": "^2.24.0",
     "rulebased-validator": "^1.0.2",
     "underscore": "^1.9.1"

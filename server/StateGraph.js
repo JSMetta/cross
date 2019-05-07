@@ -3,6 +3,7 @@ module.exports = {
         parts: 'Parts',
         suppliers: 'Suppliers',
         purchases: 'Purchases',
+        auth: 'Users',
         uploadPurTransTasks: "UploadPurchases",
         queryPurchaseTransTasks: 'PurchaseTransTasks',
         reportPeriodPurchases: 'ReportPeriodPurchases',
@@ -23,6 +24,10 @@ module.exports = {
     Supplier: {
         self: "Supplier",
         collection: "Suppliers"
+    },
+    Users: {
+        add: 'Users',
+        home: 'Cross'
     },
     PurchaseTransTasks: {
         exit: 'Cross'
