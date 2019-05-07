@@ -4,8 +4,9 @@ const schema = require('../../../db/schema/bas/Employee'),
 
 const config = {
     schema,
-    updatables: ['userId', 'password', 'name', 'pic', 'email'],
+    updatables: ['userId', 'password', 'name', 'pic', 'email', 'isAdmin', 'roles'],
     searchables: ['userId', 'name', 'email'],
+    listable: 'name',
     setValues: (doc, data) => {
         if (data.userId && !doc.password) {
             doc.password = '9'
