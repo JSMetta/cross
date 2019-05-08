@@ -3,7 +3,8 @@ const employeeEntity = require('./biz/bas/Employee'),
     DEFAULT_ADMIN_NAME = '@admin@',
     DEFAULT_ADMIN_PWD = '$9999$',
     DEFAULT_ADMIN_INFO = {
-        name: '系统管理员'
+        name: '系统管理员',
+        isAdmin: true
     },
     DEFAULT_ADMIN = {
         id: DEFAULT_ADMIN_ID,
@@ -28,7 +29,7 @@ const config = {
         return __authenticate(username, password)
     },
     getUser: (id) => {
-        if (id === DEFAULT_ADMIN_ID) return Promise.resolve(DEFAULT_ADMIN_INFO)
+        if (id === DEFAULT_ADMIN_ID) return Promise.resolve({isAdmin: true})
         return __getUser(id)
     },
     baseUrl,
@@ -38,7 +39,7 @@ const config = {
 function create(dbAuth) {
     dbAuth = dbAuth || employeeEntity
     __authenticate = dbAuth.authenticate
-    __getUser = dbAuth.getUser
+    __getUser = dbAuth.getUser || dbAuth.findById
     __haveAdmin = dbAuth.haveAdmin
     return config
 }

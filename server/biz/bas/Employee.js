@@ -22,36 +22,14 @@ const obj = {
 
     authenticate: (userName, password) => {
         return schema.findOne({
-                $or: [{
-                    userId: userName,
-                    password: password,
-                    inUse: true
-                }, {
-                    $and: [{
-                        name: userName,
-                        inUse: true
-                    }, {
-                        userId: {
-                            $exists: false
-                        }
-                    }, {
-                        password: {
-                            $exists: false
-                        }
-                    }]
-                }]
-            }, ['userId', 'name', 'pic', 'email', 'updatedAt', '__v'])
+                userId: userName,
+                password: password,
+                inUse: true
+            }, ['name', 'pic', 'isAdmin', 'roles'])
             .then(doc => {
                 if (doc) {
                     return doc.toJSON()
                 }
-            })
-    },
-
-    getUser: (id) => {
-        return schema.findById(id)
-            .then(doc => {
-                return doc.toJSON()
             })
     }
 }

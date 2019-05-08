@@ -6,7 +6,9 @@ describe('权限管理', function () {
 	userId = 'foo',
 	name = 'foo name',
 	password = 'wwwpsd',
-	email = 'foo@qq.com'
+	email = 'foo@qq.com',
+	roles = 'user roles',
+	pic = 'user pic'
 
 	describe('用户', () => {
 		const entity = require('../server/biz/bas/Employee')
@@ -29,7 +31,65 @@ describe('权限管理', function () {
 				})
 				.then((doc) => {
 					expect(user).eql({userId: doc.userId, name: doc.name, password: doc.password, email: doc.email})
+					expect(!doc.inUse).true
+					expect(!doc.isAdmin).true
+					expect(!doc.roles).true
 				})
+		})
+
+		describe('认证', () => {
+			const user = {
+				userId,
+				name,
+				password,
+				isAdmin: true,
+				roles,
+				pic,
+				inUse: true
+			}
+			it('账号不一致，未获认证', () => {
+				return dbSave(Schema, user)
+					.then((doc) => {
+						return entity.authenticate('unknown', password)
+					})
+					.then((theUser) => {
+						expect(theUser).undefined
+					})
+			})
+
+			it('密码不一致，未获认证', () => {
+				return dbSave(Schema, user)
+					.then((doc) => {
+						return entity.authenticate(userId, 'wrong')
+					})
+					.then((theUser) => {
+						expect(theUser).undefined
+					})
+			})
+
+			it('未启用', () => {
+				const unUsedUser = {...user}
+				delete unUsedUser.inUse 
+				return dbSave(Schema, unUsedUser)
+					.then((doc) => {
+						return entity.authenticate(userId, password)
+					})
+					.then((theUser) => {
+						expect(theUser).undefined
+					})
+			})
+
+			it('账号密码一致，且已启用用户可获认证', () => {
+				let id
+				return dbSave(Schema, user)
+					.then((doc) => {
+						id = doc.id
+						return entity.authenticate(userId, password)
+					})
+					.then((theUser) => {
+						expect(theUser).eql({id, name, pic, isAdmin: true, roles})
+					})
+			})
 		})
 	})
 
@@ -47,7 +107,7 @@ describe('权限管理', function () {
 		})
 
 		describe('authenticate', () => {
-			const DEFAULT_ADMIN = {id:DEFAULT_ADMIN_ID, name: '系统管理员'}
+			const DEFAULT_ADMIN = {id:DEFAULT_ADMIN_ID, name: '系统管理员', isAdmin: true}
 			let authenticate
 
 			beforeEach(() => {
@@ -95,9 +155,6 @@ describe('权限管理', function () {
 		})
 
 		describe('用户信息', () => {
-			const DEFAULT_ADMIN_INFO = {
-				name: '系统管理员'
-			}
 			let getUser
 
 			beforeEach(() => {
@@ -107,7 +164,7 @@ describe('权限管理', function () {
 			it('缺省系统管理员', () => {
 				return getUser(DEFAULT_ADMIN_ID)
 				.then((user) => {
-					expect(user).eql(DEFAULT_ADMIN_INFO)
+					expect(user).eql({isAdmin: true})
 				})
 			})
 	
