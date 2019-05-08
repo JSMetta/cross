@@ -19,13 +19,7 @@ const list = function (query) {
 
 module.exports = {
     url: '/cross/api/auth/users',
-    rests: [{
-            type: 'create',
-            target: 'User',
-            handler: (req) => {
-                return entity.create(req.body)
-            }
-        },
+    rests: [
         {
             type: 'query',
             element: 'User',

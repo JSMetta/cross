@@ -9,7 +9,8 @@ const dbModel = createCollection({
         pic: String,
         email: String,
         isAdmin: Boolean,
-        roles: String
+        roles: String,
+        inUse: Boolean
     },
     timestamps: { updatedAt: 'modifiedDate' },
     indexes: [

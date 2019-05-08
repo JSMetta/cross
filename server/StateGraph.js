@@ -4,6 +4,7 @@ module.exports = {
         suppliers: 'Suppliers',
         purchases: 'Purchases',
         auth: 'Users',
+        register: 'RegisterUser',
         uploadPurTransTasks: "UploadPurchases",
         queryPurchaseTransTasks: 'PurchaseTransTasks',
         reportPeriodPurchases: 'ReportPeriodPurchases',
@@ -26,7 +27,7 @@ module.exports = {
         collection: "Suppliers"
     },
     Users: {
-        add: 'Users',
+        add: 'RegisterUser',
         home: 'Cross'
     },
     PurchaseTransTasks: {

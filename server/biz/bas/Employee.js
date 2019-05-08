@@ -4,7 +4,7 @@ const schema = require('../../../db/schema/bas/Employee'),
 
 const config = {
     schema,
-    updatables: ['userId', 'password', 'name', 'pic', 'email', 'isAdmin', 'roles'],
+    updatables: ['userId', 'password', 'name', 'pic', 'email', 'isAdmin', 'roles', 'inUse'],
     searchables: ['userId', 'name', 'email'],
     listable: 'name',
     setValues: (doc, data) => {
@@ -24,10 +24,12 @@ const obj = {
         return schema.findOne({
                 $or: [{
                     userId: userName,
-                    password: password
+                    password: password,
+                    inUse: true
                 }, {
                     $and: [{
-                        name: userName
+                        name: userName,
+                        inUse: true
                     }, {
                         userId: {
                             $exists: false
