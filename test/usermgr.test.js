@@ -15,6 +15,7 @@ describe('权限管理', function () {
 			return clearDB(done);
 		})
 		
+		// TODO: 注册用户时的数据校验
 		it('注册用户', () => {
 			const user = {
 				userId,
