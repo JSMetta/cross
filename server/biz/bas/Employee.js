@@ -33,5 +33,24 @@ const obj = {
             })
     }
 }
+const types = {
+    ALL: {},
+    NONUSER: {inUse: {$ne: true}, isAdmin: {$ne: true}},
+    ALLUSER: {$or: [{inUse: true}, {isAdmin: true}]},
+    ADMIN: {isAdmin: true},
+    NONADMINUSER: {inUse: true, isAdmin: {$ne: true}},
+}
 
-module.exports = createEntity(config, obj)
+const entity = createEntity(config, obj)
+const search = entity.search
+entity.search = (cond, text, sort) => {
+    let finalCond = {...cond}
+    if(finalCond.TYPE) {
+        const condType = finalCond.TYPE
+        delete finalCond.TYPE
+        if(types[condType]) finalCond = {...finalCond, ...types[condType]}
+    }
+    return search(finalCond, text, sort)
+}
+
+module.exports = entity

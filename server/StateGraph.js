@@ -3,7 +3,7 @@ module.exports = {
         parts: 'Parts',
         suppliers: 'Suppliers',
         purchases: 'Purchases',
-        auth: 'Users',
+        users: 'Users',
         register: 'RegisterUser',
         uploadPurTransTasks: "UploadPurchases",
         queryPurchaseTransTasks: 'PurchaseTransTasks',
