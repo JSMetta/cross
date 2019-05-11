@@ -25,7 +25,7 @@ const obj = {
                 userId: userName,
                 password: password,
                 inUse: true
-            }, ['name', 'pic', 'isAdmin', 'roles'])
+            }, ['userId', 'name', 'email', 'pic', 'isAdmin', 'roles'])
             .then(doc => {
                 if (doc) {
                     return doc.toJSON()

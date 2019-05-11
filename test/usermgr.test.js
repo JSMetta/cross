@@ -44,6 +44,22 @@ describe('权限管理', function () {
 				})
 		})
 
+		it('角色为空字符串时，roles为undefined', ()=>{
+			return dbSave(Schema, {
+				userId: 'foo',
+				name: 'foo',
+				roles: 'roles'
+			})
+			.then(doc => {
+				let data = doc.toJSON()
+				data.roles = ''
+				return entity.update(data)
+			})
+			.then(doc => {
+				expect(doc.roles).undefined
+			})
+		})
+
 		describe('认证', () => {
 			const user = {
 				userId,
