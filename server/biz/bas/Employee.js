@@ -4,6 +4,7 @@ const schema = require('../../../db/schema/bas/Employee'),
 
 const config = {
     schema,
+    projection: '-password',
     updatables: ['userId', 'password', 'name', 'pic', 'email', 'isAdmin', 'roles', 'inUse'],
     searchables: ['userId', 'name', 'email'],
     listable: 'name',

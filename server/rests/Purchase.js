@@ -14,7 +14,7 @@ module.exports = {
     rests: [{
             type: 'read',
             ifNoneMatch,
-            dataRef: {part: 'Part', supplier: 'Supplier'},
+            dataRef: {Part: 'part', Supplier: 'supplier', User: ['applier', 'creator', 'reviewer']},
             handler: findById
         },
         {
