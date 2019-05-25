@@ -4,7 +4,7 @@ const dbModel = createCollection({
     name: 'Employee',
     schema: {
         userId: String,
-        name: String,
+        name: {type:String, required:true},
         password: String,
         pic: String,
         email: String,

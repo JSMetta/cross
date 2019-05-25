@@ -31,6 +31,10 @@ module.exports = {
         add: 'RegisterUser',
         home: 'Cross'
     },
+    User: {
+        password: 'Password',
+        authorize: 'Authorization'
+    },
     PurchaseTransTasks: {
         exit: 'Cross'
     },

@@ -34,6 +34,8 @@ describe('Cross', function () {
 		});
 
 		describe('biz - 业务模块', () => {
+			const ID_NOT_EXIST = '5ce79b99da3537277c3f3b66'
+
 			beforeEach(function (done) {
 				return clearDB(done);
 			});
@@ -93,7 +95,10 @@ describe('Cross', function () {
 							return save(schema, uniqueFields, data)
 						})
 						.then(doc => {
-							expect({name: doc.name, spec: doc.spec}).eqls(data)
+							expect({
+								name: doc.name,
+								spec: doc.spec
+							}).eqls(data)
 							return schema.find().lean()
 						})
 						.then(docs => {
@@ -188,7 +193,7 @@ describe('Cross', function () {
 							})
 							.then(() => {
 								return schema.find()
-								
+
 							})
 							.then(docs => {
 								expect(docs.length).eqls(1);
@@ -244,7 +249,9 @@ describe('Cross', function () {
 							}))
 							return Promise.all(saveParts)
 								.then(() => {
-									return testTarget.search({type: 1}, '垫片')
+									return testTarget.search({
+										type: 1
+									}, '垫片')
 								})
 								.then(data => {
 									expect(data.length).eqls(3)
@@ -265,7 +272,9 @@ describe('Cross', function () {
 							}))
 							return Promise.all(saveParts)
 								.then(() => {
-									return testTarget.search({type: 1}, 'Fee')
+									return testTarget.search({
+										type: 1
+									}, 'Fee')
 								})
 								.then(data => {
 									expect(data.length).eqls(1)
@@ -292,7 +301,9 @@ describe('Cross', function () {
 							}))
 							return Promise.all(saveParts)
 								.then(() => {
-									return testTarget.search({type: 1}, '弹.垫')
+									return testTarget.search({
+										type: 1
+									}, '弹.垫')
 								})
 								.then(data => {
 									expect(data.length).eqls(1)
@@ -316,7 +327,9 @@ describe('Cross', function () {
 							}))
 							return Promise.all(saveParts)
 								.then(() => {
-									return testTarget.search({type: 1}, '弹*垫')
+									return testTarget.search({
+										type: 1
+									}, '弹*垫')
 								})
 								.then(data => {
 									expect(data.length).eqls(2)
@@ -348,30 +361,29 @@ describe('Cross', function () {
 						})
 					})
 
-					describe('update', ()=>{
+					describe('update', () => {
 						beforeEach(() => {
 							testTarget = require('../server/biz/bas/Parts');
 						})
-						
+
 						it('成功', () => {
-							let modifiedDate
+							let version
 							return dbSave(schema, toCreate)
 								.then((doc) => {
-									modifiedDate = doc.modifiedDate
-									return testTarget.update(
-										{
-											id: doc.id,
-											modifiedDate: modifiedDate,
-											type: 1,
-											code: '23456',
-											name: 'foo1',
-											spec: 'spec',
-											unit: 'm',
-											img: 'img'
-										});
+									version = doc.__v
+									return testTarget.update({
+										id: doc.id,
+										__v: version,
+										type: 1,
+										code: '23456',
+										name: 'foo1',
+										spec: 'spec',
+										unit: 'm',
+										img: 'img'
+									});
 								})
 								.then((doc) => {
-									expect(doc.modifiedDate > modifiedDate).true
+									expect(doc.__v > version).true
 								});
 						});
 					})
@@ -408,7 +420,10 @@ describe('Cross', function () {
 								return testTarget.createNotExist(toCreate);
 							})
 							.then((doc) => {
-								doc = {...doc, modifiedDate: existed.modifiedDate}
+								doc = {
+									...doc,
+									modifiedDate: existed.modifiedDate
+								}
 								expect(doc).eqls(existed); // 仅仅只有modifiedDate值发了变化
 							});
 					});
@@ -434,7 +449,9 @@ describe('Cross', function () {
 						}))
 						return Promise.all(saves)
 							.then(() => {
-								return testTarget.search({type: 1}, '垫片')
+								return testTarget.search({
+									type: 1
+								}, '垫片')
 							})
 							.then(data => {
 								expect(data.length).eqls(2)
@@ -444,134 +461,328 @@ describe('Cross', function () {
 				});
 
 				describe('Employee - 员工', () => {
-					const name = 'foo';
+					const userId = 'foo',
+						name = 'foo name',
+						password = '999',
+						email = 'email',
+						pic = 'pic',
+						isAdmin = true,
+						roles = 'roles'
+					let id, __v
+
 					beforeEach(() => {
-						toCreate = {
-							name: name
-						};
 						schema = require('../db/schema/bas/Employee');
-						testTarget = proxyquire('../server/biz/bas/Employee', stubs);
+						testTarget = require('../server/biz/bas/Employee');
 					});
 
-					it('dbSave will create doc using schema default', ()=>{
-						return dbSave(schema, {name: 'foo'})
-						.then(doc => {
-							expect(doc.modifiedDate).exist
-						})
-					})
+					describe('create', () => {
+						beforeEach(() => {
+							toCreate = {
+								name
+							};
+						});
 
-					it('saveNotExist will create doc using schema default', ()=>{
-						const saveNotExist = require('../finelets/db/mongoDb/saveNotExist')
-						let id, modifiedDate
-						return saveNotExist(schema, ['name'], {name: 'foofoo111111'})
-						.then(doc => {
-							expect(doc.modifiedDate).exist
-							id = doc.id
-							modifiedDate = doc.modifiedDate
-							return schema.find()
-						})
-						.then(docs => {
-							doc = docs[0].toJSON()
-							expect(doc.modifiedDate).eqls(modifiedDate)
-						})
-					})
+						it('name is required', () => {
+							return testTarget
+								.create({})
+								.then(() => {
+									should.fail;
+								})
+								.catch((e) => {
+									expect(e.name).eqls('ValidationError');
+								});
+						});
 
-					it('name is required', () => {
-						return testTarget
-							.createNotExist({})
-							.then(() => {
-								should.fail('failed if we come here');
-							})
-							.catch((e) => {
-								expect(e).eqls('employee name is required');
-							});
-					});
-
-					it('name should be unique', () => {
-						let existed;
-						return dbSave(schema, toCreate)
-							.then((doc) => {
-								existed = doc;
-								return testTarget.createNotExist(toCreate);
-							})
-							.then((doc) => {
-								doc = {...doc, modifiedDate: existed.modifiedDate}
-								expect(doc).eqls(existed);
-							});
-					});
-					describe('Auth', () => {
-						it('使用name认证', () => {
-							let user
+						it('name should be unique', () => {
 							return dbSave(schema, toCreate)
+								.then(() => {
+									return testTarget.create(toCreate);
+								})
+								.then(() => {
+									should.fail;
+								})
+								.catch((e) => {
+									expect(e.name).eqls('MongoError');
+								});
+						});
+
+						it('userId should be unique', () => {
+							return dbSave(schema, toCreate)
+								.then(() => {
+									return testTarget.create({name: 'anotherName'});
+								})
+								.then(() => {
+									should.fail;
+								})
+								.catch((e) => {
+									expect(e.name).eqls('MongoError');
+								});
+						});
+
+						it('成功创建', () => {
+							return testTarget
+								.create(toCreate)
 								.then((doc) => {
-									user = doc
-									delete user.__v
-									return testTarget.authenticate('foo')
+									expect(doc.name).eql(name)
+								})
+						});
+					})
+
+
+					describe('Auth', () => {
+						const userId = 'foo',
+							name = 'foo name',
+							password = '999',
+							email = 'email',
+							pic = 'pic',
+							isAdmin = true,
+							roles = 'roles'
+						let id, employee
+
+						beforeEach(() => {
+							employee = {
+								inUse: true,
+								userId,
+								password,
+								name,
+								isAdmin,
+								roles,
+								email,
+								pic,
+							}
+						})
+
+						it('非授权用户', () => {
+							employee.inUse = false
+							return dbSave(schema, employee)
+								.then((doc) => {
+									id = doc.id
+									return testTarget.authenticate(userId, password)
 								})
 								.then(doc => {
-									expect(doc).exist
+									expect(doc).undefined
+								})
+						})
+
+						it('用户账号不符', () => {
+							return dbSave(schema, employee)
+								.then((doc) => {
+									id = doc.id
+									return testTarget.authenticate('fee', password)
+								})
+								.then(doc => {
+									expect(doc).undefined
+								})
+						})
+
+						it('密码不符', () => {
+							return dbSave(schema, employee)
+								.then((doc) => {
+									id = doc.id
+									return testTarget.authenticate(userId, 'aa')
+								})
+								.then(doc => {
+									expect(doc).undefined
 								})
 						})
 
 						it('使用userId和password认证', () => {
-							let user
-							return dbSave(schema, {
-									userId: 'foo',
-									password: '9',
-									name: 'foo name'
-								})
-								.then((doc) => {
-									user = {
-										id: doc.id,
-										name: doc.name
-									}
-									return testTarget.authenticate('foo', '9')
-								})
-								.then(doc => {
-									expect(doc).exist
-								})
-						})
-
-						it('获得用户信息', () => {
-							let id
-							toCreate = {
-								name: 'foo',
-								pic: 'pic'
-							}
-							return dbSave(schema, toCreate)
+							return dbSave(schema, employee)
 								.then((doc) => {
 									id = doc.id
-									return testTarget.getUser(id)
+									return testTarget.authenticate(userId, password)
 								})
 								.then(doc => {
-									expect(doc.id).eqls(id)
+									expect(doc).eql({
+										id,
+										userId,
+										name,
+										email,
+										pic,
+										isAdmin,
+										roles
+									})
+								})
+						})
+					})
+
+					describe('update', () => {
+						it('成功', () => {
+							return dbSave(schema, {name})
+								.then((doc) => {
+									id = doc.id
+									__v = doc.__v
+									return testTarget.update({
+										id,
+										__v,
+										userId,
+										name: 'foo1',
+										email,
+										pic
+									});
+								})
+								.then((doc) => {
+									expect(doc.userId).eqls(userId);
+									expect(doc.name).eqls('foo1');
+									expect(doc.email).eqls(email);
+									expect(doc.pic).eqls(pic);
+									expect(doc.__v > __v).true
+								});
+						});
+
+						it('不可直接更新的字段', ()=>{
+							return dbSave(schema, {name})
+								.then((doc) => {
+									id = doc.id
+									__v = doc.__v
+									return testTarget.update({
+										id,
+										__v,
+										name,
+										password,
+										inUse: true,
+										isAdmin,
+										roles
+									});
+								})
+								.then((doc) => {
+									expect(doc.password).undefined;
+									expect(doc.inUse).undefined;
+									expect(doc.isAdmin).undefined;
+									expect(doc.roles).undefined;
+									expect(doc.__v > __v).true
+								})
+
+						})
+					})
+
+					describe('授权', ()=>{
+						it('id type error', () => {
+							return testTarget.authorize('notexist', {__v})
+								.then((data) => {
+									expect(data).false
+								})
+						});
+
+						it('not exist', () => {
+							return testTarget.authorize(ID_NOT_EXIST, {__v})
+								.then((data) => {
+									expect(!data).true
+								})
+						});
+
+						it('版本不一致', () => {
+							return dbSave(schema, {name})
+								.then((doc) => {
+									id = doc.id
+									__v = doc.__v + 1
+									return testTarget.authorize(id, {__v});
+								})
+								.then((data) => {
+									expect(!data).true
+								})
+						});
+
+						it('授权为系统管理员', () => {
+							return dbSave(schema, { name })
+								.then((doc) => {
+									id = doc.id
+									__v = doc.__v
+									return testTarget.authorize(id, {__v, isAdmin: true});
+								})
+								.then((doc) => {
+									expect(doc.inUse).true
+									expect(doc.isAdmin).true
+									expect(doc.roles).undefined
+									expect(doc.__v).eql(__v + 1)
+								})
+						});
+
+						it('授权为角色用户', () => {
+							return dbSave(schema, {name})
+								.then((doc) => {
+									id = doc.id
+									__v = doc.__v
+									return testTarget.authorize(id, {__v, roles});
+								})
+								.then((doc) => {
+									expect(doc.inUse).true
+									expect(doc.isAdmin).undefined
+									expect(doc.roles).eql(roles)
+									expect(doc.__v).eql(__v + 1)
+								})
+						});
+
+						it('收回授权', () => {
+							return dbSave(schema, {name, inUse: true, isAdmin: true, roles})
+								.then((doc) => {
+									id = doc.id
+									__v = doc.__v
+									return testTarget.authorize(id, {__v});
+								})
+								.then((doc) => {
+									expect(doc.inUse).undefined
+									expect(doc.isAdmin).undefined
+									expect(doc.roles).undefined
+									expect(doc.__v).eql(__v + 1)
+								})
+						});
+						
+					})
+
+					describe('修改密码', ()=>{
+						it('not exist', ()=>{
+							return testTarget.updatePassword(ID_NOT_EXIST, {
+								oldPassword: '123',
+								password: 'new 1234'
+							})
+								.then((data) => {
+									expect(data).false
 								})
 						})
 
-					})
-
-					describe('update', ()=>{
-						it('成功', () => {
-							let modifiedDate
-							return dbSave(schema, toCreate)
+						it('旧密码不匹配', ()=>{
+							return dbSave(schema, {name, password})
 								.then((doc) => {
-									modifiedDate = doc.modifiedDate
-									return testTarget.update(
-										{
-											id: doc.id,
-											modifiedDate: modifiedDate,
-											userId: '1234',
-											name: 'foo1',
-											email: 'email'
-										});
+									id = doc.id
+									__v = doc.__v
+									return testTarget.updatePassword(id, {
+										oldPassword: '123',
+										password: 'new 1234'
+									})
+								})
+								.then((data) => {
+									expect(data).false
+									return schema.findById(id)
 								})
 								.then((doc) => {
-									expect(doc.userId).eqls('1234');
-									expect(doc.name).eqls('foo1');
-									expect(doc.password).eqls('9');   // 缺省密码为'9'
-									expect(doc.email).eqls('email');
-								});
-						});
+									expect(doc.password).eql(password);
+									expect(doc.__v).eql(__v);
+								})
+
+						})
+
+						it('成功', ()=>{
+							return dbSave(schema, {name, password})
+								.then((doc) => {
+									id = doc.id
+									__v = doc.__v
+									return testTarget.updatePassword(id, {
+										oldPassword: password,
+										password: 'new 1234'
+									})
+								})
+								.then((data) => {
+									expect(data).true
+									return schema.findById(id)
+								})
+								.then((doc) => {
+									expect(doc.password).eql('new 1234');
+									expect(doc.__v).eql(__v);
+								})
+
+						}) 
+						
 					})
 				});
 			});
@@ -649,11 +860,13 @@ describe('Cross', function () {
 							});
 					});
 
-					it('按料品搜索采购单', ()=>{
+					it('按料品搜索采购单', () => {
 						return dbSave(schema, poData)
 							.then((doc) => {
 								existed = doc;
-								return testTarget.search({part: partId}, '')
+								return testTarget.search({
+									part: partId
+								}, '')
 							})
 							.then((docs) => {
 								expect(docs.length).eqls(1);
