@@ -2,6 +2,11 @@ const mongoose = require('mongoose'),
     ObjectId = mongoose.Schema.Types.ObjectId,
     createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection')
 
+function preSave (next) {
+    if(this.isNew && this.state !== 'Draft') return next(new Error('the state of a new purchase must be Draft'))
+    next()
+}
+
 const dbModel = createCollection({
     name: 'Purchase',
     schema: {
@@ -14,26 +19,33 @@ const dbModel = createCollection({
             type: Number,
             required: true
         },
-        left: Number,  // 在单量
+        left: Number, // 在单量
         price: Number,
         amount: {
             type: Number,
             required: true
         },
         supplier: ObjectId,
-        refNo: String,  // 参考单号
-        purPeriod: Number,      // 采购周期
-        applier: ObjectId,  // 申请人
-        appDate: Date,      // 申请日期
+        refNo: String, // 参考单号
+        purPeriod: Number, // 采购周期
+        applier: ObjectId, // 申请人
+        appDate: Date, // 申请日期
         reviewer: ObjectId, // 审核人
-        reviewDate: Date,   // 审核日期
-        creator: ObjectId,  // 采购人
-        createDate: Date,   // 采购日期
-        state: {type: String, default: 'Draft'},   // Draft, Approved, Open, Closed, Canceled
+        reviewDate: Date, // 审核日期
+        creator: ObjectId, // 采购人
+        createDate: Date, // 采购日期
+        state: {
+            type: String,
+            default: 'Draft',
+            enum: ['Draft', 'Reviewing', 'Unapproval', 'Opened', 'Closed', 'Canceled']
+        },
         remark: String,
         source: String
     },
-    timestamps: { updatedAt: 'modifiedDate' }
+    timestamps: {
+        updatedAt: 'modifiedDate'
+    },
+    pres: { save: preSave}
 })
 
 module.exports = dbModel

@@ -35,8 +35,11 @@ describe('Cross', function () {
 
 		describe('biz - 业务模块', () => {
 			const ID_NOT_EXIST = '5ce79b99da3537277c3f3b66'
+			let schema, testTarget, toCreate;
+			let id, __v;
 
 			beforeEach(function (done) {
+				__v = 0
 				return clearDB(done);
 			});
 
@@ -153,8 +156,7 @@ describe('Cross', function () {
 			});
 
 			describe('bas - 基础资料', () => {
-				let schema, dbSaveStub, testTarget;
-				let toCreate;
+				let dbSaveStub;
 				beforeEach(() => {
 					dbSaveStub = sinon.stub();
 					stubs['../../../finelets/db/mongoDb/dbSave'] = dbSaveStub;
@@ -468,7 +470,6 @@ describe('Cross', function () {
 						pic = 'pic',
 						isAdmin = true,
 						roles = 'roles'
-					let id, __v
 
 					beforeEach(() => {
 						schema = require('../db/schema/bas/Employee');
@@ -486,7 +487,7 @@ describe('Cross', function () {
 							return testTarget
 								.create({})
 								.then(() => {
-									should.fail;
+									should.fail();
 								})
 								.catch((e) => {
 									expect(e.name).eqls('ValidationError');
@@ -499,7 +500,7 @@ describe('Cross', function () {
 									return testTarget.create(toCreate);
 								})
 								.then(() => {
-									should.fail;
+									should.fail();
 								})
 								.catch((e) => {
 									expect(e.name).eqls('MongoError');
@@ -509,10 +510,12 @@ describe('Cross', function () {
 						it('userId should be unique', () => {
 							return dbSave(schema, toCreate)
 								.then(() => {
-									return testTarget.create({name: 'anotherName'});
+									return testTarget.create({
+										name: 'anotherName'
+									});
 								})
 								.then(() => {
-									should.fail;
+									should.fail();
 								})
 								.catch((e) => {
 									expect(e.name).eqls('MongoError');
@@ -608,7 +611,9 @@ describe('Cross', function () {
 
 					describe('update', () => {
 						it('成功', () => {
-							return dbSave(schema, {name})
+							return dbSave(schema, {
+									name
+								})
 								.then((doc) => {
 									id = doc.id
 									__v = doc.__v
@@ -630,8 +635,10 @@ describe('Cross', function () {
 								});
 						});
 
-						it('不可直接更新的字段', ()=>{
-							return dbSave(schema, {name})
+						it('不可直接更新的字段', () => {
+							return dbSave(schema, {
+									name
+								})
 								.then((doc) => {
 									id = doc.id
 									__v = doc.__v
@@ -656,27 +663,35 @@ describe('Cross', function () {
 						})
 					})
 
-					describe('授权', ()=>{
+					describe('授权', () => {
 						it('id type error', () => {
-							return testTarget.authorize('notexist', {__v})
+							return testTarget.authorize('notexist', {
+									__v
+								})
 								.then((data) => {
 									expect(data).false
 								})
 						});
 
 						it('not exist', () => {
-							return testTarget.authorize(ID_NOT_EXIST, {__v})
+							return testTarget.authorize(ID_NOT_EXIST, {
+									__v
+								})
 								.then((data) => {
 									expect(!data).true
 								})
 						});
 
 						it('版本不一致', () => {
-							return dbSave(schema, {name})
+							return dbSave(schema, {
+									name
+								})
 								.then((doc) => {
 									id = doc.id
 									__v = doc.__v + 1
-									return testTarget.authorize(id, {__v});
+									return testTarget.authorize(id, {
+										__v
+									});
 								})
 								.then((data) => {
 									expect(!data).true
@@ -684,11 +699,16 @@ describe('Cross', function () {
 						});
 
 						it('授权为系统管理员', () => {
-							return dbSave(schema, { name })
+							return dbSave(schema, {
+									name
+								})
 								.then((doc) => {
 									id = doc.id
 									__v = doc.__v
-									return testTarget.authorize(id, {__v, isAdmin: true});
+									return testTarget.authorize(id, {
+										__v,
+										isAdmin: true
+									});
 								})
 								.then((doc) => {
 									expect(doc.inUse).true
@@ -699,11 +719,16 @@ describe('Cross', function () {
 						});
 
 						it('授权为角色用户', () => {
-							return dbSave(schema, {name})
+							return dbSave(schema, {
+									name
+								})
 								.then((doc) => {
 									id = doc.id
 									__v = doc.__v
-									return testTarget.authorize(id, {__v, roles});
+									return testTarget.authorize(id, {
+										__v,
+										roles
+									});
 								})
 								.then((doc) => {
 									expect(doc.inUse).true
@@ -714,11 +739,18 @@ describe('Cross', function () {
 						});
 
 						it('收回授权', () => {
-							return dbSave(schema, {name, inUse: true, isAdmin: true, roles})
+							return dbSave(schema, {
+									name,
+									inUse: true,
+									isAdmin: true,
+									roles
+								})
 								.then((doc) => {
 									id = doc.id
 									__v = doc.__v
-									return testTarget.authorize(id, {__v});
+									return testTarget.authorize(id, {
+										__v
+									});
 								})
 								.then((doc) => {
 									expect(doc.inUse).undefined
@@ -727,22 +759,25 @@ describe('Cross', function () {
 									expect(doc.__v).eql(__v + 1)
 								})
 						});
-						
+
 					})
 
-					describe('修改密码', ()=>{
-						it('not exist', ()=>{
+					describe('修改密码', () => {
+						it('not exist', () => {
 							return testTarget.updatePassword(ID_NOT_EXIST, {
-								oldPassword: '123',
-								password: 'new 1234'
-							})
+									oldPassword: '123',
+									password: 'new 1234'
+								})
 								.then((data) => {
 									expect(data).false
 								})
 						})
 
-						it('旧密码不匹配', ()=>{
-							return dbSave(schema, {name, password})
+						it('旧密码不匹配', () => {
+							return dbSave(schema, {
+									name,
+									password
+								})
 								.then((doc) => {
 									id = doc.id
 									__v = doc.__v
@@ -762,8 +797,11 @@ describe('Cross', function () {
 
 						})
 
-						it('成功', ()=>{
-							return dbSave(schema, {name, password})
+						it('成功', () => {
+							return dbSave(schema, {
+									name,
+									password
+								})
 								.then((doc) => {
 									id = doc.id
 									__v = doc.__v
@@ -781,14 +819,14 @@ describe('Cross', function () {
 									expect(doc.__v).eql(__v);
 								})
 
-						}) 
-						
+						})
+
 					})
 				});
 			});
 
 			describe('pur - 采购', () => {
-				let schema, dbSaveStub, testTarget;
+				let dbSaveStub;
 				let poData, partStub;
 
 				const partId = '5c349d1a6cf8de3cd4a5bc2c';
@@ -813,249 +851,543 @@ describe('Cross', function () {
 				});
 
 				describe('Purchases - 采购单', () => {
-					beforeEach(() => {
-						testTarget = proxyquire('../server/biz/pur/Purchases', stubs);
-					});
-
-					it('source duplicated', () => {
-						let existed;
-						return dbSave(schema, poData)
-							.then((doc) => {
-								existed = doc;
-								return testTarget.createBySource(poData);
-							})
-							.then((doc) => {
-								expect(doc).eqls(existed);
-							});
-					});
-
-					it('create', () => {
-						const created = {
-							data: 'created data'
-						};
-
-						dbSaveStub.withArgs(schema, poData).resolves(created);
-						return testTarget.createBySource(poData).then((data) => {
-							expect(data).eqls(created);
-						});
-					});
-
-					it('getPart', () => {
-						const partExpected = {
-							part: 'part expected'
-						};
-						const ObjectId = require('mongoose').mongo.ObjectId;
-						let partObjId = new ObjectId(partId);
-						partStub.findById.withArgs(partObjId).resolves(partExpected);
-						return dbSave(schema, {
-								part: partObjId,
-								qty: 100,
-								amount: 20000
-							})
-							.then((doc) => {
-								return testTarget.getPart(doc.id);
-							})
-							.then((doc) => {
-								expect(doc).eqls(partExpected);
-							});
-					});
-
-					it('按料品搜索采购单', () => {
-						return dbSave(schema, poData)
-							.then((doc) => {
-								existed = doc;
-								return testTarget.search({
-									part: partId
-								}, '')
-							})
-							.then((docs) => {
-								expect(docs.length).eqls(1);
-							});
-					})
-
-					describe('采购入库抵扣采购单', () => {
-						it('成功', () => {
-							const poQty = 400,
-								qty = 120;
-							let purId;
-							return dbSave(schema, {
-									part: partId,
-									qty: poQty,
-									amount: 20000
-								})
-								.then((data) => {
-									purId = data.id;
-									return testTarget.inInv({
-										po: purId,
-										qty: qty
-									});
-								})
-								.then((result) => {
-									expect(result).true;
-									return schema.findById(purId);
+					describe('Source Purchase', () => {
+						beforeEach(() => {
+							testTarget = proxyquire('../server/biz/pur/Purchases', stubs);
+						})
+	
+						it('source duplicated', () => {
+							let existed;
+							return dbSave(schema, poData)
+								.then((doc) => {
+									existed = doc;
+									return testTarget.createBySource(poData);
 								})
 								.then((doc) => {
-									expect(doc.left).eqls(280);
+									expect(doc).eqls(existed);
 								});
 						});
-					});
-
-					describe('查询期间料品采购金额及其明细', () => {
-						it('无任何记录', () => {
-							return testTarget.periodPurchases().then((data) => {
-								expect(data).eqls({
-									total: 0
-								});
+	
+						it('create', () => {
+							const created = {
+								data: 'created data'
+							};
+							dbSaveStub.withArgs(schema, poData).resolves(created);
+							return testTarget.createBySource(poData).then((data) => {
+								expect(data).eqls(created);
 							});
 						});
-
-						it('总体', () => {
-							const partSchema = require('../db/schema/bas/Part');
-							const part1 = '5c349d1a6cf8de3cd4a5bc2c';
-							const part2 = '5c349d1a6cf8de3cd4a5bc3c';
-							const part3 = '5c349d1a6cf8de3cd4a5bc4c';
-							const part4 = '5c349d1a6cf8de3cd4a5bc5c';
-							const day1 = new Date(2018, 9, 10);
-							const parts = [{
-									_id: part1,
-									type: 1,
-									name: 'foo',
-									spec: 'foo spec'
-								},
-								{
-									_id: part2,
-									type: 1,
-									name: 'fee',
-									spec: 'fee spec'
-								},
-								{
-									_id: part3,
-									type: 2,
-									name: 'fuu'
-								},
-								{
-									_id: part4,
-									name: 'fuuu'
-								}
-							];
-							let pos = [{
-									part: part1,
+	
+						it('getPart', () => {
+							const partExpected = {
+								part: 'part expected'
+							};
+							const ObjectId = require('mongoose').mongo.ObjectId;
+							let partObjId = new ObjectId(partId);
+							partStub.findById.withArgs(partObjId).resolves(partExpected);
+							return dbSave(schema, {
+									part: partObjId,
 									qty: 100,
-									amount: 1000,
-									createDate: day1
-								},
-								{
-									part: part1,
-									qty: 200,
-									amount: 2000,
-									createDate: day1
-								},
-								{
-									part: part2,
-									qty: 300,
-									amount: 3000,
-									createDate: day1
-								},
-								{
-									part: part3,
-									qty: 400,
-									amount: 4000,
-									createDate: day1
-								},
-								{
-									part: part4,
-									qty: 500,
-									amount: 5000,
-									createDate: day1
-								}
-							];
-
-							let tasks = [];
-							parts.forEach((part) => {
-								tasks.push(dbSave(partSchema, part));
-							});
-							pos.forEach((po) => {
-								tasks.push(dbSave(schema, po));
-							});
-
-							return Promise.all(tasks)
-								.then(() => {
-									return testTarget.periodPurchases();
+									amount: 20000
 								})
-								.then((data) => {
-									expect(data.total).eqls(15000)
+								.then((doc) => {
+									return testTarget.getPart(doc.id);
+								})
+								.then((doc) => {
+									expect(doc).eqls(partExpected);
 								});
 						});
-					});
-				});
-
-				describe('Reviews', () => {
-					const reviewer = '5c349d1a6cf8de3cd4a5bc3c';
-					const reviewDate = new Date();
-					beforeEach(() => {
-						testTarget = proxyquire('../server/biz/pur/Reviews', stubs);
-					});
-
-					it('reviewer is required', () => {
-						return testTarget
-							.create({})
-							.then(() => {
-								should.fail('Failed');
-							})
-							.catch((err) => {
-								expect(err).eqls('reviewer is required');
-							});
-					});
-
-					it('po not found', () => {
-						return testTarget
-							.create({
-								po: '5c349d1a6cf8de3cd4a5bc3c',
-								reviewer: '5a349d1a6cf8de3cd4a5bc4c'
-							})
-							.then(() => {
-								should.fail('Failed');
-							})
-							.catch((err) => {
-								expect(err).eqls('po[5c349d1a6cf8de3cd4a5bc3c] not found');
-							});
-					});
-
-					it('成功', () => {
-						let purId;
-						return dbSave(schema, poData)
-							.then((doc) => {
-								purId = doc.id;
-								return testTarget.create({
-									po: purId,
-									reviewer: reviewer,
-									reviewDate: reviewDate
+	
+						it('按料品搜索采购单', () => {
+							return dbSave(schema, poData)
+								.then((doc) => {
+									existed = doc;
+									return testTarget.search({
+										part: partId
+									}, '')
+								})
+								.then((docs) => {
+									expect(docs.length).eqls(1);
 								});
-							})
-							.then((doc) => {
-								expect(doc.id).eqls(purId);
-								expect(doc.reviewer.toString()).eqls(reviewer);
-								expect(doc.reviewDate).eqls(reviewDate.toJSON());
+						})
+	
+						describe('采购入库抵扣采购单', () => {
+							it('成功', () => {
+								const poQty = 400,
+									qty = 120;
+								let purId;
+								return dbSave(schema, {
+										part: partId,
+										qty: poQty,
+										amount: 20000
+									})
+									.then((data) => {
+										purId = data.id;
+										return testTarget.inInv({
+											po: purId,
+											qty: qty
+										});
+									})
+									.then((result) => {
+										expect(result).true;
+										return schema.findById(purId);
+									})
+									.then((doc) => {
+										expect(doc.left).eqls(280);
+									})
 							});
-					});
-
-					it('无审批日期', () => {
-						let purId;
-						return dbSave(schema, poData)
-							.then((doc) => {
-								purId = doc.id;
-								return testTarget.create({
-									po: purId,
-									reviewer: reviewer
+						});
+	
+						describe('查询期间料品采购金额及其明细', () => {
+							it('无任何记录', () => {
+								return testTarget.periodPurchases().then((data) => {
+									expect(data).eqls({
+										total: 0
+									});
 								});
-							})
-							.then((doc) => {
-								expect(doc.id).eqls(purId);
-								expect(doc.reviewer.toString()).eqls(reviewer);
-								expect(doc.reviewDate).exist;
 							});
-					});
-				});
+	
+							it('总体', () => {
+								const partSchema = require('../db/schema/bas/Part');
+								const part1 = '5c349d1a6cf8de3cd4a5bc2c';
+								const part2 = '5c349d1a6cf8de3cd4a5bc3c';
+								const part3 = '5c349d1a6cf8de3cd4a5bc4c';
+								const part4 = '5c349d1a6cf8de3cd4a5bc5c';
+								const day1 = new Date(2018, 9, 10);
+								const parts = [{
+										_id: part1,
+										type: 1,
+										name: 'foo',
+										spec: 'foo spec'
+									},
+									{
+										_id: part2,
+										type: 1,
+										name: 'fee',
+										spec: 'fee spec'
+									},
+									{
+										_id: part3,
+										type: 2,
+										name: 'fuu'
+									},
+									{
+										_id: part4,
+										name: 'fuuu'
+									}
+								];
+								let pos = [{
+										part: part1,
+										qty: 100,
+										amount: 1000,
+										createDate: day1
+									},
+									{
+										part: part1,
+										qty: 200,
+										amount: 2000,
+										createDate: day1
+									},
+									{
+										part: part2,
+										qty: 300,
+										amount: 3000,
+										createDate: day1
+									},
+									{
+										part: part3,
+										qty: 400,
+										amount: 4000,
+										createDate: day1
+									},
+									{
+										part: part4,
+										qty: 500,
+										amount: 5000,
+										createDate: day1
+									}
+								];
+	
+								let tasks = [];
+								parts.forEach((part) => {
+									tasks.push(dbSave(partSchema, part));
+								});
+								pos.forEach((po) => {
+									tasks.push(dbSave(schema, po));
+								});
+	
+								return Promise.all(tasks)
+									.then(() => {
+										return testTarget.periodPurchases();
+									})
+									.then((data) => {
+										expect(data.total).eqls(15000)
+									});
+							});
+						});
+					})
+
+					describe('Purchase entity', () => {
+						const code = 'test-po-001',
+							part = '5c349d1a6cf8de3cd4a5bc2c',
+							supplier = '5c349d1a6cf8de3cd4a5bc3c',
+							qty = 100,
+							amount = 2345.56,
+							price = 23,
+							refNo = 'ref-po-001',
+							state = 'Draft',
+							remark = 'remark',
+							applier = '6c349d1a6cf8de3cd4a5bccc'
+
+						beforeEach(() => {
+							toCreate = {part, qty, amount}
+							testTarget = require('../server/biz/pur/Purchases');
+						});
+
+						describe('create', () => {
+							beforeEach(() => {
+								toCreate = {code, part, supplier, qty, price, amount, refNo, applier, remark}
+							});
+	
+							it('part is required', () => {
+								return testTarget.create({qty, amount})
+									.then(() => {
+										should.fail();
+									})
+									.catch((e) => {
+										expect(e.name).eqls('ValidationError');
+									}); 
+							});
+
+							it('qty is required', () => {
+								return testTarget.create({part, amount})
+									.then(() => {
+										should.fail();
+									})
+									.catch((e) => {
+										expect(e.name).eqls('ValidationError');
+									}); 
+							});		
+	
+							it('amount is required', () => {
+								return testTarget.create({part, qty})
+									.then(() => {
+										should.fail();
+									})
+									.catch((e) => {
+										expect(e.name).eqls('ValidationError');
+									}); 
+							});	
+							
+
+							it('创建时状态只能是Draft', () => {
+								toCreate = {part, qty, amount, state: 'Opened' }
+								return testTarget
+									.create(toCreate)
+									.then(() => {
+										should.fail();
+									})
+									.catch((e) => {
+										expect(e.message).eql('the state of a new purchase must be Draft')
+									}); 
+							});
+
+							it('成功创建', () => {
+								return testTarget
+									.create(toCreate)
+									.then((doc) => {
+										expect(doc.code).eql(code)
+										expect(doc.part).eql(part)
+										expect(doc.supplier).eql(supplier)
+										expect(doc.qty).eql(qty)
+										expect(doc.price).eql(price)
+										expect(doc.amount).eql(amount)
+										expect(doc.state).eql('Draft')
+										expect(doc.refNo).eql(refNo)
+										expect(doc.remark).eql(remark)
+										expect(doc.createdAt).exist
+										expect(doc.modifiedDate).exist
+										expect(doc.__v).eql(0)
+									})
+							});
+						})
+
+						describe('update', () => {
+							it('不可直接更新的字段', () => {
+								const left = amount,
+								appDate = new Date(),
+								reviewer = applier,
+								reviewDate = appDate, 
+								creator = applier,
+								createDate = appDate
+
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.update({
+											id,
+											__v,
+											part, qty, amount,
+											left, state: 'Review', 
+											applier, appDate, reviewer, reviewDate, creator, createDate
+										});
+									})
+									.then((doc) => {
+										expect(doc.part).eql(part)
+										expect(doc.qty).eql(qty)
+										expect(doc.amount).eql(amount)
+										expect(doc.state).eql('Draft')
+										expect(doc.__v).eql(1)
+									})
+	
+							})
+
+							it('成功', () => {
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.update({
+											id,
+											__v,
+											code,
+											part: applier,
+											supplier, 
+											qty: qty + 1,
+											price,
+											amount: amount + 1,
+											refNo, remark
+										});
+									})
+									.then((doc) => {
+										expect(doc.code).eql(code)
+										expect(doc.part).eql(applier)
+										expect(doc.supplier).eql(supplier)
+										expect(doc.qty).eql(qty + 1)
+										expect(doc.price).eql(price)
+										expect(doc.amount).eql(amount + 1) 
+										expect(doc.state).eql('Draft')
+										expect(doc.refNo).eql(refNo)
+										expect(doc.remark).eql(remark)
+										expect(doc.__v).eql(1)
+									})
+							});
+						})
+
+						describe('commit', () => {
+							it('id type error', () => {
+								return testTarget.commit('notexist', {
+										__v, applier
+									})
+									.then((data) => {
+										expect(data).false
+									})
+							});
+	
+							it('not exist', () => {
+								return testTarget.commit(ID_NOT_EXIST, {
+										__v, applier
+									})
+									.then((data) => {
+										expect(data).false
+									})
+							});
+	
+							it('版本不一致', () => {
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v + 1
+										return testTarget.commit(id, {
+											__v, applier
+										});
+									})
+									.then((data) => {
+										expect(data).false
+									})
+							});
+
+							it('无申请人', () => {
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.commit(id, {
+											__v
+										});
+									})
+									.then((data) => {
+										expect(data).false
+									})
+							});
+
+							it('可缺省申请日期', () => {
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.commit(id, {
+											__v, applier
+										});
+									})
+									.then((data) => {
+										expect(data).true
+										return schema.findById(id)
+									})
+									.then(doc=> {
+										doc = doc.toJSON()
+										expect(doc.__v).eql(__v + 1)
+										expect(doc.state).eql('Reviewing')
+										expect(doc.applier).eql(applier)
+										expect(doc.appDate).exist
+										expect(doc.events[0]).eql({})
+									})
+							});
+
+							it('指定申请日期', () => {
+								appDate = new Date()
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.commit(id, {
+											__v, applier, appDate
+										});
+									})
+									.then((data) => {
+										expect(data).true
+										return schema.findById(id)
+									})
+									.then(doc=> {
+										doc = doc.toJSON()
+										expect(doc.__v).eql(__v + 1)
+										expect(doc.state).eql('Reviewing')
+										expect(doc.applier).eql(applier)
+										expect(doc.appDate).eql(appDate.toJSON())
+									})
+							});
+						})
+						
+						describe('review', () => {
+							const reviewer = applier;
+		
+							it('id type error', () => {
+								return testTarget.review('notexist', {
+										__v, reviewer
+									})
+									.then((data) => {
+										expect(data).false
+									})
+							});
+	
+							it('not exist', () => {
+								return testTarget.review(ID_NOT_EXIST, {
+										__v, reviewer
+									})
+									.then((data) => {
+										expect(data).false
+									})
+							});
+	
+							it('版本不一致', () => {
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v + 1
+										return testTarget.review(id, {
+											__v, reviewer
+										});
+									})
+									.then((data) => {
+										expect(data).false
+									})
+							});
+
+							it('必须指定审批人', () => {
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.review(id, {
+											__v
+										});
+									})
+									.then((data) => {
+										expect(data).false
+									})
+							});
+		
+							it('可缺省审批日期', () => {
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.review(id, {
+											__v, reviewer
+										});
+									})
+									.then((data) => {
+										expect(data).true
+										return schema.findById(id)
+									})
+									.then(doc=> {
+										doc = doc.toJSON()
+										expect(doc.__v).eql(__v + 1)
+										expect(doc.state).eql('Unapproval')
+										expect(doc.reviewer).eql(reviewer)
+										expect(doc.reviewDate).exist
+									})
+							});
+
+							it('指定审批日期', () => {
+								const reviewDate = new Date() 
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.review(id, {
+											__v, reviewer, reviewDate
+										});
+									})
+									.then((data) => {
+										expect(data).true
+										return schema.findById(id)
+									})
+									.then(doc=> {
+										doc = doc.toJSON()
+										expect(doc.__v).eql(__v + 1)
+										expect(doc.state).eql('Unapproval')
+										expect(doc.reviewer).eql(reviewer)
+										expect(doc.reviewDate).eql(reviewDate.toJSON())
+									})
+							});
+
+							it('审批通过', () => {
+								const reviewDate = new Date() 
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.review(id, {
+											__v, reviewer, reviewDate, pass: true
+										});
+									})
+									.then((data) => {
+										expect(data).true
+										return schema.findById(id)
+									})
+									.then(doc=> {
+										doc = doc.toJSON()
+										expect(doc.__v).eql(__v + 1)
+										expect(doc.state).eql('Opened')
+										expect(doc.reviewer).eql(reviewer)
+										expect(doc.reviewDate).eql(reviewDate.toJSON())
+									})
+							});
+						});
+					})
+				})
 			});
 
 			describe('Inv - 库存', () => {
@@ -1396,784 +1728,6 @@ describe('Cross', function () {
 				})
 
 
-			});
-
-			describe('batches - 批处理作业', () => {
-				describe('Import Purchases CSV', () => {
-					it('PurchaseCsvParser', () => {
-						const line =
-							'xulei00001,料品,"JSM-A1实验用格子布",abcd,米,150,8800,8800,绍兴惟楚纺织品有限公司,厂家,' +
-							'JSMCONV20181109A,开票中,80,徐存辉,2018/11/9,徐存辉,2018/11/9,徐存辉,2018/12/12,' +
-							'测试组,2018/12/12,100,测试组, h234,remark';
-						const expected = {
-							transNo: 'xulei00001',
-							partType: '料品',
-							partName: 'JSM-A1实验用格子布',
-							spec: 'abcd',
-							unit: '米',
-							qty: 150,
-							price: 8800,
-							amount: 8800,
-							supplier: '绍兴惟楚纺织品有限公司',
-							supply: '厂家',
-							refNo: 'JSMCONV20181109A',
-							supplyLink: '开票中',
-							purPeriod: 80,
-							applier: '徐存辉',
-							appDate: new Date('2018/11/9').toJSON(),
-							reviewer: '徐存辉',
-							reviewDate: new Date('2018/11/9').toJSON(),
-							purchaser: '徐存辉',
-							invDate: new Date('2018/12/12').toJSON(),
-							user: '测试组',
-							useDate: new Date('2018/12/12').toJSON(),
-							useQty: 100,
-							project: '测试组',
-							invLoc: ' h234',
-							remark: 'remark'
-						};
-						const parser = require('../server/biz/batches/PurchaseCsvParser');
-						let val = parser(line);
-						expect(val.transNo).eqls(expected.transNo);
-						expect(val.partType).eqls(expected.partType);
-						expect(val.partName).eqls(expected.partName);
-						expect(val.spec).eqls(expected.spec);
-						expect(val.unit).eqls(expected.unit);
-						expect(val.qty).eqls(expected.qty);
-						expect(val.price).eqls(expected.price);
-						expect(val.amount).eqls(expected.amount);
-						expect(val.supplier).eqls(expected.supplier);
-						expect(val.supply).eqls(expected.supply);
-						expect(val.refNo).eqls(expected.refNo);
-						expect(val.supplyLink).eqls(expected.supplyLink);
-						expect(val.supplyLink).eqls(expected.supplyLink);
-						expect(val.purPeriod).eqls(expected.purPeriod);
-						expect(val.applier).eqls(expected.applier);
-						expect(val.appDate).eqls(expected.appDate);
-						expect(val.reviewDate).eqls(expected.reviewDate);
-						expect(val.purDate).eqls(expected.purDate);
-						expect(val.invDate).eqls(expected.invDate);
-						expect(val.useDate).eqls(expected.useDate);
-						expect(val.reviewer).eqls(expected.reviewer);
-						expect(val.purchaser).eqls(expected.purchaser);
-						expect(val.user).eqls(expected.user);
-						expect(val.useQty).eqls(expected.useQty);
-						expect(val.project).eqls(expected.project);
-						expect(val.invLoc).eqls(expected.invLoc);
-						expect(val.remark).eqls(expected.remark);
-					});
-
-					describe('ImportPurTransTask', () => {
-						let findOneStub, schema;
-						const doc = {
-							transNo: 'foo',
-							doc: 'any data of doc'
-						};
-						const taskDoc = {
-							transNo: 'foo',
-							task: doc
-						};
-						let extract, dbSave, task, publishImportPurTransTaskCreated;
-
-						beforeEach(() => {
-							findOneStub = sinon.stub();
-							schema = {
-								findOne: findOneStub
-							};
-							stubs['../../../db/schema/PurTransTask'] = schema;
-
-							extract = sinon.stub();
-							stubs['../BizDataExtractors'] = {
-								importPurTransTask: extract
-							};
-
-							dbSave = sinon.stub();
-							stubs['@finelets/hyper-rest/db/mongoDb/SaveObjectToDb'] = dbSave;
-
-							publishImportPurTransTaskCreated = sinon.spy();
-							stubs['../../CrossMessageCenter'] = {
-								importPurTransTaskCreated: publishImportPurTransTaskCreated
-							};
-
-							task = proxyquire('../server/biz/batches/ImportPurTransTask', stubs);
-						});
-
-						it('抽取并校验数据失败', () => {
-							extract.withArgs(doc).throws(err);
-							return task
-								.create(doc)
-								.then(() => {
-									should.fail;
-								})
-								.catch((e) => {
-									expect(e).eqls(err);
-								});
-						});
-
-						it('忽略已存在的交易', () => {
-							extract.withArgs(doc).returns(doc);
-							findOneStub
-								.withArgs({
-									transNo: 'foo'
-								})
-								.resolves(taskDoc);
-							return task.create(doc).then(() => {
-								expect(dbSave.callCount).eqls(0);
-							});
-						});
-
-						it('新增失败', () => {
-							extract.withArgs(doc).returns(doc);
-							findOneStub
-								.withArgs({
-									transNo: 'foo'
-								})
-								.resolves(null);
-							dbSave.withArgs(schema, taskDoc).rejects(err);
-							return task
-								.create(doc)
-								.then(() => {
-									should.fail;
-								})
-								.catch((e) => {
-									expect(e).eqls(err);
-								});
-						});
-
-						it('新增成功', () => {
-							extract.withArgs(doc).returns(doc);
-							findOneStub
-								.withArgs({
-									transNo: 'foo'
-								})
-								.resolves(null);
-							dbSave.withArgs(schema, taskDoc).resolves(doc);
-							return task.create(doc).then((data) => {
-								expect(data).eqls(doc);
-								expect(publishImportPurTransTaskCreated).calledWith(doc).calledOnce;
-							});
-						});
-
-						describe('更新任务状态', () => {
-							const dbSave = require('../finelets/db/mongoDb/dbSave');
-							const schema = require('../db/schema/PurTransTask');
-							const task = require('../server/biz/batches/ImportPurTransTask');
-							it('成功', () => {
-								const id = '5c349d1a6cf8de3cd4a5bc2c';
-								return dbSave(schema, {
-										transNo: '000123'
-									})
-									.then((doc) => {
-										return task.updateState(doc.id, {
-											purchase: id,
-											review: id,
-											inInv: id,
-											outInv: id
-										});
-									})
-									.then((doc) => {
-										expect(doc.po.toString()).eqls(id);
-										expect(doc.review.toString()).eqls(id);
-										expect(doc.inInv.toString()).eqls(id);
-										expect(doc.outInv.toString()).eqls(id);
-									});
-							});
-						});
-					});
-
-					describe('ExecutePurTransTask', () => {
-						const purId = 12345;
-
-						const expectedResult = (result, id, errors) => {
-							expect(result.id).eqls(id);
-							expect(result.errors).eqls(errors);
-						};
-
-						let taskExec, PO, basParts, basSuppliers, basEmployee;
-
-						beforeEach(() => {
-							PO = sinon.stub({
-								createBySource: () => {}
-							});
-							stubs['../pur/Purchases'] = PO;
-
-							purReviews = sinon.stub({
-								create: () => {}
-							});
-							stubs['../pur/Reviews'] = purReviews;
-
-							inInvs = sinon.stub({
-								create: () => {}
-							});
-							stubs['../inv/InInvs'] = inInvs;
-
-							outInvs = sinon.stub({
-								create: () => {}
-							});
-							stubs['../inv/OutInvs'] = outInvs;
-
-							purTransTask = sinon.stub({
-								updateState: () => {}
-							});
-							stubs['./ImportPurTransTask'] = purTransTask;
-
-							basParts = sinon.stub({
-								createNotExist: () => {}
-							});
-							stubs['../bas/Parts'] = basParts;
-
-							basSuppliers = sinon.stub({
-								createNotExist: () => {}
-							});
-							stubs['../bas/Suppliers'] = basSuppliers;
-
-							basEmployee = sinon.stub({
-								createNotExist: () => {}
-							});
-							stubs['../bas/Employee'] = basEmployee;
-							taskExec = proxyquire('../server/biz/batches/ExecutePurTransTask', stubs)();
-						});
-
-						describe('pubBas', () => {
-							const basId = 1234;
-							const basDoc = {
-								id: basId,
-								data: 'any other data'
-							};
-
-							describe('pubPart', () => {
-								const taskData = {
-									partType: '料品',
-									partName: 'JSM-A1实验用格子布',
-									spec: 'abcd',
-									unit: '米'
-								};
-
-								it('料品类型错', () => {
-									return taskExec
-										.pubPart({
-											partType: 'invalid',
-											partName: 'foo'
-										})
-										.then((result) => {
-											expectedResult(result, undefined, ['invalid part type value: invalid']);
-										});
-								});
-
-								it('无料品名称', () => {
-									return taskExec.pubPart({}).then((result) => {
-										expectedResult(result, undefined, ['Part name is required']);
-									});
-								});
-
-								it('创建失败', () => {
-									basParts.createNotExist
-										.withArgs({
-											name: taskData.partName
-										})
-										.rejects(err);
-									return taskExec
-										.pubPart({
-											partName: taskData.partName
-										})
-										.then((result) => {
-											expectedResult(result, undefined, [err]);
-										});
-								});
-
-								it('创建', () => {
-									basParts.createNotExist
-										.withArgs({
-											type: 1,
-											name: taskData.partName,
-											spec: taskData.spec,
-											unit: taskData.unit
-										})
-										.resolves(basDoc);
-									return taskExec.pubPart(taskData).then((result) => {
-										expectedResult(result, basId, []);
-									});
-								});
-							});
-
-							describe('pubSupplier', () => {
-								const taskData = {
-									supplier: '绍兴惟楚纺织品有限公司',
-									supply: '厂家'
-								};
-
-								it('厂商类型错', () => {
-									return taskExec
-										.pubSupplier({
-											supply: 'invalid',
-											supplier: 'foo'
-										})
-										.then((result) => {
-											expectedResult(result, undefined, ['supply value is invalid: invalid']);
-										});
-								});
-
-								it('无供应商信息', () => {
-									return taskExec.pubSupplier({}).then((result) => {
-										expectedResult(result, undefined, []);
-									});
-								});
-
-								it('创建失败', () => {
-									basSuppliers.createNotExist
-										.withArgs({
-											name: 'foo'
-										})
-										.rejects(err);
-									return taskExec
-										.pubSupplier({
-											supplier: 'foo'
-										})
-										.then((result) => {
-											expectedResult(result, undefined, [err]);
-										});
-								});
-
-								it('创建', () => {
-									basSuppliers.createNotExist
-										.withArgs({
-											type: 1,
-											name: taskData.supplier
-										})
-										.resolves(basDoc);
-									return taskExec.pubSupplier(taskData).then((result) => {
-										expectedResult(result, basId, []);
-									});
-								});
-							});
-
-							describe('pubEmployee', () => {
-								it('无员工信息', () => {
-									return taskExec.pubEmployee().then((result) => {
-										expectedResult(result, undefined, []);
-									});
-								});
-
-								it('创建失败', () => {
-									basEmployee.createNotExist
-										.withArgs({
-											name: 'foo'
-										})
-										.rejects(err);
-									return taskExec.pubEmployee('foo').then((result) => {
-										expectedResult(result, undefined, [err]);
-									});
-								});
-
-								it('创建', () => {
-									basEmployee.createNotExist
-										.withArgs({
-											name: 'foo'
-										})
-										.resolves(basDoc);
-									return taskExec.pubEmployee('foo').then((result) => {
-										expectedResult(result, basId, []);
-									});
-								});
-							});
-						});
-
-						describe('pubPurchase', () => {
-							const partId = 123,
-								supplierId = 234,
-								applierId = 345,
-								purchaserId = 456;
-
-							const taskData = {
-								transNo: 'xulei00006',
-								qty: 150,
-								price: 8800,
-								amount: 8800,
-								refNo: 'JSMCONV20181109A',
-								supplyLink: '开票中',
-								purPeriod: 80,
-								applier: 'foo',
-								appDate: '2018-11-08T16:00:00.000Z',
-								purchaser: 'fuu',
-								purDate: '2018-11-08T16:00:00.000Z',
-								remark: 'remark'
-							};
-
-							const poDoc = {
-								id: purId,
-								data: 'other po data'
-							};
-							beforeEach(() => {
-								taskExec.pubSupplier = sinon.stub();
-								taskExec.pubEmployee = sinon.stub();
-							});
-
-							it('成功处理', () => {
-								taskExec.pubSupplier.withArgs(taskData).resolves({
-									id: supplierId
-								});
-								taskExec.pubEmployee.withArgs(taskData.applier).resolves({
-									id: applierId
-								});
-								taskExec.pubEmployee.withArgs(taskData.purchaser).resolves({
-									id: purchaserId
-								});
-								PO.createBySource
-									.withArgs({
-										part: partId,
-										supplier: supplierId,
-										qty: 150,
-										price: 8800,
-										amount: 8800,
-										refNo: 'JSMCONV20181109A',
-										supplyLink: '开票中',
-										purPeriod: 80,
-										applier: applierId,
-										appDate: '2018-11-08T16:00:00.000Z',
-										creator: purchaserId,
-										createDate: '2018-11-08T16:00:00.000Z',
-										remark: 'remark',
-										source: 'xulei00006'
-									})
-									.resolves(poDoc);
-								return taskExec.pubPurchase(partId, taskData).then((result) => {
-									expect(result).eqls(purId);
-								});
-							});
-						});
-
-						describe('pubReview', () => {
-							const reviewerId = 3456;
-
-							beforeEach(() => {
-								taskExec.pubEmployee = sinon.stub();
-							});
-
-							it('无审批信息', () => {
-								return taskExec
-									.pubReview(purId, {})
-									.then(() => {
-										should.fail('Failed when we come here');
-									})
-									.catch((e) => {
-										expect(e).eqls('reviewer is not found');
-									});
-							});
-
-							it('审批失败', () => {
-								taskExec.pubEmployee.withArgs('foo').resolves({
-									id: reviewerId
-								});
-								purReviews.create
-									.withArgs({
-										po: purId,
-										reviewer: reviewerId
-									})
-									.rejects(err);
-								return taskExec
-									.pubReview(purId, {
-										reviewer: 'foo'
-									})
-									.then(() => {
-										should.fail('Failed when we come here');
-									})
-									.catch((e) => {
-										expect(e).eqls(err);
-									});
-							});
-
-							it('审批成功', () => {
-								const reviewDate = new Date().toJSON();
-								const reviewId = 789;
-								taskExec.pubEmployee.withArgs('foo').resolves({
-									id: reviewerId
-								});
-								purReviews.create
-									.withArgs({
-										po: purId,
-										reviewer: reviewerId,
-										reviewDate: reviewDate
-									})
-									.resolves({
-										id: reviewId
-									});
-								return taskExec
-									.pubReview(purId, {
-										reviewer: 'foo',
-										reviewDate: reviewDate
-									})
-									.then((result) => {
-										expect(result).eqls(reviewId);
-									});
-							});
-						});
-
-						describe('pubInInv', () => {
-							const inInvId = 3456,
-								transNo = '0001',
-								qty = 100,
-								invDate = new Date().toJSON(),
-								loc = 'foo loc';
-
-							it('无入库信息', () => {
-								return taskExec
-									.pubInInv(purId, {
-										qty: qty,
-										invLoc: loc,
-										transNo: transNo
-									})
-									.then(() => {
-										should.fail('Failed when we come here');
-									})
-									.catch((e) => {
-										expect(e).eqls('inInv is not found');
-									});
-							});
-
-							it('入库失败', () => {
-								inInvs.create
-									.withArgs({
-										po: purId,
-										qty: qty,
-										date: invDate,
-										loc: loc,
-										source: transNo
-									})
-									.rejects(err);
-								return taskExec
-									.pubInInv(purId, {
-										qty: qty,
-										invDate: invDate,
-										invLoc: loc,
-										transNo: transNo
-									})
-									.then(() => {
-										should.fail('Failed when we come here');
-									})
-									.catch((e) => {
-										expect(e).eqls(err);
-									});
-							});
-
-							it('入库成功', () => {
-								inInvs.create
-									.withArgs({
-										po: purId,
-										qty: qty,
-										date: invDate,
-										loc: loc,
-										source: transNo
-									})
-									.resolves({
-										id: inInvId
-									});
-								return taskExec
-									.pubInInv(purId, {
-										qty: qty,
-										invDate: invDate,
-										invLoc: loc,
-										transNo: transNo
-									})
-									.then((result) => {
-										expect(result).eqls(inInvId);
-									});
-							});
-						});
-
-						describe('pubOutInv', () => {
-							const outInvId = 3456,
-								transNo = '0001',
-								partId = 45678,
-								user = 'foo',
-								date = new Date('2018/12/12').toJSON(),
-								qty = 100,
-								project = 'foo project';
-
-							it('无出库信息', () => {
-								return taskExec
-									.pubOutInv(partId, {
-										user: user,
-										useDate: date,
-										project: project,
-										transNo: transNo
-									})
-									.then(() => {
-										should.fail('Failed when we come here');
-									})
-									.catch((e) => {
-										expect(e).eqls('outInv is not found');
-									});
-							});
-
-							it('出库失败', () => {
-								outInvs.create
-									.withArgs({
-										part: partId,
-										qty: qty,
-										source: transNo
-									})
-									.rejects(err);
-								return taskExec
-									.pubOutInv(partId, {
-										useQty: qty,
-										transNo: transNo
-									})
-									.then(() => {
-										should.fail('Failed when we come here');
-									})
-									.catch((e) => {
-										expect(e).eqls(err);
-									});
-							});
-
-							it('出库成功', () => {
-								taskExec.pubEmployee = sinon.stub();
-								taskExec.pubEmployee.withArgs(user).resolves({
-									id: user
-								});
-								outInvs.create
-									.withArgs({
-										part: partId,
-										qty: qty,
-										user: user,
-										date: date,
-										project: project,
-										source: transNo
-									})
-									.resolves({
-										id: outInvId
-									});
-								return taskExec
-									.pubOutInv(partId, {
-										useQty: qty,
-										user: user,
-										useDate: date,
-										project: project,
-										transNo: transNo
-									})
-									.then((result) => {
-										expect(result).eqls(outInvId);
-										expect(taskExec.pubEmployee.callCount).eqls(1);
-									});
-							});
-						});
-
-						describe('exec', () => {
-							const taskId = 555;
-							const taskData = {
-								data: 'any task data'
-							};
-							const taskDoc = {
-								id: taskId,
-								task: taskData
-							};
-							const partId = 888,
-								reviewId = 1234,
-								inInvId = 2345,
-								outInvId = 3456;
-
-							beforeEach(() => {
-								taskExec.pubPart = sinon.stub();
-								taskExec.pubPurchase = sinon.stub();
-								taskExec.pubReview = sinon.stub();
-								taskExec.pubInInv = sinon.stub();
-								taskExec.pubOutInv = sinon.stub();
-							});
-
-							it('无料品信息', () => {
-								taskExec.pubPart.withArgs(taskData).resolves({});
-								return taskExec.exec(taskDoc).then(() => {
-									expect(purTransTask.updateState.callCount).eqls(0);
-								});
-							});
-
-							it('发布采购单失败', () => {
-								taskExec.pubPart.withArgs(taskData).resolves({
-									id: partId
-								});
-								taskExec.pubPurchase.withArgs(partId, taskData).rejects();
-								return taskExec.exec(taskDoc).then(() => {
-									expect(purTransTask.updateState.callCount).eqls(0);
-								});
-							});
-
-							it('采购单审批失败, 则无法入库和出库', () => {
-								taskExec.pubPart.withArgs(taskData).resolves({
-									id: partId
-								});
-								taskExec.pubPurchase.withArgs(partId, taskData).resolves(purId);
-								taskExec.pubReview.withArgs(purId, taskData).rejects();
-								purTransTask.updateState
-									.withArgs(taskId, {
-										purchase: purId
-									})
-									.resolves();
-								return taskExec.exec(taskDoc).then(() => {
-									expect(purTransTask.updateState.callCount).eqls(1);
-								});
-							});
-
-							it('发布入库单失败', () => {
-								taskExec.pubPart.withArgs(taskData).resolves({
-									id: partId
-								});
-								taskExec.pubPurchase.withArgs(partId, taskData).resolves(purId);
-								taskExec.pubReview.withArgs(purId, taskData).resolves(reviewId);
-								taskExec.pubInInv.withArgs(purId, taskData).rejects();
-								purTransTask.updateState
-									.withArgs(taskId, {
-										purchase: purId,
-										review: reviewId
-									})
-									.resolves();
-								return taskExec.exec(taskDoc).then(() => {
-									expect(purTransTask.updateState.callCount).eqls(1);
-								});
-							});
-
-							it('发布出库单失败', () => {
-								taskExec.pubPart.withArgs(taskData).resolves({
-									id: partId
-								});
-								taskExec.pubPurchase.withArgs(partId, taskData).resolves(purId);
-								taskExec.pubReview.withArgs(purId, taskData).resolves(reviewId);
-								taskExec.pubInInv.withArgs(purId, taskData).resolves(inInvId);
-								taskExec.pubOutInv.withArgs(partId, taskData).rejects();
-								purTransTask.updateState
-									.withArgs(taskId, {
-										purchase: purId,
-										review: reviewId,
-										inInv: inInvId
-									})
-									.resolves();
-								return taskExec.exec(taskDoc).then(() => {
-									expect(purTransTask.updateState.callCount).eqls(1);
-								});
-							});
-
-							it('成功处理', () => {
-								taskExec.pubPart.withArgs(taskData).resolves({
-									id: partId
-								});
-								taskExec.pubPurchase.withArgs(partId, taskData).resolves(purId);
-								taskExec.pubReview.withArgs(purId, taskData).resolves(reviewId);
-								taskExec.pubInInv.withArgs(purId, taskData).resolves(inInvId);
-								taskExec.pubOutInv.withArgs(partId, taskData).resolves(outInvId);
-								purTransTask.updateState
-									.withArgs(taskId, {
-										purchase: purId,
-										review: reviewId,
-										inInv: inInvId,
-										outInv: outInvId
-									})
-									.resolves();
-								return taskExec.exec(taskDoc).then(() => {
-									expect(purTransTask.updateState.callCount).eqls(1);
-								});
-							});
-						});
-					});
-				});
 			});
 		});
 	});

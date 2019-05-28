@@ -7,12 +7,49 @@ const schema = require('../../../db/schema/pur/Purchase'),
 
 const config = {
 	schema,
-	updatables: ['code', 'part', 'qty', 'price', 'amount', 'supplier', 'refNo', 'state',
-				'applier', 'appDate', 'reviewer', 'reviewDate', 'creator', 'createDate', 'remark'],
+	updatables: ['code', 'part', 'qty', 'price', 'amount', 'supplier', 'refNo', 'remark'],
 	searchables: ['code', 'refNo', 'remark']
 }
 
 const addIn = {
+	review: (_id, {__v, reviewer, reviewDate, desc, pass}) => {
+		if (!reviewer) return Promise.resolve(false)
+		const toUpdate = {
+			$set: {state: pass ? 'Opened' : 'Unapproval', reviewer},
+			$inc: { __v: 1 }
+		}
+		if(!reviewDate) toUpdate.$currentDate = {reviewDate: true}
+		else toUpdate.$set.reviewDate = reviewDate
+
+		return schema.updateOne({_id, __v}, toUpdate)
+            .then(data => {
+                return data.n === 1 && data.nModified === 1 && data.ok === 1
+            })
+            .catch(e => {
+                if (e.name === 'CastError') return false
+                throw e
+            })
+	},
+
+	commit: (_id, {__v, applier, appDate}) => {
+		if (!applier) return Promise.resolve(false)
+		const toUpdate = {
+			$set: {state: 'Reviewing', applier},
+			$inc: { __v: 1 }
+		}
+		if(!appDate) toUpdate.$currentDate = {appDate: true}
+		else toUpdate.$set.appDate = appDate
+
+		return schema.updateOne({_id, __v}, toUpdate)
+            .then(data => {
+                return data.n === 1 && data.nModified === 1 && data.ok === 1
+            })
+            .catch(e => {
+                if (e.name === 'CastError') return false
+                throw e
+            })
+	},
+
 	createBySource: (data) => {
 		return schema
 			.findOne({
@@ -32,7 +69,7 @@ const addIn = {
 					data.left = data.qty;
 				}
 				data.left -= doc.qty;
-				if(data.left < data.qty) data.state = 'Open'
+				if(data.left < data.qty) data.state = 'Opened'
 				if (data.left <= 0) {
 					data.left = 0;
 					data.state = 'Closed'
