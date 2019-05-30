@@ -1038,6 +1038,8 @@ describe('Cross', function () {
 							state = 'Draft',
 							remark = 'remark',
 							applier = '6c349d1a6cf8de3cd4a5bccc'
+						
+						let transaction
 
 						beforeEach(() => {
 							toCreate = {part, qty, amount}
@@ -1081,7 +1083,7 @@ describe('Cross', function () {
 							
 
 							it('创建时状态只能是Draft', () => {
-								toCreate = {part, qty, amount, state: 'Opened' }
+								toCreate = {part, qty, amount, state: 'Open' }
 								return testTarget
 									.create(toCreate)
 									.then(() => {
@@ -1176,21 +1178,14 @@ describe('Cross', function () {
 						})
 
 						describe('commit', () => {
-							it('id type error', () => {
-								return testTarget.commit('notexist', {
-										__v, applier
-									})
-									.then((data) => {
-										expect(data).false
-									})
-							});
-	
+							const type = 'commit'
+
 							it('not exist', () => {
-								return testTarget.commit(ID_NOT_EXIST, {
-										__v, applier
+								return testTarget.doTransaction(ID_NOT_EXIST, type, {
+										__v, actor: applier
 									})
 									.then((data) => {
-										expect(data).false
+										expect(!data).true
 									})
 							});
 	
@@ -1199,12 +1194,12 @@ describe('Cross', function () {
 									.then((doc) => {
 										id = doc.id
 										__v = doc.__v + 1
-										return testTarget.commit(id, {
-											__v, applier
+										return testTarget.doTransaction(id, type, {
+											__v, actor: applier
 										});
 									})
 									.then((data) => {
-										expect(data).false
+										expect(!data).true
 									})
 							});
 
@@ -1213,12 +1208,12 @@ describe('Cross', function () {
 									.then((doc) => {
 										id = doc.id
 										__v = doc.__v
-										return testTarget.commit(id, {
+										return testTarget.doTransaction(id, type, {
 											__v
 										});
 									})
 									.then((data) => {
-										expect(data).false
+										expect(!data).true
 									})
 							});
 
@@ -1227,21 +1222,24 @@ describe('Cross', function () {
 									.then((doc) => {
 										id = doc.id
 										__v = doc.__v
-										return testTarget.commit(id, {
-											__v, applier
+										return testTarget.doTransaction(id, type, {
+											__v, actor: applier
 										});
 									})
-									.then((data) => {
-										expect(data).true
+									.then(doc => {
+										transaction = doc
+										expect(transaction.parent).eql(id)
+										expect(transaction.type).eql(type)
+										expect(transaction.actor).eql(applier)
+										expect(transaction.date).exist
 										return schema.findById(id)
 									})
-									.then(doc=> {
+									.then(doc => {
 										doc = doc.toJSON()
 										expect(doc.__v).eql(__v + 1)
-										expect(doc.state).eql('Reviewing')
+										expect(doc.state).eql('Review')
 										expect(doc.applier).eql(applier)
-										expect(doc.appDate).exist
-										expect(doc.events[0]).eql({})
+										expect(doc.appDate).eql(transaction.date)
 									})
 							});
 
@@ -1251,42 +1249,38 @@ describe('Cross', function () {
 									.then((doc) => {
 										id = doc.id
 										__v = doc.__v
-										return testTarget.commit(id, {
-											__v, applier, appDate
+										return testTarget.doTransaction(id, type, {
+											__v, actor: applier, date: appDate
 										});
 									})
-									.then((data) => {
-										expect(data).true
+									.then(doc => {
+										transaction = doc
+										expect(transaction.parent).eql(id)
+										expect(transaction.type).eql(type)
+										expect(transaction.actor).eql(applier)
+										expect(transaction.date).eql(appDate.toJSON())
 										return schema.findById(id)
 									})
-									.then(doc=> {
+									.then(doc => {
 										doc = doc.toJSON()
 										expect(doc.__v).eql(__v + 1)
-										expect(doc.state).eql('Reviewing')
+										expect(doc.state).eql('Review')
 										expect(doc.applier).eql(applier)
-										expect(doc.appDate).eql(appDate.toJSON())
+										expect(doc.appDate).eql(transaction.date)
 									})
 							});
 						})
 						
 						describe('review', () => {
+							const type = 'review'
 							const reviewer = applier;
-		
-							it('id type error', () => {
-								return testTarget.review('notexist', {
-										__v, reviewer
-									})
-									.then((data) => {
-										expect(data).false
-									})
-							});
 	
 							it('not exist', () => {
-								return testTarget.review(ID_NOT_EXIST, {
-										__v, reviewer
+								return testTarget.doTransaction(ID_NOT_EXIST, type, {
+										__v, actor: reviewer
 									})
 									.then((data) => {
-										expect(data).false
+										expect(!data).true
 									})
 							});
 	
@@ -1295,12 +1289,12 @@ describe('Cross', function () {
 									.then((doc) => {
 										id = doc.id
 										__v = doc.__v + 1
-										return testTarget.review(id, {
-											__v, reviewer
+										return testTarget.doTransaction(id, type, {
+											__v, actor: reviewer
 										});
 									})
 									.then((data) => {
-										expect(data).false
+										expect(!data).true
 									})
 							});
 
@@ -1309,12 +1303,12 @@ describe('Cross', function () {
 									.then((doc) => {
 										id = doc.id
 										__v = doc.__v
-										return testTarget.review(id, {
+										return testTarget.doTransaction(id, type, {
 											__v
 										});
 									})
 									.then((data) => {
-										expect(data).false
+										expect(!data).true
 									})
 							});
 		
@@ -1323,20 +1317,25 @@ describe('Cross', function () {
 									.then((doc) => {
 										id = doc.id
 										__v = doc.__v
-										return testTarget.review(id, {
-											__v, reviewer
+										return testTarget.doTransaction(id, type, {
+											__v, actor: reviewer
 										});
 									})
-									.then((data) => {
-										expect(data).true
+									.then(doc => {
+										transaction = doc
+										expect(transaction.parent).eql(id)
+										expect(transaction.type).eql(type)
+										expect(transaction.data).eql({pass: false})
+										expect(transaction.actor).eql(reviewer)
+										expect(transaction.date).exist
 										return schema.findById(id)
 									})
-									.then(doc=> {
+									.then(doc => {
 										doc = doc.toJSON()
 										expect(doc.__v).eql(__v + 1)
-										expect(doc.state).eql('Unapproval')
+										expect(doc.state).eql('Unapproved')
 										expect(doc.reviewer).eql(reviewer)
-										expect(doc.reviewDate).exist
+										expect(doc.reviewDate).eql(transaction.date)
 									})
 							});
 
@@ -1346,20 +1345,25 @@ describe('Cross', function () {
 									.then((doc) => {
 										id = doc.id
 										__v = doc.__v
-										return testTarget.review(id, {
-											__v, reviewer, reviewDate
+										return testTarget.doTransaction(id, type, {
+											__v, actor: reviewer, date: reviewDate
 										});
 									})
-									.then((data) => {
-										expect(data).true
+									.then(doc => {
+										transaction = doc
+										expect(transaction.parent).eql(id)
+										expect(transaction.type).eql(type)
+										expect(transaction.data).eql({pass: false})
+										expect(transaction.actor).eql(reviewer)
+										expect(transaction.date).eql(reviewDate.toJSON())
 										return schema.findById(id)
 									})
-									.then(doc=> {
+									.then(doc => {
 										doc = doc.toJSON()
 										expect(doc.__v).eql(__v + 1)
-										expect(doc.state).eql('Unapproval')
+										expect(doc.state).eql('Unapproved')
 										expect(doc.reviewer).eql(reviewer)
-										expect(doc.reviewDate).eql(reviewDate.toJSON())
+										expect(doc.reviewDate).eql(transaction.date)
 									})
 							});
 
@@ -1369,20 +1373,26 @@ describe('Cross', function () {
 									.then((doc) => {
 										id = doc.id
 										__v = doc.__v
-										return testTarget.review(id, {
-											__v, reviewer, reviewDate, pass: true
+										return testTarget.doTransaction(id, type, {
+											__v, actor: reviewer, date: reviewDate, pass: true, remark
 										});
 									})
-									.then((data) => {
-										expect(data).true
+									.then(doc => {
+										transaction = doc
+										expect(transaction.parent).eql(id)
+										expect(transaction.type).eql(type)
+										expect(transaction.data).eql({pass: true})
+										expect(transaction.actor).eql(reviewer)
+										expect(transaction.date).eql(reviewDate.toJSON())
+										expect(transaction.remark).eql(remark)
 										return schema.findById(id)
 									})
-									.then(doc=> {
+									.then(doc => {
 										doc = doc.toJSON()
 										expect(doc.__v).eql(__v + 1)
-										expect(doc.state).eql('Opened')
+										expect(doc.state).eql('Open')
 										expect(doc.reviewer).eql(reviewer)
-										expect(doc.reviewDate).eql(reviewDate.toJSON())
+										expect(doc.reviewDate).eql(transaction.date)
 									})
 							});
 						});

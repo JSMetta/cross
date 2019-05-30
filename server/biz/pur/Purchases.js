@@ -7,47 +7,73 @@ const schema = require('../../../db/schema/pur/Purchase'),
 
 const config = {
 	schema,
+	projection: '-transactions',
 	updatables: ['code', 'part', 'qty', 'price', 'amount', 'supplier', 'refNo', 'remark'],
 	searchables: ['code', 'refNo', 'remark']
 }
 
-const addIn = {
-	review: (_id, {__v, reviewer, reviewDate, desc, pass}) => {
-		if (!reviewer) return Promise.resolve(false)
-		const toUpdate = {
-			$set: {state: pass ? 'Opened' : 'Unapproval', reviewer},
-			$inc: { __v: 1 }
-		}
-		if(!reviewDate) toUpdate.$currentDate = {reviewDate: true}
-		else toUpdate.$set.reviewDate = reviewDate
+const commit = (id, {__v, actor, date}) => {
+	let row
+	if (!actor) return Promise.resolve()
+	return schema.findById(id)
+		.then(doc => {
+			if(doc && doc.__v === __v) {
+				const appDate = date || new Date()
+				doc.state = 'Review'
+				doc.applier = actor
+				doc.appDate = appDate
+				row = doc.transactions.push({type: 'commit', actor, date: appDate})
+				return doc.save()
+			}
+		})
+		.then(data => {
+			if(data) {
+				data = data.toJSON()
+				return {parent: data.id, ...data.transactions[row - 1]}
+			} 
+		})
+}
 
-		return schema.updateOne({_id, __v}, toUpdate)
-            .then(data => {
-                return data.n === 1 && data.nModified === 1 && data.ok === 1
-            })
-            .catch(e => {
-                if (e.name === 'CastError') return false
-                throw e
-            })
+const review = (id, {__v, actor, date, pass, remark}) => {
+	if (!actor) return Promise.resolve()
+	let  row
+	return schema.findById(id)
+		.then(doc => {
+			if(doc && doc.__v === __v) {
+				const reviewDate = date || new Date()
+				doc.state = pass ? 'Open' : 'Unapproved'
+				doc.reviewer = actor
+				doc.reviewDate = reviewDate
+				row = doc.transactions.push({type: 'review', data:{pass: pass ? true : false}, actor, date: reviewDate, remark})
+				return doc.save()
+			}
+		})
+		.then(data => {
+			if(data) {
+				data = data.toJSON()
+				return {parent: data.id, ...data.transactions[row - 1]}
+			} 
+		})
+}
+
+const transactionActions = {commit, review}
+
+const addIn = {
+	findSubDocById: (id, sub, sid) => {
+		return schema.findById(id)
+		.then(doc => {
+			if(doc) {
+				let subdoc = doc[sub].id(sid)
+				if(subdoc) {
+					subdoc = subdoc.toJSON()
+					return {parent: doc.id, ...subdoc}
+				}
+			}
+		})
 	},
 
-	commit: (_id, {__v, applier, appDate}) => {
-		if (!applier) return Promise.resolve(false)
-		const toUpdate = {
-			$set: {state: 'Reviewing', applier},
-			$inc: { __v: 1 }
-		}
-		if(!appDate) toUpdate.$currentDate = {appDate: true}
-		else toUpdate.$set.appDate = appDate
-
-		return schema.updateOne({_id, __v}, toUpdate)
-            .then(data => {
-                return data.n === 1 && data.nModified === 1 && data.ok === 1
-            })
-            .catch(e => {
-                if (e.name === 'CastError') return false
-                throw e
-            })
+	doTransaction: (id, type, data) => {
+		return transactionActions[type](id, data)
 	},
 
 	createBySource: (data) => {

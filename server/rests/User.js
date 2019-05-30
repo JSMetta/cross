@@ -12,7 +12,8 @@ const {
 module.exports = {
     url: '/cross/api/bas/users/:id',
     transitions: {
-        Purchase: {id: 'context'}
+        Purchase: {id: 'context'},
+        PoTransaction: {id: 'context.actor'}
     },
     rests: [{
             type: 'read',

@@ -1,11 +1,23 @@
 const mongoose = require('mongoose'),
     ObjectId = mongoose.Schema.Types.ObjectId,
+    createSchema = require('@finelets/hyper-rest/db/mongoDb/CreateSchema'),
     createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection')
 
 function preSave (next) {
     if(this.isNew && this.state !== 'Draft') return next(new Error('the state of a new purchase must be Draft'))
     next()
 }
+const Transaction = createSchema({
+    type: {
+        type: String,
+        required: true,
+        enum: ['commit', 'review']
+    },
+    data: Map,
+    actor: ObjectId,
+    date: Date,
+    remark: String
+})
 
 const dbModel = createCollection({
     name: 'Purchase',
@@ -37,9 +49,10 @@ const dbModel = createCollection({
         state: {
             type: String,
             default: 'Draft',
-            enum: ['Draft', 'Reviewing', 'Unapproval', 'Opened', 'Closed', 'Canceled']
+            enum: ['Draft', 'Review', 'Unapproved', 'Open', 'Closed', 'Canceled']
         },
         remark: String,
+        transactions: [Transaction],
         source: String
     },
     timestamps: {

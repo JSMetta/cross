@@ -35,6 +35,19 @@ module.exports = {
         password: 'Password',
         authorize: 'Authorization'
     },
+    Purchases: {
+        add: 'Purchases',
+        home: 'Cross'
+    },
+    Purchase: {
+        self: 'Purchase',
+        collection: 'Purchases',
+        transactions: 'PoTransactions'
+    },
+    PoTransaction: {
+        self: 'PoTransaction',
+        parent: 'Purchase'
+    },
     PurchaseTransTasks: {
         exit: 'Cross'
     },
