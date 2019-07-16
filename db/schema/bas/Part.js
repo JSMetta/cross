@@ -9,6 +9,7 @@ const dbModel = createCollection({
         brand: String,
         spec: String,
         unit: String,
+        qty: Number,
         img: String,
         tags: String
     },

@@ -1203,6 +1203,28 @@ describe('Cross', function () {
 									})
 							});
 
+							it('状态必须处于Draft或Unapproved', () => {
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										return schema.findById(id)
+									})
+									.then((doc) => {
+										doc.state = 'Open'
+										return doc.save()
+									})
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.doTransaction(id, type, {
+											__v, actor: applier
+										});
+									})
+									.then((data) => {
+										expect(!data).true
+									})
+							});
+
 							it('无申请人', () => {
 								return dbSave(schema, toCreate)
 									.then((doc) => {
@@ -1275,6 +1297,23 @@ describe('Cross', function () {
 							const type = 'review'
 							const reviewer = applier;
 	
+							beforeEach(() => {
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										return schema.findById(id)
+									})
+									.then((doc) => {
+										doc.state = 'Review'
+										return doc.save()
+									})
+									.then((doc) => {
+										expect(doc.state).eql('Review')
+										id = doc.id
+										__v = doc.__v
+									})
+							})
+
 							it('not exist', () => {
 								return testTarget.doTransaction(ID_NOT_EXIST, type, {
 										__v, actor: reviewer
@@ -1285,10 +1324,20 @@ describe('Cross', function () {
 							});
 	
 							it('版本不一致', () => {
+								__v = __v + 1
+								return testTarget.doTransaction(id, type, {
+									__v, actor: reviewer
+								})
+									.then((data) => {
+										expect(!data).true
+									})
+							});
+
+							it('必须处于Review状态', () => {
 								return dbSave(schema, toCreate)
 									.then((doc) => {
 										id = doc.id
-										__v = doc.__v + 1
+										__v = doc.__v
 										return testTarget.doTransaction(id, type, {
 											__v, actor: reviewer
 										});
@@ -1299,28 +1348,14 @@ describe('Cross', function () {
 							});
 
 							it('必须指定审批人', () => {
-								return dbSave(schema, toCreate)
-									.then((doc) => {
-										id = doc.id
-										__v = doc.__v
-										return testTarget.doTransaction(id, type, {
-											__v
-										});
-									})
+								return testTarget.doTransaction(id, type, {__v})
 									.then((data) => {
 										expect(!data).true
 									})
 							});
 		
 							it('可缺省审批日期', () => {
-								return dbSave(schema, toCreate)
-									.then((doc) => {
-										id = doc.id
-										__v = doc.__v
-										return testTarget.doTransaction(id, type, {
-											__v, actor: reviewer
-										});
-									})
+								return testTarget.doTransaction(id, type, {__v, actor: reviewer})
 									.then(doc => {
 										transaction = doc
 										expect(transaction.parent).eql(id)
@@ -1341,14 +1376,7 @@ describe('Cross', function () {
 
 							it('指定审批日期', () => {
 								const reviewDate = new Date() 
-								return dbSave(schema, toCreate)
-									.then((doc) => {
-										id = doc.id
-										__v = doc.__v
-										return testTarget.doTransaction(id, type, {
-											__v, actor: reviewer, date: reviewDate
-										});
-									})
+								return testTarget.doTransaction(id, type, {__v, actor: reviewer, date: reviewDate})
 									.then(doc => {
 										transaction = doc
 										expect(transaction.parent).eql(id)
@@ -1369,14 +1397,9 @@ describe('Cross', function () {
 
 							it('审批通过', () => {
 								const reviewDate = new Date() 
-								return dbSave(schema, toCreate)
-									.then((doc) => {
-										id = doc.id
-										__v = doc.__v
-										return testTarget.doTransaction(id, type, {
-											__v, actor: reviewer, date: reviewDate, pass: true, remark
-										});
-									})
+								return testTarget.doTransaction(id, type, {
+									__v, actor: reviewer, date: reviewDate, pass: true, remark
+								})
 									.then(doc => {
 										transaction = doc
 										expect(transaction.parent).eql(id)
@@ -1395,6 +1418,203 @@ describe('Cross', function () {
 										expect(doc.reviewDate).eql(transaction.date)
 									})
 							});
+						});
+
+						describe('inv - 到货', () => {
+							const type = 'inv',
+							invDate = new Date(),
+							invQty = 34,
+							refNo = 'ref001',
+							loc = 'the loc';
+							let inv
+	
+							beforeEach(() => {
+								inv = {date: invDate, qty: invQty, refNo, loc}
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										return schema.findById(id)
+									})
+									.then((doc) => {
+										doc.state = 'Open'
+										return doc.save()
+									})
+									.then((doc) => {
+										expect(doc.state).eql('Open')
+										__v = doc.__v
+									})
+							})
+
+							it('not exist', () => {
+								return testTarget.doTransaction(ID_NOT_EXIST, type, {
+										__v, actor: applier, data: inv
+									})
+									.then((data) => {
+										expect(!data).true
+									})
+							});
+	
+							it('版本不一致', () => {
+								__v = __v + 1
+								return testTarget.doTransaction(id, type, {
+									__v, actor: applier, data: inv
+								})
+									.then((data) => {
+										expect(!data).true
+									})
+							});
+
+							it('必须处于Open状态', () => {
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										__v = doc.__v
+										return testTarget.doTransaction(id, type, {
+											__v, actor: applier, data: inv
+										});
+									})
+									.then((data) => {
+										expect(!data).true
+									})
+							});
+
+							it('必须指定收货人', () => {
+								return testTarget.doTransaction(id, type, {
+									__v, data: inv
+								})
+									.then((data) => {
+										expect(!data).true
+									})
+							});
+
+							it('必须指定到货日期', () => {
+								delete inv.date
+								return testTarget.doTransaction(id, type, {
+									__v, actor: applier, data: inv
+								})
+									.then((data) => {
+										expect(!data).true
+									})
+							});
+
+							it('必须给出到货数量', () => {
+								inv.qty = 0
+								return testTarget.doTransaction(id, type, {
+									__v, actor: applier, data: inv
+								})
+									.then((data) => {
+										expect(!data).true
+									})
+							});
+		
+							it('可缺省到货交易日期', () => {
+								return testTarget.doTransaction(id, type, {
+									__v, actor: applier, data: inv, remark
+								})
+									.then(doc => {
+										expect(doc.parent).eql(id)
+										expect(doc.type).eql(type)
+										expect(doc.data).eql(inv)
+										expect(doc.actor).eql(applier)
+										expect(doc.remark).eql(remark)
+										expect(doc.date).exist
+										return schema.findById(id)
+									})
+									.then(doc => {
+										doc = doc.toJSON()
+										expect(doc.__v).eql(__v + 1)
+										expect(doc.state).eql('Open')
+										expect(doc.left).eql(qty - invQty)
+									})
+							});
+
+							it('指定到货交易日期', () => {
+								const transDate = new Date()
+								return testTarget.doTransaction(id, type, {
+									__v, actor: applier, date: transDate, data: inv, remark
+								})
+									.then(doc => {
+										expect(doc.parent).eql(id)
+										expect(doc.type).eql(type)
+										expect(doc.data).eql(inv)
+										expect(doc.actor).eql(applier)
+										expect(doc.remark).eql(remark)
+										expect(doc.date).eql(transDate.toJSON())
+										return schema.findById(id)
+									})
+									.then(doc => {
+										doc = doc.toJSON()
+										expect(doc.__v).eql(__v + 1)
+										expect(doc.state).eql('Open')
+										expect(doc.left).eql(qty - invQty)
+									})
+							});
+
+							describe('到货时在单量倒扣, 采购单已有过到货', () => {
+								const left = qty -  5 
+
+								beforeEach(() => {
+									return dbSave(schema, toCreate)
+										.then((doc) => {
+											id = doc.id
+											return schema.findById(id)
+										})
+										.then((doc) => {
+											doc.state = 'Open'
+											doc.left = left
+											return doc.save()
+										})
+										.then((doc) => {
+											expect(doc.state).eql('Open')
+											__v = doc.__v
+										})
+								}) 
+								
+								it('到货数量小于在单量', () => {
+									const transDate = new Date()
+									return testTarget.doTransaction(id, type, {
+										__v, actor: applier, date: transDate, data: inv, remark
+									})
+										.then(doc => {
+											expect(doc.parent).eql(id)
+											expect(doc.type).eql(type)
+											expect(doc.data).eql(inv)
+											expect(doc.actor).eql(applier)
+											expect(doc.remark).eql(remark)
+											expect(doc.date).eql(transDate.toJSON())
+											return schema.findById(id)
+										})
+										.then(doc => {
+											doc = doc.toJSON()
+											expect(doc.__v).eql(__v + 1)
+											expect(doc.state).eql('Open')
+											expect(doc.left).eql(left - invQty)
+										})
+								});
+
+								it('到货数量大于等于在单量', () => {
+									const transDate = new Date()
+									inv.qty = 96
+									return testTarget.doTransaction(id, type, {
+										__v, actor: applier, date: transDate, data: inv, remark
+									})
+										.then(doc => {
+											expect(doc.parent).eql(id)
+											expect(doc.type).eql(type)
+											expect(doc.data).eql(inv)
+											expect(doc.actor).eql(applier)
+											expect(doc.remark).eql(remark)
+											expect(doc.date).eql(transDate.toJSON())
+											return schema.findById(id)
+										})
+										.then(doc => {
+											doc = doc.toJSON()
+											expect(doc.__v).eql(__v + 1)
+											expect(doc.state).eql('Open')
+											expect(doc.left).eql(0)
+										})
+								});
+							})
 						});
 					})
 				})

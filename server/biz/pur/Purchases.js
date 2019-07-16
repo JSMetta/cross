@@ -17,7 +17,7 @@ const commit = (id, {__v, actor, date}) => {
 	if (!actor) return Promise.resolve()
 	return schema.findById(id)
 		.then(doc => {
-			if(doc && doc.__v === __v) {
+			if(doc && doc.__v === __v && (doc.state === 'Draft' || doc.state === 'Unapproved')) {
 				const appDate = date || new Date()
 				doc.state = 'Review'
 				doc.applier = actor
@@ -39,7 +39,7 @@ const review = (id, {__v, actor, date, pass, remark}) => {
 	let  row
 	return schema.findById(id)
 		.then(doc => {
-			if(doc && doc.__v === __v) {
+			if(doc && doc.__v === __v && doc.state === 'Review') {
 				const reviewDate = date || new Date()
 				doc.state = pass ? 'Open' : 'Unapproved'
 				doc.reviewer = actor
@@ -56,7 +56,35 @@ const review = (id, {__v, actor, date, pass, remark}) => {
 		})
 }
 
-const transactionActions = {commit, review}
+const inInv = (id, {__v, actor, date, data, remark}) => {
+	if (!actor) return Promise.resolve()
+	let row
+	return schema.findById(id)
+		.then(doc => {
+			if(doc && doc.__v === __v && doc.state === 'Open' && data && data.date && data.qty !== 0) {
+				const invDate = date || new Date()
+				row = doc.transactions.push({type: 'inv', data, actor, date: invDate, remark})
+				if (!doc.left) {
+					doc.left = doc.qty;
+				}
+				doc.left -= data.qty;
+				if(doc.left < 0) doc.left = 0
+				return doc.save()
+			}
+		})
+		.then(data => {
+			if(data) {
+				data = data.toJSON()
+				const trans = {parent: data.id, ...data.transactions[row - 1]}
+				return trans
+			} 
+		})
+		.catch(e => {
+			throw e
+		})
+}
+
+const transactionActions = {commit, review, inv: inInv}
 
 const addIn = {
 	findSubDocById: (id, sub, sid) => {

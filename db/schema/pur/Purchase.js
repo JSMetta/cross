@@ -11,7 +11,7 @@ const Transaction = createSchema({
     type: {
         type: String,
         required: true,
-        enum: ['commit', 'review']
+        enum: ['commit', 'review', 'inv']
     },
     data: Map,
     actor: ObjectId,
