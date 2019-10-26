@@ -65,7 +65,20 @@ docker images purge
   * id -- 采购单标识
 * 返回 -- 采购单交易资源（PoTransaction）数据集合。
 
+##### 执行采购单业务交易
+执行采购单业务交易实现为标准Finelets Create REST服务。
+* 参数
+  * id -- Uri param，采购单标识
+  * type -- Uri query，业务交易类型，有效交易类型包括：
+    * commit -- 提交审批
+    * review -- 审核
+    * inv -- 入库
+
 ## 业务规则
+
+### 采购单业务交易
+
+
 
 ### 采购交易导入
 采购交易可以通过CSV文件导入，格式为：
