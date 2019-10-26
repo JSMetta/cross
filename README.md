@@ -51,6 +51,15 @@ docker images purge
 * Promise.resolve(true) - 接收消息
 * Promise.resolve(false) - 拒绝消息，重新进入消息列表
 * Promise.reject(err) - 拒绝消息，消息将被废弃
+
+### REST服务
+
+#### PoTransactions - 采购单交易集合
+
+采购单交易集合资源提供采购单交易查询和交易执行服务
+
+##### 采购单交易查询服务
+
   
 ## 业务规则
 
