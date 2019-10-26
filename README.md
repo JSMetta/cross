@@ -51,7 +51,20 @@ docker images purge
 * Promise.resolve(true) - 接收消息
 * Promise.resolve(false) - 拒绝消息，重新进入消息列表
 * Promise.reject(err) - 拒绝消息，消息将被废弃
-  
+
+### REST服务
+
+#### PoTransactions - 采购单交易集合
+
+采购单交易集合资源提供采购单交易查询和交易执行服务
+
+##### 采购单交易查询服务
+
+采购单交易查询服务实现为标准Finelets REST查询服务。
+* 参数
+  ** id -- 采购单标识
+* 返回 -- 采购单交易资源（PoTransaction）数据集合。
+
 ## 业务规则
 
 ### 采购交易导入
