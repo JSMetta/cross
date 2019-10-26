@@ -1420,7 +1420,7 @@ describe('Cross', function () {
 							});
 						});
 
-						describe('inv - 到货', () => {
+						describe('inv - 到货入库', () => {
 							const type = 'inv',
 							invDate = new Date(),
 							invQty = 34,
@@ -1429,7 +1429,7 @@ describe('Cross', function () {
 							let inv
 	
 							beforeEach(() => {
-								inv = {date: invDate, qty: invQty, refNo, loc}
+								inv = {qty: invQty, refNo, loc}
 								return dbSave(schema, toCreate)
 									.then((doc) => {
 										id = doc.id
@@ -1445,23 +1445,19 @@ describe('Cross', function () {
 									})
 							})
 
-							it('not exist', () => {
+							it('由id指定的采购单必须存在', () => {
 								return testTarget.doTransaction(ID_NOT_EXIST, type, {
-										__v, actor: applier, data: inv
-									})
-									.then((data) => {
-										expect(!data).true
-									})
+										__v, actor: applier, date: invDate, data: inv
+									}) 
+									.should.be.rejectedWith()
 							});
 	
 							it('版本不一致', () => {
 								__v = __v + 1
 								return testTarget.doTransaction(id, type, {
-									__v, actor: applier, data: inv
+									__v, actor: applier, date: invDate, data: inv
 								})
-									.then((data) => {
-										expect(!data).true
-									})
+								.should.be.rejectedWith()
 							});
 
 							it('必须处于Open状态', () => {
@@ -1470,44 +1466,49 @@ describe('Cross', function () {
 										id = doc.id
 										__v = doc.__v
 										return testTarget.doTransaction(id, type, {
-											__v, actor: applier, data: inv
+											__v, actor: applier, date: invDate, data: inv
 										});
 									})
-									.then((data) => {
-										expect(!data).true
-									})
+									.should.be.rejectedWith()
 							});
 
-							it('必须指定收货人', () => {
+							it('未指定入库交易者', () => {
 								return testTarget.doTransaction(id, type, {
-									__v, data: inv
+									__v, date: invDate, data: inv
 								})
-									.then((data) => {
-										expect(!data).true
-									})
+								.should.be.rejectedWith()
 							});
 
-							it('必须指定到货日期', () => {
-								delete inv.date
-								return testTarget.doTransaction(id, type, {
-									__v, actor: applier, data: inv
-								})
-									.then((data) => {
-										expect(!data).true
-									})
-							});
-
-							it('必须给出到货数量', () => {
+							it('必须给出入库数量, 且不能为0', () => {
 								inv.qty = 0
 								return testTarget.doTransaction(id, type, {
-									__v, actor: applier, data: inv
+									__v, actor: applier, date: invDate, data: inv
 								})
-									.then((data) => {
-										expect(!data).true
-									})
+								.should.be.rejectedWith()
 							});
 		
-							it('可缺省到货交易日期', () => {
+							it('指定入库交易日期', () => {
+								return testTarget.doTransaction(id, type, {
+									__v, actor: applier, date: invDate, data: inv, remark
+								})
+								.then(doc => {
+									expect(doc.parent).eql(id)
+									expect(doc.type).eql(type)
+									expect(doc.data).eql(inv)
+									expect(doc.actor).eql(applier)
+									expect(doc.remark).eql(remark)
+									expect(doc.date).eql(invDate.toJSON())
+									return schema.findById(id)
+								})
+								.then(doc => {
+									doc = doc.toJSON()
+									expect(doc.__v).eql(__v + 1)
+									expect(doc.state).eql('Open')
+									expect(doc.left).eql(qty - invQty)
+								})
+							});
+
+							it('可缺省入库交易日期', () => {
 								return testTarget.doTransaction(id, type, {
 									__v, actor: applier, data: inv, remark
 								})
@@ -1518,28 +1519,6 @@ describe('Cross', function () {
 										expect(doc.actor).eql(applier)
 										expect(doc.remark).eql(remark)
 										expect(doc.date).exist
-										return schema.findById(id)
-									})
-									.then(doc => {
-										doc = doc.toJSON()
-										expect(doc.__v).eql(__v + 1)
-										expect(doc.state).eql('Open')
-										expect(doc.left).eql(qty - invQty)
-									})
-							});
-
-							it('指定到货交易日期', () => {
-								const transDate = new Date()
-								return testTarget.doTransaction(id, type, {
-									__v, actor: applier, date: transDate, data: inv, remark
-								})
-									.then(doc => {
-										expect(doc.parent).eql(id)
-										expect(doc.type).eql(type)
-										expect(doc.data).eql(inv)
-										expect(doc.actor).eql(applier)
-										expect(doc.remark).eql(remark)
-										expect(doc.date).eql(transDate.toJSON())
 										return schema.findById(id)
 									})
 									.then(doc => {
@@ -1570,49 +1549,29 @@ describe('Cross', function () {
 										})
 								}) 
 								
-								it('到货数量小于在单量', () => {
-									const transDate = new Date()
-									return testTarget.doTransaction(id, type, {
-										__v, actor: applier, date: transDate, data: inv, remark
-									})
-										.then(doc => {
-											expect(doc.parent).eql(id)
-											expect(doc.type).eql(type)
-											expect(doc.data).eql(inv)
-											expect(doc.actor).eql(applier)
-											expect(doc.remark).eql(remark)
-											expect(doc.date).eql(transDate.toJSON())
-											return schema.findById(id)
-										})
-										.then(doc => {
-											doc = doc.toJSON()
-											expect(doc.__v).eql(__v + 1)
-											expect(doc.state).eql('Open')
-											expect(doc.left).eql(left - invQty)
-										})
-								});
+								
 
-								it('到货数量大于等于在单量', () => {
+								it('当到货量大于采购量时，在单量可为负', () => {
 									const transDate = new Date()
 									inv.qty = 96
 									return testTarget.doTransaction(id, type, {
 										__v, actor: applier, date: transDate, data: inv, remark
 									})
-										.then(doc => {
-											expect(doc.parent).eql(id)
-											expect(doc.type).eql(type)
-											expect(doc.data).eql(inv)
-											expect(doc.actor).eql(applier)
-											expect(doc.remark).eql(remark)
-											expect(doc.date).eql(transDate.toJSON())
-											return schema.findById(id)
-										})
-										.then(doc => {
-											doc = doc.toJSON()
-											expect(doc.__v).eql(__v + 1)
-											expect(doc.state).eql('Open')
-											expect(doc.left).eql(0)
-										})
+									.then(doc => {
+										expect(doc.parent).eql(id)
+										expect(doc.type).eql(type)
+										expect(doc.data).eql(inv)
+										expect(doc.actor).eql(applier)
+										expect(doc.remark).eql(remark)
+										expect(doc.date).eql(transDate.toJSON())
+										return schema.findById(id)
+									})
+									.then(doc => {
+										doc = doc.toJSON()
+										expect(doc.__v).eql(__v + 1)
+										expect(doc.state).eql('Open')
+										expect(doc.left).eql(left - inv.qty)
+									})
 								});
 							})
 						});

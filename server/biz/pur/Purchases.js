@@ -57,20 +57,18 @@ const review = (id, {__v, actor, date, pass, remark}) => {
 }
 
 const inInv = (id, {__v, actor, date, data, remark}) => {
-	if (!actor) return Promise.resolve()
+	if (!actor) return Promise.reject()
 	let row
 	return schema.findById(id)
 		.then(doc => {
-			if(doc && doc.__v === __v && doc.state === 'Open' && data && data.date && data.qty !== 0) {
-				const invDate = date || new Date()
-				row = doc.transactions.push({type: 'inv', data, actor, date: invDate, remark})
-				if (!doc.left) {
-					doc.left = doc.qty;
-				}
-				doc.left -= data.qty;
-				if(doc.left < 0) doc.left = 0
-				return doc.save()
+			if(!doc || doc.__v !== __v || doc.state !== 'Open' || !data || !data.qty) return Promise.reject()
+			const invDate = date || new Date()
+			row = doc.transactions.push({type: 'inv', data, actor, date: invDate, remark})
+			if (!doc.left) {
+				doc.left = doc.qty;
 			}
+			doc.left -= data.qty;
+			return doc.save()
 		})
 		.then(data => {
 			if(data) {
@@ -78,9 +76,6 @@ const inInv = (id, {__v, actor, date, data, remark}) => {
 				const trans = {parent: data.id, ...data.transactions[row - 1]}
 				return trans
 			} 
-		})
-		.catch(e => {
-			throw e
 		})
 }
 
