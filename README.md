@@ -62,7 +62,7 @@ docker images purge
 
 采购单交易查询服务实现为标准Finelets REST查询服务。
 * 参数
-  ** id -- 采购单标识
+  * id -- 采购单标识
 * 返回 -- 采购单交易资源（PoTransaction）数据集合。
 
 ## 业务规则
