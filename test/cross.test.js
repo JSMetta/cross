@@ -1339,6 +1339,14 @@ describe('Cross', function () {
 								})
 								.should.be.rejectedWith()
 							});
+
+							it('必须给出入库数量, 且不能为字符串0', () => {
+								inv.qty = '0'
+								return testTarget.doTransaction(id, type, {
+									__v, actor: applier, date: invDate, data: inv
+								})
+								.should.be.rejectedWith()
+							});
 		
 							it('指定入库交易日期', () => {
 								testTarget = proxyquire('../server/biz/pur/Purchases', stubs)
