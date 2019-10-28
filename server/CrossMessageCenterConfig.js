@@ -1,9 +1,9 @@
 const logger = require('@finelets/hyper-rest/app/Logger');
 
 const executePurTransTask = require('./biz/batches/ExecutePurTransTask'),
-purchaseInInv = require('./biz/pur/Purchases').inInv,
-InvInInv = require('./biz/inv/Invs').inInv,
-InvLocInInv = require('./biz/inv/Locs').inInv
+// purchaseInInv = require('./biz/pur/Purchases').inInv,
+InvInInv = require('./biz/inv/Invs').inInv //,
+// InvLocInInv = require('./biz/inv/Locs').inInv
 
 module.exports = {
     connect: process.env.MQ,
@@ -27,18 +27,18 @@ module.exports = {
                             })
                     }
                 },
-                PoInInv_Purchase: {
+                /* PoInInv_Purchase: {
                     topic: 'poInInv',
                     consumer: purchaseInInv
-                },
+                }, */
                 PoInInv_Inv: {
                     topic: 'poInInv',
                     consumer: InvInInv
-                },
+                }/* ,
                 PoInInv_InvLoc: {
                     topic: 'poInInv',
                     consumer: InvLocInInv
-                },
+                }, */
             }
         }
     }

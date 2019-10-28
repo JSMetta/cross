@@ -10,7 +10,7 @@ const config = {
 
 const parts = {
     createNotExist: (data) => {
-        if (!data.name) return Promise.reject('part name is required')
+        if (!data.name) return Promise.reject(new Error('part name is required'))
         return dbSave(schema, ['name', 'brand', 'spec'], data)
     },
 
@@ -24,6 +24,15 @@ const parts = {
                     items.push(part.toJSON())
                 })
                 return items
+            })
+    },
+
+    updateInvQty: (id, qty) => {
+        return schema.findById(id)
+            .then(data => {
+                if(!data) return Promise.reject()
+                data.qty = data.qty ? data.qty + qty : qty
+                return data.save()
             })
     }
 }

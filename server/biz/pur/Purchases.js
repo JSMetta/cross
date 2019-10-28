@@ -1,6 +1,7 @@
 const schema = require('../../../db/schema/pur/Purchase'),
 	part = require('../bas/Parts'),
-    createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
+	createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
+	publishMsg = require('../../PublishMsg'),
 	__ = require('underscore'),
 	logger = require('@finelets/hyper-rest/app/Logger'),
 	dbSave = require('../../../finelets/db/mongoDb/dbSave');
@@ -64,16 +65,13 @@ const inInv = (id, {__v, actor, date, data, remark}) => {
 			if(!doc || doc.__v !== __v || doc.state !== 'Open' || !data || !data.qty) return Promise.reject()
 			const invDate = date || new Date()
 			row = doc.transactions.push({type: 'inv', data, actor, date: invDate, remark})
-			if (!doc.left) {
-				doc.left = doc.qty;
-			}
-			doc.left -= data.qty;
 			return doc.save()
 		})
 		.then(data => {
 			if(data) {
 				data = data.toJSON()
 				const trans = {parent: data.id, ...data.transactions[row - 1]}
+				publishMsg('poInInv', trans)
 				return trans
 			} 
 		})
@@ -110,25 +108,21 @@ const addIn = {
 			});
 	},
 
-	inInv: (doc) => {
-		return schema
-			.findById(doc.po)
-			.then((data) => {
-				if (data.left === undefined) {
-					data.left = data.qty;
-				}
-				data.left -= doc.qty;
-				if(data.left < data.qty) data.state = 'Opened'
-				if (data.left <= 0) {
-					data.left = 0;
-					data.state = 'Closed'
-				}
-				return data.save();
+	poInInv: (id, qty) => {
+		let po
+		return schema.findById(id)
+			.then((doc) => {
+				if (!doc) return Promise.reject()
+				po = doc
+				return part.updateInvQty(po.part, qty)
 			})
 			.then(() => {
-				logger.debug('Purchase qty is updated by InInv !');
-				return true;
-			});
+				if (!po.left) {
+					po.left = po.qty;
+				}
+				po.left -= qty;
+				return po.save()
+			})
 	},
 
 	getPart: (purId) => {

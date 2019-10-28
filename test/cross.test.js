@@ -159,7 +159,7 @@ describe('Cross', function () {
 				let dbSaveStub;
 				beforeEach(() => {
 					dbSaveStub = sinon.stub();
-					stubs['../../../finelets/db/mongoDb/dbSave'] = dbSaveStub;
+					stubs['../../../finelets/db/mongoDb/saveNotExist'] = dbSaveStub;
 				});
 
 				describe('Parts - 料品', () => {
@@ -176,34 +176,60 @@ describe('Cross', function () {
 					});
 
 					it('name is required', () => {
-						return testTarget
-							.createNotExist({})
-							.then(() => {
-								should.fail('failed if we come here');
-							})
-							.catch((e) => {
-								expect(e).eqls('part name is required');
-							});
-					});
+						return testTarget.createNotExist({})
+							.should.be.rejectedWith('part name is required')
+					})
 
-					it('name and spec should be unique', () => {
-						let existed;
-						return dbSave(schema, toCreate)
-							.then((doc) => {
-								existed = doc;
-								return testTarget.createNotExist(toCreate);
+					it('createNotExist', () => {
+						toCreate = {name}
+						let created = {obj: 'any data of part'}
+						dbSaveStub.withArgs(schema, ['name', 'brand', 'spec'], toCreate).resolves(created)
+						return testTarget.createNotExist(toCreate)
+							.then((data) => {
+								expect(data).eql(created)
 							})
-							.then(() => {
-								return schema.find()
+					})
 
-							})
-							.then(docs => {
-								expect(docs.length).eqls(1);
-								let doc = docs[0].toJSON()
-								expect(existed.createAt).eqls(doc.createAt)
-								expect(existed.modifiedDate).not.eqls(doc.modifiedDate)
-							})
-					});
+					describe("更新料品库存量", () => {
+						const invQty = 100
+
+						it('指定料品不存在', () => {
+							return testTarget.updateInvQty(ID_NOT_EXIST, invQty)
+								.should.be.rejectedWith()
+						})
+
+						it('库存量开账', () => {
+							return dbSave(schema, toCreate)
+								.then(data => {
+									id = data.id
+									return testTarget.updateInvQty(id, invQty)
+								})
+								.then(() => {
+									return schema.findById(id)
+								})
+								.then((data) => {
+									expect(data.qty).eql(invQty)
+									expect(data.__v).eql(1)
+								})
+						})
+
+						it('持续更新库存量', () => {
+							const qty = 50
+							return dbSave(schema, {...toCreate, qty})
+								.then(data => {
+									id = data.id
+									expect(data.qty).eql(qty)
+									return testTarget.updateInvQty(id, invQty)
+								})
+								.then(() => {
+									return schema.findById(id)
+								})
+								.then((data) => {
+									expect(data.qty).eql(invQty + qty)
+									expect(data.__v).eql(1)
+								})									
+						})
+					})
 
 					it('findById', () => {
 						return dbSave(schema, {
@@ -851,181 +877,6 @@ describe('Cross', function () {
 				});
 
 				describe('Purchases - 采购单', () => {
-					describe('Source Purchase', () => {
-						beforeEach(() => {
-							testTarget = proxyquire('../server/biz/pur/Purchases', stubs);
-						})
-	
-						it('source duplicated', () => {
-							let existed;
-							return dbSave(schema, poData)
-								.then((doc) => {
-									existed = doc;
-									return testTarget.createBySource(poData);
-								})
-								.then((doc) => {
-									expect(doc).eqls(existed);
-								});
-						});
-	
-						it('create', () => {
-							const created = {
-								data: 'created data'
-							};
-							dbSaveStub.withArgs(schema, poData).resolves(created);
-							return testTarget.createBySource(poData).then((data) => {
-								expect(data).eqls(created);
-							});
-						});
-	
-						it('getPart', () => {
-							const partExpected = {
-								part: 'part expected'
-							};
-							const ObjectId = require('mongoose').mongo.ObjectId;
-							let partObjId = new ObjectId(partId);
-							partStub.findById.withArgs(partObjId).resolves(partExpected);
-							return dbSave(schema, {
-									part: partObjId,
-									qty: 100,
-									amount: 20000
-								})
-								.then((doc) => {
-									return testTarget.getPart(doc.id);
-								})
-								.then((doc) => {
-									expect(doc).eqls(partExpected);
-								});
-						});
-	
-						it('按料品搜索采购单', () => {
-							return dbSave(schema, poData)
-								.then((doc) => {
-									existed = doc;
-									return testTarget.search({
-										part: partId
-									}, '')
-								})
-								.then((docs) => {
-									expect(docs.length).eqls(1);
-								});
-						})
-	
-						describe('采购入库抵扣采购单', () => {
-							it('成功', () => {
-								const poQty = 400,
-									qty = 120;
-								let purId;
-								return dbSave(schema, {
-										part: partId,
-										qty: poQty,
-										amount: 20000
-									})
-									.then((data) => {
-										purId = data.id;
-										return testTarget.inInv({
-											po: purId,
-											qty: qty
-										});
-									})
-									.then((result) => {
-										expect(result).true;
-										return schema.findById(purId);
-									})
-									.then((doc) => {
-										expect(doc.left).eqls(280);
-									})
-							});
-						});
-	
-						describe('查询期间料品采购金额及其明细', () => {
-							it('无任何记录', () => {
-								return testTarget.periodPurchases().then((data) => {
-									expect(data).eqls({
-										total: 0
-									});
-								});
-							});
-	
-							it('总体', () => {
-								const partSchema = require('../db/schema/bas/Part');
-								const part1 = '5c349d1a6cf8de3cd4a5bc2c';
-								const part2 = '5c349d1a6cf8de3cd4a5bc3c';
-								const part3 = '5c349d1a6cf8de3cd4a5bc4c';
-								const part4 = '5c349d1a6cf8de3cd4a5bc5c';
-								const day1 = new Date(2018, 9, 10);
-								const parts = [{
-										_id: part1,
-										type: 1,
-										name: 'foo',
-										spec: 'foo spec'
-									},
-									{
-										_id: part2,
-										type: 1,
-										name: 'fee',
-										spec: 'fee spec'
-									},
-									{
-										_id: part3,
-										type: 2,
-										name: 'fuu'
-									},
-									{
-										_id: part4,
-										name: 'fuuu'
-									}
-								];
-								let pos = [{
-										part: part1,
-										qty: 100,
-										amount: 1000,
-										createDate: day1
-									},
-									{
-										part: part1,
-										qty: 200,
-										amount: 2000,
-										createDate: day1
-									},
-									{
-										part: part2,
-										qty: 300,
-										amount: 3000,
-										createDate: day1
-									},
-									{
-										part: part3,
-										qty: 400,
-										amount: 4000,
-										createDate: day1
-									},
-									{
-										part: part4,
-										qty: 500,
-										amount: 5000,
-										createDate: day1
-									}
-								];
-	
-								let tasks = [];
-								parts.forEach((part) => {
-									tasks.push(dbSave(partSchema, part));
-								});
-								pos.forEach((po) => {
-									tasks.push(dbSave(schema, po));
-								});
-	
-								return Promise.all(tasks)
-									.then(() => {
-										return testTarget.periodPurchases();
-									})
-									.then((data) => {
-										expect(data.total).eqls(15000)
-									});
-							});
-						});
-					})
 
 					describe('Purchase entity', () => {
 						const code = 'test-po-001',
@@ -1418,7 +1269,7 @@ describe('Cross', function () {
 										expect(doc.reviewDate).eql(transaction.date)
 									})
 							});
-						});
+						})
 
 						describe('inv - 到货入库', () => {
 							const type = 'inv',
@@ -1426,9 +1277,11 @@ describe('Cross', function () {
 							invQty = 34,
 							refNo = 'ref001',
 							loc = 'the loc';
-							let inv
+							let inv, publisherSpy
 	
 							beforeEach(() => {
+								publisherSpy = sinon.spy()
+								stubs['../../PublishMsg'] = publisherSpy
 								inv = {qty: invQty, refNo, loc}
 								return dbSave(schema, toCreate)
 									.then((doc) => {
@@ -1488,10 +1341,12 @@ describe('Cross', function () {
 							});
 		
 							it('指定入库交易日期', () => {
+								testTarget = proxyquire('../server/biz/pur/Purchases', stubs)
 								return testTarget.doTransaction(id, type, {
 									__v, actor: applier, date: invDate, data: inv, remark
 								})
 								.then(doc => {
+									expect(publisherSpy).calledWith('poInInv', doc).calledOnce
 									expect(doc.parent).eql(id)
 									expect(doc.type).eql(type)
 									expect(doc.data).eql(inv)
@@ -1504,77 +1359,81 @@ describe('Cross', function () {
 									doc = doc.toJSON()
 									expect(doc.__v).eql(__v + 1)
 									expect(doc.state).eql('Open')
-									expect(doc.left).eql(qty - invQty)
+									expect(doc.left).undefined
 								})
 							});
 
 							it('可缺省入库交易日期', () => {
+								testTarget = proxyquire('../server/biz/pur/Purchases', stubs)
 								return testTarget.doTransaction(id, type, {
 									__v, actor: applier, data: inv, remark
 								})
-									.then(doc => {
-										expect(doc.parent).eql(id)
-										expect(doc.type).eql(type)
-										expect(doc.data).eql(inv)
-										expect(doc.actor).eql(applier)
-										expect(doc.remark).eql(remark)
-										expect(doc.date).exist
-										return schema.findById(id)
-									})
-									.then(doc => {
-										doc = doc.toJSON()
-										expect(doc.__v).eql(__v + 1)
-										expect(doc.state).eql('Open')
-										expect(doc.left).eql(qty - invQty)
-									})
+								.then(doc => {
+									expect(publisherSpy).calledWith('poInInv', doc).calledOnce
+									expect(doc.parent).eql(id)
+									expect(doc.type).eql(type)
+									expect(doc.data).eql(inv)
+									expect(doc.actor).eql(applier)
+									expect(doc.remark).eql(remark)
+									expect(doc.date).exist
+									return schema.findById(id)
+								})
+								.then(doc => {
+									doc = doc.toJSON()
+									expect(doc.__v).eql(__v + 1)
+									expect(doc.state).eql('Open')
+									expect(doc.left).undefined
+								})
+							});
+						})
+
+						describe('消费采购入库消息', () => {
+							const invQty = 34
+
+							it('由id指定的采购单不存在', () => {
+								return testTarget.poInInv(ID_NOT_EXIST, invQty) 
+									.should.be.rejectedWith()
 							});
 
-							describe('到货时在单量倒扣, 采购单已有过到货', () => {
-								const left = qty -  5 
+							it('更新料品库存量失败', () => {
+								const partInvStub = sinon.stub()
+								stubs['../bas/Parts'] = {updateInvQty: partInvStub}
+								testTarget = proxyquire('../server/biz/pur/Purchases', stubs)
 
-								beforeEach(() => {
-									return dbSave(schema, toCreate)
-										.then((doc) => {
-											id = doc.id
-											return schema.findById(id)
-										})
-										.then((doc) => {
-											doc.state = 'Open'
-											doc.left = left
-											return doc.save()
-										})
-										.then((doc) => {
-											expect(doc.state).eql('Open')
-											__v = doc.__v
-										})
-								}) 
-								
-								
-
-								it('当到货量大于采购量时，在单量可为负', () => {
-									const transDate = new Date()
-									inv.qty = 96
-									return testTarget.doTransaction(id, type, {
-										__v, actor: applier, date: transDate, data: inv, remark
-									})
-									.then(doc => {
-										expect(doc.parent).eql(id)
-										expect(doc.type).eql(type)
-										expect(doc.data).eql(inv)
-										expect(doc.actor).eql(applier)
-										expect(doc.remark).eql(remark)
-										expect(doc.date).eql(transDate.toJSON())
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
 										return schema.findById(id)
 									})
 									.then(doc => {
-										doc = doc.toJSON()
-										expect(doc.__v).eql(__v + 1)
-										expect(doc.state).eql('Open')
-										expect(doc.left).eql(left - inv.qty)
+										partInvStub.withArgs(doc.part, invQty).rejects()
+										return testTarget.poInInv(id, invQty)
 									})
-								});
-							})
-						});
+									.should.be.rejectedWith()
+							});
+
+							it('更新料品库存量成功，更新采购单在单量', () => {
+								const partInvStub = sinon.stub()
+								stubs['../bas/Parts'] = {updateInvQty: partInvStub}
+								testTarget = proxyquire('../server/biz/pur/Purchases', stubs)
+
+								return dbSave(schema, toCreate)
+									.then((doc) => {
+										id = doc.id
+										return schema.findById(id)
+									})
+									.then(doc => {
+										partInvStub.withArgs(doc.part, invQty).resolves()
+										return testTarget.poInInv(id, invQty)
+									})
+									.then(() => {
+										return schema.findById(id)
+									})
+									.then((doc) => {
+										expect(doc.left).eql(qty - invQty)
+									})
+							});							
+						})
 					})
 				})
 			});
@@ -1684,65 +1543,31 @@ describe('Cross', function () {
 				});
 
 				describe('Invs - 库存', () => {
-					const invSchema = require('../db/schema/inv/Inv');
-					const partId = '5c349d1a6cf8de3cd4a5bc2c';
-					let invs, po;
+					let poInInvStub;
 
 					beforeEach(() => {
-						po = sinon.stub({
-							getPart: () => {}
-						});
-						stubs['../pur/Purchases'] = po;
+						poInInvStub = sinon.stub();
+						stubs['../pur/Purchases'] = {poInInv: poInInvStub};
 						invs = proxyquire('../server/biz/inv/Invs', stubs);
-					});
-					describe('处理入库单', () => {
-						const poId = '123455';
-						const initQty = 150;
+					})
+
+					describe('处理采购入库单', () => {
+						const parent = '123455';
 						const qty = 210;
-						const doc = {
-							po: poId,
-							qty: qty
-						};
+						const doc = {parent, data: {qty}}
 
 						beforeEach(() => {
-							po.getPart.withArgs(poId).resolves({
-								id: partId
-							});
-						});
-						it('首次库存开账', () => {
-							return invs
-								.inInv(doc)
-								.then((result) => {
-									expect(result).true;
-									return invSchema.findOne({
-										part: partId
-									});
-								})
-								.then((data) => {
-									expect(data.qty).eqls(qty);
-								});
-						});
+							poInInvStub.withArgs(parent, qty).resolves(true);
+						})
 
-						it('更新库存', () => {
-							return dbSave(invSchema, {
-									part: partId,
-									qty: initQty
-								})
-								.then(() => {
-									return invs.inInv(doc);
-								})
+						it('处理成功', () => {
+							return invs.inInv(doc)
 								.then((result) => {
 									expect(result).true;
-									return invSchema.findOne({
-										part: partId
-									});
 								})
-								.then((data) => {
-									expect(data.qty).eqls(qty + initQty);
-								});
-						});
-					});
-				});
+						})
+					})
+				})
 
 				describe('Loc - 库位', () => {
 					describe('Loc - 入库单更新库位', () => {
