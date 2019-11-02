@@ -13,6 +13,7 @@ module.exports = {
     url: '/cross/api/bas/users/:id',
     transitions: {
         Purchase: {id: 'context'},
+        Withdraw: {id: 'context.actor'},
         PoTransaction: {id: 'context.actor'}
     },
     rests: [{

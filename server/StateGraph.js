@@ -3,6 +3,7 @@ module.exports = {
         parts: 'Parts',
         suppliers: 'Suppliers',
         purchases: 'Purchases',
+        withdraws: 'Withdraws',
         users: 'Users',
         register: 'RegisterUser',
         currentUser: 'CurrentUser',
@@ -35,6 +36,14 @@ module.exports = {
         password: 'Password',
         authorize: 'Authorization'
     },
+    Withdraws: {
+        add: 'Withdraws',
+        home: 'Cross'
+    },
+    Withdraw: {
+        self: 'Withdraw',
+        collection: 'Withdraws'
+    },
     Purchases: {
         add: 'Purchases',
         home: 'Cross'
@@ -47,9 +56,6 @@ module.exports = {
     PoTransaction: {
         self: 'PoTransaction',
         parent: 'Purchase'
-    },
-    PurchaseTransTasks: {
-        exit: 'Cross'
     },
     PeriodPurchases: {
         exit: 'Cross'
