@@ -1,18 +1,105 @@
 const schema = require('../../../db/schema/pur/Purchase'),
 	part = require('../bas/Parts'),
-    createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
+	createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
+	publishMsg = require('../../PublishMsg'),
 	__ = require('underscore'),
 	logger = require('@finelets/hyper-rest/app/Logger'),
 	dbSave = require('../../../finelets/db/mongoDb/dbSave');
 
 const config = {
 	schema,
-	updatables: ['code', 'part', 'qty', 'price', 'amount', 'supplier', 'refNo', 
-				'applier', 'appDate', 'reviewer', 'reviewDate', 'creator', 'createDate', 'remark'],
+	projection: '-transactions',
+	updatables: ['code', 'part', 'qty', 'price', 'amount', 'supplier', 'refNo', 'remark'],
 	searchables: ['code', 'refNo', 'remark']
 }
 
+const commit = (id, {__v, actor, date}) => {
+	let row
+	if (!actor) return Promise.resolve()
+	return schema.findById(id)
+		.then(doc => {
+			if(doc && doc.__v === __v && (doc.state === 'Draft' || doc.state === 'Unapproved')) {
+				const appDate = date || new Date()
+				doc.state = 'Review'
+				doc.applier = actor
+				doc.appDate = appDate
+				row = doc.transactions.push({type: 'commit', actor, date: appDate})
+				return doc.save()
+			}
+		})
+		.then(data => {
+			if(data) {
+				data = data.toJSON()
+				return {parent: data.id, ...data.transactions[row - 1]}
+			} 
+		})
+}
+
+const review = (id, {__v, actor, date, pass, remark}) => {
+	if (!actor) return Promise.resolve()
+	let  row
+	return schema.findById(id)
+		.then(doc => {
+			if(doc && doc.__v === __v && doc.state === 'Review') {
+				const reviewDate = date || new Date()
+				doc.state = pass ? 'Open' : 'Unapproved'
+				doc.reviewer = actor
+				doc.reviewDate = reviewDate
+				row = doc.transactions.push({type: 'review', data:{pass: pass ? true : false}, actor, date: reviewDate, remark})
+				return doc.save()
+			}
+		})
+		.then(data => {
+			if(data) {
+				data = data.toJSON()
+				return {parent: data.id, ...data.transactions[row - 1]}
+			} 
+		})
+}
+
+const inInv = (id, {__v, actor, date, data, remark}) => {
+	if (!actor) return Promise.reject()
+	if (!data || !data.qty) return Promise.reject()
+	data.qty = data.qty * 1
+	let row
+	return schema.findById(id)
+		.then(doc => {
+			if(!doc || doc.__v !== __v || doc.state !== 'Open' || !data.qty) return Promise.reject()
+			
+			const invDate = date || new Date()
+			row = doc.transactions.push({type: 'inv', data, actor, date: invDate, remark})
+			return doc.save()
+		})
+		.then(data => {
+			if(data) {
+				data = data.toJSON()
+				const trans = {parent: data.id, ...data.transactions[row - 1]}
+				publishMsg('poInInv', trans)
+				return trans
+			} 
+		})
+}
+
+const transactionActions = {commit, review, inv: inInv}
+
 const addIn = {
+	findSubDocById: (id, sub, sid) => {
+		return schema.findById(id)
+		.then(doc => {
+			if(doc) {
+				let subdoc = doc[sub].id(sid)
+				if(subdoc) {
+					subdoc = subdoc.toJSON()
+					return {parent: doc.id, ...subdoc}
+				}
+			}
+		})
+	},
+
+	doTransaction: (id, type, data) => {
+		return transactionActions[type](id, data)
+	},
+
 	createBySource: (data) => {
 		return schema
 			.findOne({
@@ -24,25 +111,21 @@ const addIn = {
 			});
 	},
 
-	inInv: (doc) => {
-		return schema
-			.findById(doc.po)
-			.then((data) => {
-				if (data.left === undefined) {
-					data.left = data.qty;
-				}
-				data.left -= doc.qty;
-				if(data.left < data.qty) data.state = 'Open'
-				if (data.left <= 0) {
-					data.left = 0;
-					data.state = 'Closed'
-				}
-				return data.save();
+	poInInv: (id, qty) => {
+		let po
+		return schema.findById(id)
+			.then((doc) => {
+				if (!doc) return Promise.reject()
+				po = doc
+				return part.updateInvQty(po.part, qty)
 			})
 			.then(() => {
-				logger.debug('Purchase qty is updated by InInv !');
-				return true;
-			});
+				if (!po.left) {
+					po.left = po.qty;
+				}
+				po.left -= qty;
+				return po.save()
+			})
 	},
 
 	getPart: (purId) => {

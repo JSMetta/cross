@@ -1,24 +1,47 @@
-const {authenticate, getUser} = require('./biz/bas/Employee')
-const adminId = 'cbbdhbcc'
-const admin = {id: adminId, name: '开发者'}
-const baseUrl = '/cross/api'
-const loginUrl = '/cross/auth/login'
-const prodConfig = {authenticate, getUser, baseUrl, loginUrl}
+const employeeEntity = require('./biz/bas/Employee'),
+    DEFAULT_ADMIN_ID = '$$$$cross$$admin',
+    DEFAULT_ADMIN_NAME = '@admin@',
+    DEFAULT_ADMIN_PWD = '$9999$',
+    DEFAULT_ADMIN_INFO = {
+        name: '系统管理员',
+        isAdmin: true
+    },
+    DEFAULT_ADMIN = {
+        id: DEFAULT_ADMIN_ID,
+        ...DEFAULT_ADMIN_INFO
+    }
 
-const devConfig = {
+const baseUrl = '/cross/api',
+    loginUrl = '/cross/auth/login'
+
+let __authenticate, __getUser, __haveAdmin
+const config = {
     authenticate: (username, password) => {
-        let user = (username === 'admin' && password === '9') ? admin : null
-        return Promise.resolve(user)
+        if (username === DEFAULT_ADMIN_NAME && password === DEFAULT_ADMIN_PWD) {
+            if (!__haveAdmin) return Promise.resolve(DEFAULT_ADMIN)
+
+            return __haveAdmin()
+                .then((countOfAdmin) => {
+                    if (countOfAdmin < 1) return Promise.resolve(DEFAULT_ADMIN)
+                    return Promise.resolve()
+                })
+        }
+        return __authenticate(username, password)
     },
     getUser: (id) => {
-        let user = id === adminId ? admin : null
-        return Promise.resolve(user)
+        if (id === DEFAULT_ADMIN_ID) return Promise.resolve({isAdmin: true})
+        return __getUser(id)
     },
     baseUrl,
     loginUrl
 }
-const create = () => {
-    return process.env.RUNNING_MODE ? devConfig : prodConfig
+
+function create(dbAuth) {
+    dbAuth = dbAuth || employeeEntity
+    __authenticate = dbAuth.authenticate
+    __getUser = dbAuth.getUser || dbAuth.findById
+    __haveAdmin = dbAuth.haveAdmin
+    return config
 }
 
-module.exports = create() 
+module.exports = create

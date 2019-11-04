@@ -14,7 +14,6 @@ var sinonStubPromise = require('sinon-stub-promise');
 sinonStubPromise(sinon);
 
 global.dbURI = 'mongodb://127.0.0.1:27017/test';
-global.mongoose = require('mongoose');
 global.clearDB = require('@finelets/hyper-rest/db/mongoDb/clearDB')(dbURI);
 
 global.expect = chai.expect;

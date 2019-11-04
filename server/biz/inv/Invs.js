@@ -5,23 +5,7 @@ const invSchema = require('../../../db/schema/inv/Inv'),
 
 module.exports = {
     inInv: (doc) => {
-        let partId
-        return PO.getPart(doc.po)
-            .then((data) => {
-                partId = data.id
-                return invSchema.findOne({
-                    part: partId
-                })
-            })
-            .then((data) => {
-                if (!data)
-                    return dbSave(invSchema, {
-                        part: partId,
-                        qty: doc.qty
-                    })
-                data.qty += doc.qty
-                return data.save()
-            })
+        return PO.poInInv(doc.parent, doc.data.qty)
             .then(() => {
                 logger.debug('Inventory qty is updated by InInv !!!')
                 return true

@@ -3,6 +3,10 @@ module.exports = {
         parts: 'Parts',
         suppliers: 'Suppliers',
         purchases: 'Purchases',
+        withdraws: 'Withdraws',
+        users: 'Users',
+        register: 'RegisterUser',
+        currentUser: 'CurrentUser',
         uploadPurTransTasks: "UploadPurchases",
         queryPurchaseTransTasks: 'PurchaseTransTasks',
         reportPeriodPurchases: 'ReportPeriodPurchases',
@@ -24,8 +28,34 @@ module.exports = {
         self: "Supplier",
         collection: "Suppliers"
     },
-    PurchaseTransTasks: {
-        exit: 'Cross'
+    Users: {
+        add: 'RegisterUser',
+        home: 'Cross'
+    },
+    User: {
+        password: 'Password',
+        authorize: 'Authorization'
+    },
+    Withdraws: {
+        add: 'Withdraws',
+        home: 'Cross'
+    },
+    Withdraw: {
+        self: 'Withdraw',
+        collection: 'Withdraws'
+    },
+    Purchases: {
+        add: 'Purchases',
+        home: 'Cross'
+    },
+    Purchase: {
+        self: 'Purchase',
+        collection: 'Purchases',
+        transactions: 'PoTransactions'
+    },
+    PoTransaction: {
+        self: 'PoTransaction',
+        parent: 'Purchase'
     },
     PeriodPurchases: {
         exit: 'Cross'

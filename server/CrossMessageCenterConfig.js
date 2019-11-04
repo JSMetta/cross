@@ -1,9 +1,11 @@
-const logger = require('@finelets/hyper-rest/app/Logger');
+const logger = require('@finelets/hyper-rest/app/Logger'),
+PO = require('./biz/pur/Purchases'),
+INV = require('./biz/bas/Parts');
 
-const executePurTransTask = require('./biz/batches/ExecutePurTransTask'),
-purchaseInInv = require('./biz/pur/Purchases').inInv,
-InvInInv = require('./biz/inv/Invs').inInv,
-InvLocInInv = require('./biz/inv/Locs').inInv
+/* const executePurTransTask = require('./biz/batches/ExecutePurTransTask'),
+// purchaseInInv = require('./biz/pur/Purchases').inInv,
+InvInInv = require('./biz/inv/Invs').inInv //,
+// InvLocInInv = require('./biz/inv/Locs').inInv */
 
 module.exports = {
     connect: process.env.MQ,
@@ -11,12 +13,12 @@ module.exports = {
         cross: {
             isDefault: true,
             publishes: [
-                'importPurTransTaskCreated',
+                // 'importPurTransTaskCreated',
                 'poInInv',
                 'outInv'
             ],
             queues: {
-                ImportedPurchaseTransactions: {
+                /* ImportedPurchaseTransactions: {
                     topic: 'importPurTransTaskCreated',
                     consumer: (doc) => {
                         let task = executePurTransTask()
@@ -26,19 +28,32 @@ module.exports = {
                                 return true
                             })
                     }
-                },
-                PoInInv_Purchase: {
+                }, */
+                /* PoInInv_Purchase: {
                     topic: 'poInInv',
                     consumer: purchaseInInv
-                },
+                }, */
                 PoInInv_Inv: {
                     topic: 'poInInv',
-                    consumer: InvInInv
+                    consumer: (doc) => {
+                        return PO.poInInv(doc.parent, doc.data.qty)
+                            .then(() => {
+                                logger.debug('Inventory qty is updated by InInv !!!')
+                                return true
+                            })
+                    }
                 },
-                PoInInv_InvLoc: {
-                    topic: 'poInInv',
-                    consumer: InvLocInInv
-                },
+                OutInv_Inv: {
+                    topic: 'outInv',
+                    consumer: (doc) => {
+                        const qty = doc.qty * -1
+                        return INV.updateInvQty(doc.part, qty)
+                            .then(() => {
+                                logger.debug('Inventory qty is updated by outInv !!!')
+                                return true
+                            })
+                    }
+                }
             }
         }
     }
