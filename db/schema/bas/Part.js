@@ -1,9 +1,8 @@
-const mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    ObjectId = Schema.Types.ObjectId,
-    transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
+const createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection')
 
-const PartSchema = new Schema({
+const dbModel = createCollection({
+    name: 'Part',
+    schema: {
         type: Number,
         code: String,
         name: String,
@@ -13,14 +12,13 @@ const PartSchema = new Schema({
         img: String,
         tags: String
     },
-    { 
-        ...transformOption,
-        autoCreate: true,
-        timestamps: { updatedAt: 'modifiedDate' }
-     }
-)
+    timestamps: { updatedAt: 'modifiedDate' },
+    indexes: [
+        {
+            index: {name: 1, brand: 1, spec: 1},
+            options: {unique: true}
+        }
+    ]
+})
 
-// PartSchema.index({code: 1}, {unique: true});
-PartSchema.index({name: 1, brand: 1, spec: 1}, {unique: true});
-
-module.exports = mongoose.model('Part', PartSchema);
+module.exports = dbModel

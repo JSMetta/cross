@@ -1,23 +1,20 @@
 const mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    ObjectId = Schema.Types.ObjectId,
+    createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection'),
     transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
 
-// TODO: set autoIndex, autoCreate to false in product mode
-/*
-The autoIndex option is set to true by default. You can change this
-default by setting mongoose.use('autoIndex', false);
-*/
 const ContactSchema = new Schema({
-    nick: String,
-    name: String,
-    phone: String,
-    email: String
-  },
-  transformOption
+        nick: String,
+        name: String,
+        phone: String,
+        email: String
+    },
+    transformOption
 )
 
-const SupplierSchema = new Schema({
+const dbModel = createCollection({
+    name: 'Supplier',
+    schema: {
         type: Number,
         code: String,
         name: String,
@@ -27,14 +24,17 @@ const SupplierSchema = new Schema({
         tags: String,
         contacts: [ContactSchema]
     },
-    { 
-        ...transformOption,
-        autoCreate: true,
-        timestamps: { updatedAt: 'modifiedDate' }
-     }
-)
+    timestamps: {
+        updatedAt: 'modifiedDate'
+    },
+    indexes: [{
+        index: {
+            name: 1
+        },
+        options: {
+            unique: true
+        }
+    }]
+})
 
-// SupplierSchema.index({code: 1}, {unique: true})
-SupplierSchema.index({name: 1}, {unique: true})
-
-module.exports = mongoose.model('Supplier', SupplierSchema);
+module.exports = dbModel

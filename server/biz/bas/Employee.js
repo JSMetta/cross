@@ -1,5 +1,5 @@
 const schema = require('../../../db/schema/bas/Employee'),
-    createEntity = require('../../../finelets/db/mongoDb/CreateEntity'),
+    createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
     dbSave = require('../../../finelets/db/mongoDb/saveNotExist')
 
 const config = {
@@ -37,7 +37,7 @@ const obj = {
                         }
                     }]
                 }]
-            }, ['userId', 'name', 'pic', 'email', 'modifiedDate'])
+            }, ['userId', 'name', 'pic', 'email', 'updatedAt', '__v'])
             .then(doc => {
                 if (doc) {
                     return doc.toJSON()

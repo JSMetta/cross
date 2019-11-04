@@ -1,17 +1,13 @@
 const mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    ObjectId = Schema.Types.ObjectId,
-    transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
+    ObjectId = mongoose.Schema.Types.ObjectId,
+    createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection')
 
-const InvSchema = new Schema({
+const dbModel = createCollection({
+    name: 'Inv',
+    schema: {
         part: ObjectId,
         qty: Number
-    },
-    { 
-        ...transformOption,
-        autoCreate: true,
-        timestamps: { updatedAt: 'modifiedDate' }
-     }
-)
+    }
+})
 
-module.exports = mongoose.model('Inv', InvSchema);
+module.exports = dbModel
