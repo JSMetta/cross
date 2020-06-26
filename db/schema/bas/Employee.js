@@ -12,7 +12,6 @@ const dbModel = createCollection({
         roles: String,
         inUse: Boolean
     },
-    timestamps: { updatedAt: 'modifiedDate' },
     indexes: [
         {
             index: {name: 1},

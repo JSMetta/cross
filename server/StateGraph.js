@@ -10,7 +10,8 @@ module.exports = {
         uploadPurTransTasks: "UploadPurchases",
         queryPurchaseTransTasks: 'PurchaseTransTasks',
         reportPeriodPurchases: 'ReportPeriodPurchases',
-        reportInvLocStates: 'InvLocStates'
+        reportInvLocStates: 'InvLocStates',
+        programs: 'Programs',
     },
     Parts: {
         add: 'Parts',
@@ -59,5 +60,14 @@ module.exports = {
     },
     PeriodPurchases: {
         exit: 'Cross'
-    }
+    },
+    Programs: {
+        add: 'Programs',
+        home: 'Cross'
+    },
+    Program: {
+        self: "Program",
+        collection: "Programs",
+        run: 'RunProgram'
+    },
 }

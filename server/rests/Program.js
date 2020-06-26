@@ -7,19 +7,16 @@ const {
     update,
     remove,
     findById
-} = require('../biz/bas/Employee');
+} = require('../biz/Program'),
+Process = require('../biz').Process
 
 module.exports = {
-    url: '/cross/api/users/:id',
+    url: '/cross/api/programs/:id',
     transitions: {
-        Purchase: {id: 'context'},
-        Withdraw: {id: 'context'},
-        PoTransaction: {id: 'context'}
     },
     rests: [{
             type: 'read',
             ifNoneMatch,
-            dataRef: {Avatar: 'pic'},
             handler: findById
         },
         {

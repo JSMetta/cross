@@ -1,13 +1,13 @@
 const schema = require('../../../db/schema/bas/Employee'),
     createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
-    dbSave = require('../../../finelets/db/mongoDb/saveNotExist')
+    mqPublish = require('@finelets/hyper-rest/mq')
 
 const config = {
     schema,
-    projection: '-password',
-    updatables: ['userId', 'name', 'pic', 'email'],
+    projection: {password: 0},
+    updatables: ['userId', 'name', 'email'],
     searchables: ['userId', 'name', 'email'],
-    listable: 'name',
+    listable: {password: 0, pic: 0, email: 0, isAdmin: 0, roles: 0, inUse: 0},
     setValues: (doc, data) => {
         // do nothing but an example
         /* if (data.userId && !doc.password) {
@@ -17,11 +17,6 @@ const config = {
 }
 
 const obj = {
-    createNotExist: (data) => {
-        if (!data.name) return Promise.reject('employee name is required')
-        return dbSave(schema, ['name'], data)
-    },
-
     authenticate: (userName, password) => {
         return schema.findOne({
                 userId: userName,
@@ -73,6 +68,22 @@ const obj = {
             .catch(e => {
                 if (e.name === 'CastError') return false
                 throw e
+            })
+    },
+
+    updatePic: (id, pic) => {
+        let oldPic
+
+        return schema.findById(id)
+            .then(doc => {
+                oldPic = doc.pic
+                doc.pic = pic
+                return doc.save()
+            })
+            .then(() => {
+                if(oldPic) {
+                    mqPublish['removePic'](oldPic)
+                }
             })
     }
 }
