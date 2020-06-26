@@ -7,7 +7,6 @@ module.exports = {
         users: 'Users',
         register: 'RegisterUser',
         currentUser: 'CurrentUser',
-        uploadPurTransTasks: "UploadPurchases",
         queryPurchaseTransTasks: 'PurchaseTransTasks',
         reportPeriodPurchases: 'ReportPeriodPurchases',
         reportInvLocStates: 'InvLocStates',

@@ -19,11 +19,7 @@
   "homepage": "https://github.com/JSMetta/cross#readme",
   "dependencies": {
     "@finelets/hyper-rest": "^3.1.3",
-    "amqplib": "^0.5.3",
-    "cors": "^2.8.5",
-    "moment": "^2.24.0",
-    "rulebased-validator": "^1.0.2",
-    "underscore": "^1.9.1"
+    "rulebased-validator": "^1.0.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
