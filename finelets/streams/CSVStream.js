@@ -1,6 +1,5 @@
 const stream = require('stream'),
     logger = require('@finelets/hyper-rest/app/Logger'),
-    Promise = require('bluebird'),
     util = require('util');
 var __save, __parseRow;
 

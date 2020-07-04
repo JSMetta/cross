@@ -1,6 +1,7 @@
-var dbSave = require('@finelets/hyper-rest/db/mongoDb/SaveObjectToDb');
+var dbSave = require('./dbSave');
 
 describe('权限管理', function () {
+	const ID_NOT_EXIST = '5ce79b99da3537277c3f3b66'
 	const Schema = require('../db/schema/bas/Employee'),
 		id = '1223445666',
 		userId = 'foo',
@@ -44,19 +45,67 @@ describe('权限管理', function () {
 				})
 		})
 
-		it('角色为空字符串时，roles为undefined', ()=>{
-			return dbSave(Schema, {
-				userId: 'foo',
-				name: 'foo',
-				roles: 'roles'
+		describe('授权', () => {
+			let id, __v
+			it('用户不存在', () => {
+				return entity.authorize(ID_NOT_EXIST, {})
+					.then(user => {
+						expect(user).undefined
+					})
 			})
-			.then(doc => {
-				let data = doc.toJSON()
-				data.roles = ''
-				return entity.update(data)
+
+			it('__v不一致', ()=>{
+				return dbSave(Schema, { userId, name })
+					.then(doc => {
+						id = doc.id,
+						__v = doc.__v + 1
+						return entity.authorize(id, {__v, isAdmin: true})
+					})
+					.then(doc => {
+						expect(doc).undefined
+					})
 			})
-			.then(doc => {
-				expect(doc.roles).undefined
+
+			it('授权系统管理员', ()=>{
+				return dbSave(Schema, { userId, name })
+					.then(doc => {
+						id = doc.id,
+						__v = doc.__v
+						return entity.authorize(id, {__v, isAdmin: true})
+					})
+					.then(doc => {
+						expect(doc.inUse).true
+                    	expect(doc.isAdmin).true
+                    	expect(doc.roles).undefined
+					})
+			})
+
+			it('授权角色', ()=>{
+				return dbSave(Schema, { userId, name })
+					.then(doc => {
+						id = doc.id,
+						__v = doc.__v
+						return entity.authorize(id, {__v, roles})
+					})
+					.then(doc => {
+						expect(doc.inUse).true
+                    	expect(doc.isAdmin).undefined
+                    	expect(doc.roles).eql(roles)
+					})
+			})
+
+			it('收回授权', ()=>{
+				return dbSave(Schema, { userId, name })
+					.then(doc => {
+						id = doc.id,
+						__v = doc.__v
+						return entity.authorize(id, {__v })
+					})
+					.then(doc => {
+						expect(doc.inUse).undefined
+                    	expect(doc.isAdmin).undefined
+                    	expect(doc.roles).undefined
+					})
 			})
 		})
 
@@ -114,6 +163,7 @@ describe('权限管理', function () {
 					.then((theUser) => {
 						expect(theUser).eql({
 							id,
+							userId,
 							name,
 							pic,
 							isAdmin: true,
@@ -207,7 +257,7 @@ describe('权限管理', function () {
 	})
 
 	describe('CrossJwtConfig', () => {
-		const createAuthConfig = require('../server/CrossJwtConfig'),
+		const createAuthConfig = require('../server/JwtConfig'),
 			DEFAULT_ADMIN_ID = '$$$$cross$$admin'
 		let dbAuth
 

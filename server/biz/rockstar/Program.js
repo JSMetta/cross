@@ -1,4 +1,4 @@
-const schema = require('../../db/schema/Program'),
+const schema = require('../../../db/schema/Program'),
 	stringToJavascript = require('@finelets/hyper-rest/utils/StringToJavascript'),
 	createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
 	__ = require('underscore')

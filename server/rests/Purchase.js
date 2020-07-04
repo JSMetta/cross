@@ -1,13 +1,13 @@
 /**
  * Created by clx on 2017/10/13.
  */
-const entity = require('../biz/pur/Purchases') 
-const { ifMatch, ifNoneMatch, update, remove, findById } = entity
+const entity = require('../biz').Purchases, 
+    { ifMatch, ifNoneMatch, update, remove, findById } = entity
 
 module.exports = {
     url: '/cross/api/pur/purchases/:id',
     transitions: {
-        PoTransaction: {id: 'params.parent'}
+        PoTransaction: {id: 'context.po'}
     },
     rests: [{
             type: 'read',
@@ -33,7 +33,7 @@ module.exports = {
             handler: (req) => {
                 const id = req.params['id']
                 const type = req.query['type']
-                return entity.doTransaction(id, type, req.body)
+                return entity[type](id, req.body)
             }
         }
     ]

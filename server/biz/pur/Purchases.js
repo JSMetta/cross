@@ -1,14 +1,11 @@
 const schema = require('../../../db/schema/pur/Purchase'),
-	part = require('../bas/Parts'),
 	createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
-	publishMsg = require('../../PublishMsg'),
-	__ = require('underscore'),
-	logger = require('@finelets/hyper-rest/app/Logger'),
-	dbSave = require('../../../finelets/db/mongoDb/dbSave');
+	_ = require('lodash')
 
 const config = {
 	schema,
-	projection: '-transactions',
+	projection: {transactions: 0},
+	listable: {transactions: 0, __v: 0},
 	updatables: ['code', 'part', 'qty', 'price', 'amount', 'supplier', 'refNo', 'remark'],
 	searchables: ['code', 'refNo', 'remark']
 }
@@ -30,7 +27,7 @@ const commit = (id, {__v, actor, date}) => {
 		.then(data => {
 			if(data) {
 				data = data.toJSON()
-				return {parent: data.id, ...data.transactions[row - 1]}
+				return {po: data.id, ...data.transactions[row - 1]}
 			} 
 		})
 }
@@ -57,81 +54,42 @@ const review = (id, {__v, actor, date, pass, remark}) => {
 		})
 }
 
-const inInv = (id, {__v, actor, date, data, remark}) => {
-	if (!actor) return Promise.reject()
-	if (!data || !data.qty) return Promise.reject()
-	data.qty = data.qty * 1
-	let row
-	return schema.findById(id)
-		.then(doc => {
-			if(!doc || doc.__v !== __v || doc.state !== 'Open' || !data.qty) return Promise.reject()
-			
-			const invDate = date || new Date()
-			row = doc.transactions.push({type: 'inv', data, actor, date: invDate, remark})
-			return doc.save()
-		})
-		.then(data => {
-			if(data) {
-				data = data.toJSON()
-				const trans = {parent: data.id, ...data.transactions[row - 1]}
-				publishMsg('poInInv', trans)
-				return trans
-			} 
-		})
-}
-
-const transactionActions = {commit, review, inv: inInv}
-
 const addIn = {
-	findSubDocById: (id, sub, sid) => {
+	listTransactions: (id) => {
 		return schema.findById(id)
-		.then(doc => {
-			if(doc) {
-				let subdoc = doc[sub].id(sid)
-				if(subdoc) {
-					subdoc = subdoc.toJSON()
-					return {parent: doc.id, ...subdoc}
+			.then(doc => {
+				if(!doc) return []
+				doc = doc.toJSON()
+				return doc.transactions
+			})
+	},
+
+	findTransactionById: (id) => {
+		return schema.findOne({
+			transactions: {
+				$elemMatch: {
+					_id: id
 				}
 			}
 		})
+		.then(doc => {
+			const transaction = doc.transactions.id(id).toJSON()
+			return {po: doc.id.toString(), ...transaction}
+		})
 	},
 
-	doTransaction: (id, type, data) => {
-		return transactionActions[type](id, data)
-	},
-
-	createBySource: (data) => {
-		return schema
-			.findOne({
-				source: data.source
-			})
-			.then((doc) => {
-				if (doc) return doc.toJSON();
-				return dbSave(schema, data);
-			});
-	},
+	commit, review,
 
 	poInInv: (id, qty) => {
-		let po
 		return schema.findById(id)
-			.then((doc) => {
-				if (!doc) return Promise.reject()
-				po = doc
-				return part.updateInvQty(po.part, qty)
-			})
-			.then(() => {
+			.then((po) => {
+				if (!po) return Promise.reject()
 				if (!po.left) {
 					po.left = po.qty;
 				}
 				po.left -= qty;
 				return po.save()
 			})
-	},
-
-	getPart: (purId) => {
-		return schema.findById(purId).then((data) => {
-			return part.findById(data.part);
-		});
 	},
 
 	periodPurchases: () => {
@@ -143,7 +101,6 @@ const addIn = {
 					as: 'partDoc'
 				}
 			},
-			// {"$match": {"state": "payed"}},
 			{
 				$facet: {
 					byType: [{
@@ -210,14 +167,14 @@ const addIn = {
 				let byPart = data.byPart;
 				let byPo = data.byPo;
 
-				__.each(byPo, po => {
+				_.each(byPo, po => {
 					let type = po.partDoc[0].type
 					let part = po.partDoc[0]
-					let typeDoc = __.find(result.types, t => {
+					let typeDoc = _.find(result.types, t => {
 						return t.type === type
 					})
 					if (!typeDoc) {
-						let byTypeElement = __.find(byType, t => {
+						let byTypeElement = _.find(byType, t => {
 							let id
 							if (t._id.length > 0) id = t._id[0]
 							return id === type
@@ -230,11 +187,11 @@ const addIn = {
 						result.types.push(typeDoc)
 					}
 
-					let partDoc = __.find(typeDoc.parts, p => {
+					let partDoc = _.find(typeDoc.parts, p => {
 						return p.part._id.equals(part._id)
 					})
 					if (!partDoc) {
-						let byPartElement = __.find(byPart, p => {
+						let byPartElement = _.find(byPart, p => {
 							return p._id.part[0]._id.equals(part._id)
 						})
 						partDoc = {
@@ -250,17 +207,17 @@ const addIn = {
 				})
 
 				result.total = data.total[0].amount
-				__.each(result.types, t => {
-					__.each(t.parts, p => {
-						p.pos = __.sortBy(p.pos, po => {
+				_.each(result.types, t => {
+					_.each(t.parts, p => {
+						p.pos = _.sortBy(p.pos, po => {
 							return po.amount * 1
 						})
 					})
-					t.parts = __.sortBy(t.parts, pp => {
+					t.parts = _.sortBy(t.parts, pp => {
 						return pp.total * -1
 					})
 				})
-				result.types = __.sortBy(result.types, tt => {
+				result.types = _.sortBy(result.types, tt => {
 					return tt.total * -1
 				})
 			}

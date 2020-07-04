@@ -1,5 +1,5 @@
-const picGridFs = require('../biz/PicGridFs'),
-    entity = require('../biz/bas/Employee'),
+const picGridFs = require('../biz').PicGridFs,
+    entity = require('../biz').Employee,
     mqPublish = require('@finelets/hyper-rest/mq')
 
 module.exports = {

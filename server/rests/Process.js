@@ -2,7 +2,6 @@
  * Created by clx on 2017/10/13.
  */
 const {
-    ifNoneMatch,
     remove,
     findById
 } = require('../biz').Process

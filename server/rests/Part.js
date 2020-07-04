@@ -7,13 +7,13 @@ const {
     update,
     remove,
     findById
-} = require('../biz/bas/Parts');
+} = require('../biz').Parts;
 
 module.exports = {
     url: '/cross/api/bas/parts/:id',
     transitions: {
-        Purchase: {id: 'context.part'},
-        Withdraw: {id: 'context.part'}
+        Purchase: {id: 'context'},
+        Withdraw: {id: 'context'}
     },
     rests: [{
             type: 'read',

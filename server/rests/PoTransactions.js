@@ -1,8 +1,8 @@
-const entity = require('../biz/pur/Purchases') 
+const {POTransactions, Purchases} = require('../biz')
 
 const list = function (query) {
     const {id} = query
-    return entity.listSubs(id, 'transactions')
+    return Purchases.listTransactions(id)
         .then(function (list) {
             return {
                 items: list
@@ -18,7 +18,7 @@ module.exports = {
             handler: (req) => {
                 const id = req.params['id']
                 const type = req.query['type']
-                return entity.doTransaction(id, type, req.body)
+                return POTransactions[type](id, req.body)
             }
         },
         {

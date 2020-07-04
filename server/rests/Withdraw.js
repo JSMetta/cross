@@ -1,8 +1,7 @@
 /**
  * Created by clx on 2017/10/13.
  */
-const entity = require('../biz/inv/Withdraws')
-const { ifNoneMatch, findById } = entity
+const { ifNoneMatch, findById } = require('../biz').Withdraws
 
 module.exports = {
     url: '/cross/api/inv/withdraw/:id',

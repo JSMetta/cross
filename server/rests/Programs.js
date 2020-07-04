@@ -1,4 +1,4 @@
-const entity = require('../biz/Program');
+const entity = require('../biz').Program;
 
 const list = function (query) {
     let condi

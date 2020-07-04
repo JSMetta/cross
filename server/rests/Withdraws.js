@@ -1,4 +1,4 @@
-const entity = require('../biz/inv/Withdraws');
+const entity = require('../biz').Withdraws;
 
 const list = function (query) {
     let condi

@@ -1,4 +1,4 @@
-const picGridFs = require('../biz/PicGridFs')
+const picGridFs = require('../biz').PicGridFs
 
 module.exports = {
     url: '/cross/api/pictures/:id',

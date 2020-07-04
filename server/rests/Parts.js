@@ -1,4 +1,4 @@
-const entity = require('../biz/bas/Parts');
+const entity = require('../biz').Parts;
 
 const list = function (query) {
     let condi

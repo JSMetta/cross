@@ -2,7 +2,7 @@
  * Created by clx on 2017/10/13.
  */
 const logger = require('@finelets/hyper-rest/app/Logger'),
-    {findById, update} = require('../biz/bas/Employee')
+    {findById, update} = require('../biz').Employee
 
 const scopes = {
     info: (user, data) => {

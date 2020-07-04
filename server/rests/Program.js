@@ -7,8 +7,7 @@ const {
     update,
     remove,
     findById
-} = require('../biz/Program'),
-Process = require('../biz').Process
+} = require('../biz').Program
 
 module.exports = {
     url: '/cross/api/programs/:id',

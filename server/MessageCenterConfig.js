@@ -1,9 +1,5 @@
 const logger = require('@finelets/hyper-rest/app/Logger'),
-    employee = require('./biz/bas/Employee'),
-    PO = require('./biz/pur/Purchases'),
-    INV = require('./biz/bas/Parts'),
-    processLogger = require('./biz').Process,
-    picGridFs = require('./biz/PicGridFs')
+    {Employee, Purchases, Parts, Process, PicGridFs} = require('./biz')
 
 module.exports = {
     connect: process.env.MQ,
@@ -25,7 +21,7 @@ module.exports = {
                         pic
                     }) => {
                         logger.debug(`handle message employeePicChanged: {id: ${id}, pic: ${pic}}`)
-                        return employee.updatePic(id, pic)
+                        return Employee.updatePic(id, pic)
                             .then(() => {
                                 return true
                             })
@@ -38,7 +34,7 @@ module.exports = {
                     topic: 'removePic',
                     consumer: (pic) => {
                         logger.debug(`handle message removePic: ${pic}`)
-                        return picGridFs.remove(pic)
+                        return PicGridFs.remove(pic)
                             .then(() => {
                                 return true
                             })
@@ -47,23 +43,32 @@ module.exports = {
                             })
                     }
                 },
-                PoInInv_Inv: {
+                PoInInv_UpdatePoLeft: {
                     topic: 'poInInv',
                     consumer: (doc) => {
-                        return PO.poInInv(doc.parent, doc.data.qty)
+                        return Purchases.poInInv(doc.po, doc.data.qty)
                             .then(() => {
-                                logger.debug('Inventory qty is updated by InInv !!!')
+                                logger.debug('PO left qty is updated by poInInv !!!')
                                 return true
                             })
                     }
                 },
-                OutInv_Inv: {
+                OutInv_UpdatePartInvQty: {
                     topic: 'outInv',
                     consumer: (doc) => {
-                        const qty = doc.qty * -1
-                        return INV.updateInvQty(doc.part, qty)
+                        return Parts.updateInvQty(doc.part, doc.qty * -1) 
                             .then(() => {
-                                logger.debug('Inventory qty is updated by outInv !!!')
+                                logger.debug('Part inventory qty is updated by outInv !!!')
+                                return true
+                            })
+                    }
+                },
+                PoInInv_UpdatePartInvQty: {
+                    topic: 'poInInv',
+                    consumer: (doc) => {
+                        return Parts.updateInvQty(doc.part, doc.data.qty)
+                            .then(() => {
+                                logger.debug('Part inventory qty is updated by poInInv !!!')
                                 return true
                             })
                     }
@@ -71,7 +76,7 @@ module.exports = {
                 ExecSerialPortInstruction: {
                     topic: 'execSerialPortInstruction',
                     consumer: (msg) => {
-                        return processLogger.log(msg)
+                        return Process.log(msg)
                             .then((doc) => {
                                 return !!doc
                             })

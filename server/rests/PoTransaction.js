@@ -1,14 +1,15 @@
 
-const entity = require('../biz/pur/Purchases');
+const {findTransactionById} = require('../biz').Purchases;
 
 module.exports = {
-    url: '/cross/api/pur/purchases/:parent/transactions/:id',
+    url: '/cross/api/pur/purchas/transactions/:id',
+    transitions: {
+        PoTransactions: {id: 'context.id'}
+    },
     rests: [{
             type: 'read',
             dataRef: {User: 'actor'},
-            handler: (id, args) => {
-                return entity.findSubDocById(args.parent, 'transactions', args.id)
-            }
+            handler: findTransactionById
         }
     ]
 }

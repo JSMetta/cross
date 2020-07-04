@@ -7,7 +7,7 @@ const {
     update,
     remove,
     findById
-} = require('../biz/bas/Employee');
+} = require('../biz').Employee;
 
 module.exports = {
     url: '/cross/api/users/:id',
