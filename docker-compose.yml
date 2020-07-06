@@ -34,8 +34,6 @@ services:
   nginx:
     build: ./VCross
     container_name: nginx-vcross
-    extra_hosts:
-      - "rockstar:192.168.5.106"
     links:
         - cross:cross
     ports:
