@@ -27,7 +27,6 @@ services:
         - rabbitmq
     links:
       - mongodb:crossdb
-      - redis:redis
       - rabbitmq:rabbitmq
   nginx:
     build: ./VCross
