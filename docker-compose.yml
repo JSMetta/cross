@@ -1,10 +1,5 @@
 version: "2"
 services:
-  redis:
-    container_name: redis
-    image: redis
-    ports:
-        - "6379"
   rabbitmq:
     image: "rabbitmq:management"
     environment:
@@ -26,7 +21,10 @@ services:
     restart: on-failure
     build: .
     ports:
-      - "8080"
+      - "9509"
+    depends_on:
+        - mongodb
+        - rabbitmq
     links:
       - mongodb:crossdb
       - redis:redis
