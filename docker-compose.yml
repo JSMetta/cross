@@ -1,6 +1,7 @@
 version: "2"
 services:
   rabbitmq:
+    container_name: jsm_rabbitmq
     image: "rabbitmq:management"
     environment:
       - RABBITMQ_DEFAULT_USER=jsm
@@ -9,7 +10,7 @@ services:
       - "5672:5672"
       - "15672:15672"
   mongodb:
-    container_name: mongodb
+    container_name: jsm_mongodb
     image: mongo
     volumes:
       - /home/mongo/data:/data/db
@@ -17,21 +18,21 @@ services:
     ports:
       - "27017:27017"
   cross:
-    container_name: cross
+    container_name: jsm_cross
     restart: on-failure
     build: .
     ports:
       - "9509:9509"
     depends_on:
-        - mongodb
-        - rabbitmq
+        - jsm_mongodb
+        - jsm_rabbitmq
     links:
-      - mongodb:crossdb
-      - rabbitmq:rabbitmq
+      - jsm_mongodb:crossdb
+      - jsm_rabbitmq:rabbitmq
   nginx:
     build: ./VCross
-    container_name: nginx-vcross
+    container_name: jsm_nginx_vcross
     links:
-        - cross:cross
+        - jsm_cross:cross
     ports:
         - "80:80"
