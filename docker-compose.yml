@@ -1,6 +1,6 @@
 version: "2"
 services:
-  rabbitmq:
+  jsm_rabbitmq:
     container_name: jsm_rabbitmq
     image: "rabbitmq:management"
     environment:
@@ -9,7 +9,7 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-  mongodb:
+  jsm_mongodb:
     container_name: jsm_mongodb
     image: mongo
     volumes:
@@ -17,7 +17,7 @@ services:
       - /home/mongo/backups:/backups
     ports:
       - "27017:27017"
-  cross:
+  jsm_cross:
     container_name: jsm_cross
     restart: on-failure
     build: .
@@ -29,9 +29,9 @@ services:
     links:
       - jsm_mongodb:crossdb
       - jsm_rabbitmq:rabbitmq
-  nginx:
+  jsm_nginx:
     build: ./VCross
-    container_name: jsm_nginx_vcross
+    container_name: jsm_nginx
     external_links: 
       - 192.168.5.106:rockstar
     links:
