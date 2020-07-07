@@ -17,15 +17,3 @@ services:
       - /home/mongo/backups:/backups
     ports:
       - "27017:27017"
-  jsm_cross:
-    container_name: jsm_cross
-    restart: on-failure
-    build: .
-    ports:
-      - "9509:9509"
-    depends_on:
-        - jsm_mongodb
-        - jsm_rabbitmq
-    links:
-      - jsm_mongodb:crossdb
-      - jsm_rabbitmq:rabbitmq
