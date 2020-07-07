@@ -22,7 +22,7 @@ services:
     restart: on-failure
     build: .
     ports:
-      - "8080"
+      - "8080:8080"
     links:
       - jsm_mongodb:crossdb
       - jsm_rabbitmq:rabbitmq
