@@ -32,6 +32,8 @@ services:
   nginx:
     build: ./VCross
     container_name: jsm_nginx_vcross
+    external_links: 
+      - 192.168.5.106:rockstar
     links:
         - jsm_cross:cross
     ports:
