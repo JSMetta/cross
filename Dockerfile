@@ -10,14 +10,14 @@ WORKDIR /app
 ADD . /app
 
 ENV RUNNING_MODE=prod
-ENV PORT=8080
+ENV PORT=9510
 ENV MONGODB=mongodb://crossdb:27017/Cross
 ENV CLIENT_ORIGIN=http://192.168.5.166/jsmetta
 ENV MQ=amqp://jsm:jsm@rabbitmq
 ENV JWT_SECRET=MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAamUL/pm3t5EZ
 
 # Expose port
-EXPOSE  8080
+EXPOSE  9510
 
 # Run app using nodemon
 CMD ["node", "/app/server.js"]
