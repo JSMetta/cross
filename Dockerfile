@@ -9,8 +9,8 @@ RUN mkdir -p /app && cp -a /tmp/node_modules /app/
 WORKDIR /app
 ADD . /app
 
-ENV RUNNING_MODE prod
-ENV PORT 9509
+ENV RUNNING_MODE=prod
+ENV PORT=9509
 ENV MONGODB=mongodb://crossdb:27017/Cross
 ENV CLIENT_ORIGIN=http://192.168.5.166/jsmetta
 ENV MQ=amqp://jsm:jsm@rabbitmq
