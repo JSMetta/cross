@@ -26,3 +26,10 @@ services:
     links:
       - jsm_mongodb:crossdb
       - jsm_rabbitmq:rabbitmq
+  jsm_nginx:
+    build: ./VCross
+    container_name: jsm_nginx
+    links:
+        - jsm_cross:cross
+    ports:
+        - "80:80"
