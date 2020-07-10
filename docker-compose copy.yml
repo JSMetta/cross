@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 services:
   jsm_rabbitmq:
     container_name: jsm_rabbitmq
@@ -22,19 +22,14 @@ services:
     restart: on-failure
     build: .
     ports:
-      - "9509:9509"
-    depends_on:
-        - jsm_mongodb
-        - jsm_rabbitmq
+      - "9510:9510"
     links:
       - jsm_mongodb:crossdb
       - jsm_rabbitmq:rabbitmq
   jsm_nginx:
     build: ./VCross
     container_name: jsm_nginx
-    external_links: 
-      - 192.168.5.106:rockstar
     links:
         - jsm_cross:cross
     ports:
-        - "80:80"
+        - "8090:8090"
