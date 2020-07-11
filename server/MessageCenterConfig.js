@@ -76,6 +76,7 @@ module.exports = {
                 ExecSerialPortInstruction: {
                     topic: 'execSerialPortInstruction',
                     consumer: (msg) => {
+                        logger.debug(`execSerialPortInstruction message: ${JSON.stringify(msg, null, 2)}`)
                         return Process.log(msg)
                             .then((doc) => {
                                 return !!doc
