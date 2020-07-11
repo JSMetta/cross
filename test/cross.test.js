@@ -1,6 +1,5 @@
-const proxyquire = require('proxyquire'),
-	dbSave = require('./dbSave');
-const { expect } = require('chai');
+const dbSave = require('./dbSave'),
+	{ expect } = require('chai');
 
 describe('Cross', function () {
 	var stubs, err;
@@ -890,7 +889,6 @@ describe('Cross', function () {
 							})
 							.then(doc => {
 								transaction = doc
-								expect(transaction.parent).eql(id)
 								expect(transaction.type).eql('commit')
 								expect(transaction.actor).eql(applier)
 								expect(transaction.date).exist
@@ -919,7 +917,6 @@ describe('Cross', function () {
 							})
 							.then(doc => {
 								transaction = doc
-								expect(transaction.parent).eql(id)
 								expect(transaction.type).eql('commit')
 								expect(transaction.actor).eql(applier)
 								expect(transaction.date).eql(appDate.toJSON())
