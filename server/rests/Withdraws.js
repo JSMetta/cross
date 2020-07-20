@@ -1,4 +1,4 @@
-const entity = require('../biz').Parts;
+const entity = require('../biz').Withdraws;
 
 const list = function (query) {
     let condi
@@ -7,9 +7,10 @@ const list = function (query) {
     } catch (e) {
         condi = {}
     }
-    let text = query.s ? query.s : '.'
+    /* let text = query.s ? query.s : '.'
     text = text.length > 0 ? text : '.'
-    return entity.search(condi, text)
+    return entity.search(condi, text) */
+    return entity.search(condi)
         .then(function (list) {
             return {
                 items: list
@@ -18,17 +19,17 @@ const list = function (query) {
 };
 
 module.exports = {
-    url: '/cross/api/bas/parts',
+    url: '/cross/api/inv/withdraws',
     rests: [{
             type: 'create',
-            target: 'Part',
+            target: 'Withdraw',
             handler: (req) => {
                 return entity.create(req.body)
             }
         },
         {
             type: 'query',
-            element: 'Part',
+            element: 'Withdraw',
             handler: list
         }
     ]

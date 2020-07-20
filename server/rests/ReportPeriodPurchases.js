@@ -1,4 +1,4 @@
-const periodPurchases = require('../biz/pur/Purchases').periodPurchases
+const periodPurchases = require('../biz').Purchases.periodPurchases
 
 module.exports = {
     url: '/cross/api/reports/pur/periodPurchases',

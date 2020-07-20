@@ -1,13 +1,15 @@
-const taskDb = require('../biz/batches/ImportPurTransTask');
+const entity = require('../biz').Employee;
 
 const list = function (query) {
-    var condi;
+    let condi
     try {
         condi = JSON.parse(query.q);
     } catch (e) {
         condi = {}
     }
-    return taskDb.find(condi)
+    let text = query.s ? query.s : '.'
+    text = text.length > 0 ? text : '.'
+    return entity.search(condi, text)
         .then(function (list) {
             return {
                 items: list
@@ -16,15 +18,11 @@ const list = function (query) {
 };
 
 module.exports = {
-    url: '/cross/api/task/purTransTasks',
-    rests: [{
-            type: 'create',
-            target: 'PurchaseTransTask',
-            handler: taskDb.create
-        },
+    url: '/cross/api/auth/users',
+    rests: [
         {
             type: 'query',
-            element: 'PurchaseTransTask',
+            element: 'User',
             handler: list
         }
     ]

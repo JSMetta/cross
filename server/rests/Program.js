@@ -7,13 +7,11 @@ const {
     update,
     remove,
     findById
-} = require('../biz').Parts;
+} = require('../biz').Program
 
 module.exports = {
-    url: '/cross/api/bas/parts/:id',
+    url: '/cross/api/programs/:id',
     transitions: {
-        Purchase: {id: 'context'},
-        Withdraw: {id: 'context'}
     },
     rests: [{
             type: 'read',

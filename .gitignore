@@ -5,3 +5,4 @@ coverage/
 node_modules/
 uploads/
 test/data/
+.env

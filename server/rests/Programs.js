@@ -1,4 +1,4 @@
-const entity = require('../biz').Parts;
+const entity = require('../biz').Program;
 
 const list = function (query) {
     let condi
@@ -18,17 +18,17 @@ const list = function (query) {
 };
 
 module.exports = {
-    url: '/cross/api/bas/parts',
+    url: '/cross/api/programs',
     rests: [{
             type: 'create',
-            target: 'Part',
+            target: 'Program',
             handler: (req) => {
                 return entity.create(req.body)
             }
         },
         {
             type: 'query',
-            element: 'Part',
+            element: 'Program',
             handler: list
         }
     ]

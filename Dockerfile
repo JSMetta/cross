@@ -3,20 +3,21 @@ FROM node:latest
 # Provides cached layer for node_modules
 ADD package.json /tmp/package.json
 RUN cd /tmp && npm install
-RUN mkdir -p /src && cp -a /tmp/node_modules /src/
+RUN mkdir -p /app && cp -a /tmp/node_modules /app/
 
 # Define working directory
-WORKDIR /src
-ADD . /src
+WORKDIR /app
+ADD . /app
 
-ENV PORT 8080
+ENV RUNNING_MODE=prod
+ENV PORT=9510
 ENV MONGODB=mongodb://crossdb:27017/Cross
 ENV CLIENT_ORIGIN=http://192.168.5.166/jsmetta
 ENV MQ=amqp://jsm:jsm@rabbitmq
 ENV JWT_SECRET=MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAamUL/pm3t5EZ
 
 # Expose port
-EXPOSE  8080
+EXPOSE  9510
 
 # Run app using nodemon
-CMD ["node", "/src/server.js"]
+CMD ["node", "/app/server.js"]

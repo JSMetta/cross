@@ -3,10 +3,12 @@ module.exports = {
         parts: 'Parts',
         suppliers: 'Suppliers',
         purchases: 'Purchases',
-        uploadPurTransTasks: "UploadPurchases",
-        queryPurchaseTransTasks: 'PurchaseTransTasks',
+        withdraws: 'Withdraws',
         reportPeriodPurchases: 'ReportPeriodPurchases',
-        reportInvLocStates: 'InvLocStates'
+        programs: 'Programs',
+        users: 'Users',
+        register: 'RegisterUser',
+        currentUser: 'CurrentUser'
     },
     Parts: {
         add: 'Parts',
@@ -24,10 +26,49 @@ module.exports = {
         self: "Supplier",
         collection: "Suppliers"
     },
-    PurchaseTransTasks: {
-        exit: 'Cross'
+    Purchases: {
+        add: 'Purchases',
+        home: 'Cross'
+    },
+    Purchase: {
+        self: 'Purchase',
+        collection: 'Purchases',
+        transactions: 'PoTransactions'
+    },
+    PoTransactions: {
+        add: 'PoTransactions',
+        po: 'Purchase'
+    },
+    PoTransaction: {
+        self: 'PoTransaction',
+        po: 'Purchase'
     },
     PeriodPurchases: {
         exit: 'Cross'
+    },
+    Withdraws: {
+        add: 'Withdraws',
+        home: 'Cross'
+    },
+    Withdraw: {
+        self: 'Withdraw',
+        collection: 'Withdraws'
+    },
+    Programs: {
+        add: 'Programs',
+        home: 'Cross'
+    },
+    Program: {
+        self: "Program",
+        collection: "Programs",
+        run: 'RunProgram'
+    },
+    Users: {
+        add: 'RegisterUser',
+        home: 'Cross'
+    },
+    User: {
+        password: 'Password',
+        authorize: 'Authorization'
     }
 }

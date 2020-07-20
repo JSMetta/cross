@@ -1,15 +1,14 @@
 const mongoose = require('mongoose'),
     Schema = mongoose.Schema,
     createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection'),
-    transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
+    createSchema = require('@finelets/hyper-rest/db/mongoDb/CreateSchema')
 
-const ContactSchema = new Schema({
+const ContactSchema = createSchema({
         nick: String,
         name: String,
         phone: String,
         email: String
-    },
-    transformOption
+    }
 )
 
 const dbModel = createCollection({
