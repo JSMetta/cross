@@ -1,6 +1,5 @@
 const createSchema = require('@finelets/hyper-rest/db/mongoDb/CreateSchema'),
-    mongoose = require('mongoose'),
-    createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection')
+    mongoose = require('mongoose')
 
 const logSchema = createSchema({
       start: Date,

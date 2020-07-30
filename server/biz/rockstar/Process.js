@@ -1,15 +1,8 @@
-const schema = require('../../../db/schema/Process'),
-	createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
-	__ = require('underscore'),
-	progSchema = require('../../../db/schema/Program'),
+const progSchema = require('../../../db/schema/Program'),
 	_ = require('lodash'),
 	logger = require('@finelets/hyper-rest/app/Logger')
 
 let __mqPublish
-
-const config = {
-	schema
-}
 
 const addIn = {
 	runProcess: (progId) => {
@@ -86,10 +79,8 @@ const addIn = {
 	}
 }
 
-const entity = createEntity(config, addIn)
-
 const progProcess = (mqPublish) => {
 	__mqPublish = mqPublish
-	return entity
+	return addIn
 }
 module.exports = progProcess
