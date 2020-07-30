@@ -11,7 +11,8 @@ module.exports = {
                 'removePic',
                 'poInInv',
                 'outInv',
-                'execSerialPortInstruction'
+                'execSerialPortInstruction',
+                'runProgram'
             ],
             queues: {
                 EmployeePicChanged: {
@@ -79,10 +80,20 @@ module.exports = {
                         logger.debug(`execSerialPortInstruction message: ${JSON.stringify(msg, null, 2)}`)
                         return Process.log(msg)
                             .then((doc) => {
-                                return !!doc
+                                return doc ? true : false
                             })
                     }
-                }
+                },
+                /* RunSerialPortProgram: {
+                    topic: 'runProgram',
+                    consumer: ({
+                        procId,
+                        prog
+                    }) => {
+                        logger.error(`runProgram message should't deal on cross`)
+                        return Promise.resolve(false)
+                    }
+                } */
             }
         }
     }

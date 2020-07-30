@@ -1406,6 +1406,141 @@ describe('Cross', function () {
 						})
 				})
 			})
+
+			describe('Process - Rockstar处理过程', () => {
+				const prog = 'any rockstar program text',
+					name = 'foo program';
+				let progId, publishSpy;
+
+				beforeEach(() => {
+					publishSpy = sinon.spy()
+					schema = require('../db/schema/Program');
+					testTarget = require('../server/biz/rockstar/Process')(publishSpy);
+					return dbSave(schema, {name, prog})
+						.then(data => {
+							progId = data.id
+						})
+				});
+
+				describe('runProcess - 运行Rockstar程序', () => {
+					it('指定程序不存在', () => {
+						return testTarget.runProcess(ID_NOT_EXIST)
+							.should.be.rejectedWith()
+					})
+
+					it('正确运行', () => {
+						return testTarget.runProcess(progId)
+							.then((data) => {
+								expect(data).eql({id: data.id, prog: progId})
+								expect(publishSpy).calledWith({procId: data.id, prog}).calledOnce
+								return schema.findById(data.prog)
+							})
+							.then((data) => {
+								const proc = data.processes[0].toJSON()
+								expect(proc).eql({
+									id: proc.id,
+									date: proc.date,
+									logs: [],
+									state: 'open'
+								})
+							})
+					})
+				})
+
+				describe('process - Rockstar程序处理', () => {
+					const date1 = new Date('1995-12-19'),
+						date2 = new Date('1995-12-18')
+					let procId
+
+					beforeEach(() => {
+						return schema.findById(progId)
+							.then(doc => {
+								doc.processes.push({date: date1})
+								doc.processes.push({date: date2})
+								return doc.save()
+							})
+							.then(doc => {
+								procId = doc.processes[0].toJSON().id
+							})
+					});
+
+					describe('列出指定Rockstar程序的所有处理过程', () => {
+						it('指定程序不存在', () => {
+							return testTarget.listProcessesByProgram(ID_NOT_EXIST)
+								.then(docs => {
+									expect(docs).eql([])
+								})
+						})
+
+						it('正确列出', () => {
+							return testTarget.listProcessesByProgram(progId)
+								.then(docs => {
+									expect(docs.length).eql(2)
+									expect(docs[0].date).eql(date2.toJSON())
+									expect(docs[1].date).eql(date1.toJSON())
+								})
+						})
+					})
+
+					describe('加载指定Rockstar程序处理过程', () => {
+						it('指定过程不存在', () => {
+							return testTarget.findProcessById(ID_NOT_EXIST)
+								.then(data => {
+									expect(data).undefined
+								})
+						})
+
+						it('正确', () => {
+							return testTarget.findProcessById(procId)
+								.then(data => {
+									expect(data).eql({
+										id: procId,
+										prog: progId,
+										date: date1.toJSON(),
+										logs: [],
+										state: 'open'
+									})
+								})
+						})
+					})
+					
+
+					describe('记录运行日志', () => {
+						const start = new Date(),
+							log = 'any log'
+						it('指定处理不存在', () => {
+							return testTarget.log({procId: ID_NOT_EXIST, start, log})
+								.then((data) => {
+									expect(data).undefined
+								})
+						})
+	
+						it('记录运行中日志', () => {
+							return testTarget.log({procId, start, log})
+								.then((data) => {
+									data = data.toJSON()
+									expect(data.id).eql(progId)
+									const proc = data.processes[0]
+									expect(proc.id).eql(procId)
+									expect(proc.state).eql('running')
+									expect(proc.logs).eql([{id: proc.logs[0].id, start: start.toJSON(), message: log}])
+								})
+						})
+	
+						it('记录运行日志中止', () => {
+							return testTarget.log({procId, start})
+								.then((data) => {
+									data = data.toJSON()
+									expect(data.id).eql(progId)
+									const proc = data.processes[0]
+									expect(proc.id).eql(procId)
+									expect(proc.state).eql('over')
+									expect(proc.logs).eql([{id: proc.logs[0].id, start: start.toJSON(), message: 'Over !'}])
+								})
+						})
+					})
+				})
+			})
 		});
 	});
 });

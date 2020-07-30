@@ -5,7 +5,8 @@ const schema = require('../../../db/schema/Program'),
 
 const config = {
 	schema,
-	listable: {prog: 0, __v: 0},
+	sort: 'updateAt',
+	listable: {prog: 0, __v: 0, processes: 0},
 	updatables: ['name', 'desc', 'code', 'prog', 'tags'],
 	searchables: ['name', 'desc', 'tags']
 }

@@ -2,8 +2,7 @@
  * Created by clx on 2017/10/13.
  */
 const {
-    remove,
-    findById
+    findProcessById
 } = require('../biz').Process
 
 module.exports = {
@@ -13,11 +12,7 @@ module.exports = {
     rests: [{
             type: 'read',
             cache: 'no-store',
-            handler: findById
-        },
-        {
-            type: 'delete',
-            handler: remove
+            handler: findProcessById
         }
     ]
 }
