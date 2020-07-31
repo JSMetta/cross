@@ -1,7 +1,7 @@
 const schema = require('../../../db/schema/Program'),
 	stringToJavascript = require('@finelets/hyper-rest/utils/StringToJavascript'),
 	createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
-	__ = require('underscore')
+	_ = require('lodash')
 
 const config = {
 	schema,
@@ -12,6 +12,22 @@ const config = {
 }
 
 const addIn = {
+	update: (data) => {
+        return schema.findById(data.id)
+            .then(doc => {
+                if (doc) {
+                    _.each(config.updatables, fld => {
+                        if (_.isString(data[fld]) && data[fld].length === 0) doc[fld] = undefined
+                        else doc[fld] = data[fld]
+                    })
+                    return doc.save()
+                        .then(doc => {
+                            return doc.toJSON()
+                        })
+                }
+            })
+	},
+
 	loadProgram: (id) => {
 		return schema.findById(id)
 			.then(doc => {

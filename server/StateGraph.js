@@ -61,8 +61,7 @@ module.exports = {
     Program: {
         self: "Program",
         collection: "Programs",
-        processes: 'Processes',
-        run: 'RunProgram'
+        processes: 'Processes'
     },
     Users: {
         add: 'RegisterUser',
