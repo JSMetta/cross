@@ -8,7 +8,7 @@ const config = {
 	sort: 'updateAt',
 	listable: {prog: 0, __v: 0, processes: 0},
 	updatables: ['name', 'desc', 'code', 'prog', 'tags'],
-	searchables: ['name', 'desc', 'tags']
+	searchables: ['name', 'desc', 'code', 'tags']
 }
 
 const addIn = {
@@ -16,8 +16,8 @@ const addIn = {
         return schema.findById(data.id)
             .then(doc => {
                 if (doc) {
-                    _.each(config.updatables, fld => {
-                        if (_.isString(data[fld]) && data[fld].length === 0) doc[fld] = undefined
+					_.each(config.updatables, fld => {
+						if (_.isString(data[fld]) && data[fld].length === 0) doc[fld] = undefined
                         else doc[fld] = data[fld]
                     })
                     return doc.save()

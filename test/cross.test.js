@@ -1407,6 +1407,40 @@ describe('Cross', function () {
 				})
 			})
 
+			describe('Rockstar程序管理', () => {
+				const name = 'foo',
+					desc = 'desc',
+					code = 'code',
+					prog = 'prog',
+					tags = 'tags'
+				
+				describe('更新Rockstar程序', () => {
+					it('更新成功', () => {
+						schema = require('../db/schema/Program')
+						testTarget = require('../server/biz/rockstar/Program')
+						let updated
+
+						return dbSave(schema, {name, prog: 'foo prog', tags})
+							.then(data => {
+								id = data.id
+								return testTarget.update({id, name: 'fee', desc, code, prog, tags: ''})
+							})
+							.then((data) => {
+								updated = data
+								return schema.findById(id)
+							})
+							.then((data) => {
+								data = data.toJSON()
+								expect(data).eql(updated)
+								expect(data.tags).undefined
+							})
+						
+					})
+				})
+			
+				
+			})
+
 			describe('Process - Rockstar处理过程', () => {
 				const prog = 'any rockstar program text',
 					name = 'foo program';
